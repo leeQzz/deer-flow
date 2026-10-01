@@ -18,13 +18,13 @@ from langchain_core.outputs import ChatGeneration, ChatResult
 from langgraph.types import Command
 from pydantic import Field, ValidationError
 
-from deerflow.agents.middlewares.pii_redaction_middleware import (
+from operix.agents.middlewares.pii_redaction_middleware import (
     _DETECTORS,
     PiiRedactionMiddleware,
     redact_text,
 )
-from deerflow.config.pii_redaction_config import PiiRedactionConfig
-from deerflow.tools.mcp_metadata import MCP_TOOL_METADATA_KEY
+from operix.config.pii_redaction_config import PiiRedactionConfig
+from operix.tools.mcp_metadata import MCP_TOOL_METADATA_KEY
 
 _TOKEN_SECRET = "unit-test-deployment-secret-0123456789"
 
@@ -375,7 +375,7 @@ class TestToolBoundary:
         )
         final = _run_tool_call(_make_middleware(), "web_fetch", result)
         assert final.content == f"page says contact {EMAIL_ALICE}"
-        transforms = final.additional_kwargs["deerflow_tool_transforms"]
+        transforms = final.additional_kwargs["operix_tool_transforms"]
         assert transforms[-1]["kind"] == "pii_redaction"
         assert transforms[-1]["by"] == "PiiRedactionMiddleware"
 
@@ -410,7 +410,7 @@ class TestToolBoundary:
         assert isinstance(final, Command)
         new_message = final.update["messages"][0]
         assert new_message.content == f"page says {EMAIL_ALICE}"
-        assert new_message.additional_kwargs["deerflow_tool_transforms"][-1]["kind"] == "pii_redaction"
+        assert new_message.additional_kwargs["operix_tool_transforms"][-1]["kind"] == "pii_redaction"
         # The original Command and its message are untouched.
         assert tool_message.content == "page says alice@example.com"
 
@@ -502,25 +502,25 @@ def test_config_defaults_are_consistent(config):
 
 
 def _wiring_app_config(**overrides):
-    from deerflow.config.app_config import AppConfig
-    from deerflow.config.sandbox_config import SandboxConfig
+    from operix.config.app_config import AppConfig
+    from operix.config.sandbox_config import SandboxConfig
 
     return AppConfig(sandbox=SandboxConfig(use="test"), **overrides)
 
 
 class TestChainWiring:
     def test_disabled_by_default_not_in_chain(self):
-        from deerflow.agents.middlewares.pii_redaction_middleware import PiiRedactionMiddleware
-        from deerflow.agents.middlewares.tool_error_handling_middleware import build_lead_runtime_middlewares
+        from operix.agents.middlewares.pii_redaction_middleware import PiiRedactionMiddleware
+        from operix.agents.middlewares.tool_error_handling_middleware import build_lead_runtime_middlewares
 
         middlewares = build_lead_runtime_middlewares(app_config=_wiring_app_config())
         assert PiiRedactionMiddleware not in [type(m) for m in middlewares]
 
     def test_enabled_sits_inner_of_the_structural_guardrails(self):
-        from deerflow.agents.middlewares.input_sanitization_middleware import InputSanitizationMiddleware
-        from deerflow.agents.middlewares.pii_redaction_middleware import PiiRedactionMiddleware
-        from deerflow.agents.middlewares.tool_error_handling_middleware import build_lead_runtime_middlewares
-        from deerflow.agents.middlewares.tool_result_sanitization_middleware import ToolResultSanitizationMiddleware
+        from operix.agents.middlewares.input_sanitization_middleware import InputSanitizationMiddleware
+        from operix.agents.middlewares.pii_redaction_middleware import PiiRedactionMiddleware
+        from operix.agents.middlewares.tool_error_handling_middleware import build_lead_runtime_middlewares
+        from operix.agents.middlewares.tool_result_sanitization_middleware import ToolResultSanitizationMiddleware
 
         middlewares = build_lead_runtime_middlewares(
             app_config=_wiring_app_config(pii_redaction=PiiRedactionConfig(enabled=True, token_secret=_TOKEN_SECRET)),
@@ -530,8 +530,8 @@ class TestChainWiring:
         assert types.index(InputSanitizationMiddleware) < types.index(ToolResultSanitizationMiddleware) < types.index(PiiRedactionMiddleware)
 
     def test_enabled_reaches_subagent_chain(self):
-        from deerflow.agents.middlewares.pii_redaction_middleware import PiiRedactionMiddleware
-        from deerflow.agents.middlewares.tool_error_handling_middleware import build_subagent_runtime_middlewares
+        from operix.agents.middlewares.pii_redaction_middleware import PiiRedactionMiddleware
+        from operix.agents.middlewares.tool_error_handling_middleware import build_subagent_runtime_middlewares
 
         middlewares = build_subagent_runtime_middlewares(
             app_config=_wiring_app_config(pii_redaction=PiiRedactionConfig(enabled=True, token_secret=_TOKEN_SECRET)),
@@ -574,7 +574,7 @@ class _StateRequest:
 
 class TestDurableContextReinjection:
     def _make_dc(self, config):
-        from deerflow.agents.middlewares.durable_context_middleware import DurableContextMiddleware
+        from operix.agents.middlewares.durable_context_middleware import DurableContextMiddleware
 
         return DurableContextMiddleware(pii_redaction_config=config)
 
@@ -608,13 +608,13 @@ class TestDurableContextReinjection:
 
 class TestSummarizationCompactionInput:
     def _middleware(self, pii_config):
-        from deerflow.agents.middlewares.summarization_middleware import DeerFlowSummarizationMiddleware
+        from operix.agents.middlewares.summarization_middleware import OperixSummarizationMiddleware
 
         model = MagicMock()
         model.invoke.return_value = SimpleNamespace(text="compressed")
         model.ainvoke = AsyncMock(return_value=SimpleNamespace(text="compressed"))
         model.with_config.return_value = model
-        return DeerFlowSummarizationMiddleware(
+        return OperixSummarizationMiddleware(
             model=model,
             trigger=("messages", 4),
             keep=("messages", 2),
@@ -651,16 +651,16 @@ class _RecordingPiiModel(FakeToolCallingModel):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("enabled", [True, False])
 async def test_async_graph_redacts_configured_title_model_input(monkeypatch, enabled):
-    from deerflow.agents.middlewares.title_middleware import TitleMiddleware
-    from deerflow.agents.thread_state import ThreadState
-    from deerflow.config.title_config import TitleConfig
-    from deerflow.utils.messages import ORIGINAL_USER_CONTENT_KEY
+    from operix.agents.middlewares.title_middleware import TitleMiddleware
+    from operix.agents.thread_state import ThreadState
+    from operix.config.title_config import TitleConfig
+    from operix.utils.messages import ORIGINAL_USER_CONTENT_KEY
 
     pii = PiiRedactionConfig(enabled=enabled, token_secret=_TOKEN_SECRET)
     config = _wiring_app_config(pii_redaction=pii, title=TitleConfig(enabled=True, model_name="title-model"))
     primary = _RecordingPiiModel(responses=[AIMessage(content="Reply to charlie@example.net")])
     title = Mock(ainvoke=AsyncMock(return_value=AIMessage(content="Contact records")))
-    monkeypatch.setattr("deerflow.agents.middlewares.title_middleware.create_chat_model", lambda **kwargs: title)
+    monkeypatch.setattr("operix.agents.middlewares.title_middleware.create_chat_model", lambda **kwargs: title)
     graph = create_agent(primary, tools=[], state_schema=ThreadState, middleware=[PiiRedactionMiddleware(pii), TitleMiddleware(app_config=config)])
     user = HumanMessage(content="Contact alice@example.com", additional_kwargs={ORIGINAL_USER_CONTENT_KEY: "Contact alice@example.com"})
 
@@ -683,9 +683,9 @@ async def test_async_graph_redacts_configured_title_model_input(monkeypatch, ena
 def test_compiled_graph_keeps_summary_and_retained_pii_distinct(async_mode):
     import asyncio
 
-    from deerflow.agents.middlewares.durable_context_middleware import DurableContextMiddleware
-    from deerflow.agents.middlewares.summarization_middleware import DeerFlowSummarizationMiddleware
-    from deerflow.agents.thread_state import ThreadState
+    from operix.agents.middlewares.durable_context_middleware import DurableContextMiddleware
+    from operix.agents.middlewares.summarization_middleware import OperixSummarizationMiddleware
+    from operix.agents.thread_state import ThreadState
 
     pii = PiiRedactionConfig(enabled=True, token_secret=_TOKEN_SECRET)
     config = _wiring_app_config(pii_redaction=pii)
@@ -698,7 +698,7 @@ def test_compiled_graph_keeps_summary_and_retained_pii_distinct(async_mode):
         middleware=[
             PiiRedactionMiddleware(pii),
             DurableContextMiddleware(pii_redaction_config=pii),
-            DeerFlowSummarizationMiddleware(model=summary, trigger=("messages", 4), keep=("messages", 2), token_counter=len, app_config=config),
+            OperixSummarizationMiddleware(model=summary, trigger=("messages", 4), keep=("messages", 2), token_counter=len, app_config=config),
         ],
     )
     messages = [HumanMessage(content="Alice's email is alice@example.com"), AIMessage(content="Noted"), HumanMessage(content="Bob's email is bob@example.com; keep their records separate"), AIMessage(content="Noted")]
@@ -726,7 +726,7 @@ def test_existing_placeholder_in_later_content_block_keeps_identity():
 
 
 def test_raw_legacy_summary_and_retained_messages_share_request_allocation():
-    from deerflow.agents.middlewares.durable_context_middleware import DurableContextMiddleware
+    from operix.agents.middlewares.durable_context_middleware import DurableContextMiddleware
 
     pii = PiiRedactionConfig(enabled=True, token_secret=_TOKEN_SECRET)
     state = {"summary_text": "Alice alice@example.com"}
@@ -748,7 +748,7 @@ def test_repeated_compaction_keeps_prior_summary_tokens():
 
 
 def test_title_redacts_identifiers_before_field_truncation():
-    from deerflow.agents.middlewares.title_middleware import TitleMiddleware
+    from operix.agents.middlewares.title_middleware import TitleMiddleware
 
     config = _wiring_app_config(pii_redaction=PiiRedactionConfig(enabled=True, token_secret=_TOKEN_SECRET))
     prompt, fallback = TitleMiddleware(app_config=config)._build_title_prompt({"messages": [HumanMessage(content="x " * 246 + "alice@example.com"), AIMessage(content="done")]})

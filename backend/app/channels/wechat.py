@@ -353,7 +353,7 @@ class WechatChannel(Channel):
             chat_id=msg.chat_id,
             context_token=context_token,
             text=text,
-            client_id_prefix="deerflow",
+            client_id_prefix="operix",
             max_retries=_max_retries,
         )
 
@@ -465,7 +465,7 @@ class WechatChannel(Channel):
                 "msg": {
                     "from_user_id": "",
                     "to_user_id": msg.chat_id,
-                    "client_id": f"deerflow_img_{int(time.time() * 1000)}",
+                    "client_id": f"operix_img_{int(time.time() * 1000)}",
                     "message_type": 2,
                     "message_state": 2,
                     "context_token": context_token,
@@ -555,7 +555,7 @@ class WechatChannel(Channel):
                 "msg": {
                     "from_user_id": "",
                     "to_user_id": msg.chat_id,
-                    "client_id": f"deerflow_file_{int(time.time() * 1000)}",
+                    "client_id": f"operix_file_{int(time.time() * 1000)}",
                     "message_type": 2,
                     "message_state": 2,
                     "context_token": context_token,
@@ -734,7 +734,7 @@ class WechatChannel(Channel):
             },
             status="connected",
         )
-        await self._send_connection_reply(chat_id, context_token, "WeChat connected to DeerFlow.")
+        await self._send_connection_reply(chat_id, context_token, "WeChat connected to Operix.")
         return True
 
     async def _send_connection_reply(self, chat_id: str, context_token: str, text: str) -> None:
@@ -744,7 +744,7 @@ class WechatChannel(Channel):
             chat_id=chat_id,
             context_token=context_token,
             text=text,
-            client_id_prefix="deerflow-connect",
+            client_id_prefix="operix-connect",
             max_retries=1,
         )
 

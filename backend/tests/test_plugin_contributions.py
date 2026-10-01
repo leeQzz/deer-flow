@@ -4,14 +4,14 @@ from dataclasses import replace
 from types import SimpleNamespace
 
 import pytest
-from deerflow_extension_api.auth import EXTENSION_PRINCIPAL_RESOLVER_KEY, ExtensionPrincipal
-from deerflow_extension_api.plugins import BackendAction, BrowserModule, PluginContribution
-from deerflow_extension_api.settings import SettingsField
+from operix_extension_api.auth import EXTENSION_PRINCIPAL_RESOLVER_KEY, ExtensionPrincipal
+from operix_extension_api.plugins import BackendAction, BrowserModule, PluginContribution
+from operix_extension_api.settings import SettingsField
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.gateway.routers.plugins import router
-from deerflow.extensions.registry import ExtensionRegistry
+from operix.extensions.registry import ExtensionRegistry
 
 
 @pytest.fixture
@@ -70,7 +70,7 @@ def test_one_card_and_deployment_owned_switch(plugin_client):
     role["value"] = "member"
     assert http.post(url + "/actions/check", json={"text": "hello"}).json() == {"length": 5, "limit": 20}
     assert calls[0][1].principal.user_id == "user-1"
-    assert http.post(url + "/actions/check", json={"text": "old-account"}, headers={"x-deerflow-plugin-viewer": "other-account"}).status_code == 409
+    assert http.post(url + "/actions/check", json={"text": "old-account"}, headers={"x-operix-plugin-viewer": "other-account"}).status_code == 409
     with pytest.raises(TypeError):
         calls[0][1].settings["enabled"] = False
 

@@ -15,14 +15,14 @@ from datetime import UTC, datetime
 
 import pytest
 
-from deerflow.persistence.projects import ProjectDocumentRepository, ProjectRepository
+from operix.persistence.projects import ProjectDocumentRepository, ProjectRepository
 
 pytestmark = pytest.mark.anyio
 
 
 @pytest.fixture
 async def repos(tmp_path):
-    from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
+    from operix.persistence.engine import close_engine, get_session_factory, init_engine
 
     url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
     await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -148,7 +148,7 @@ class TestShelfSnapshot:
         await _insert(docs, project["id"], sha="e" * 64, name="f5.txt", doc_id="d5")
         import sqlalchemy as sa
 
-        from deerflow.persistence.projects.model import ProjectDocumentRow
+        from operix.persistence.projects.model import ProjectDocumentRow
 
         async with docs._sf() as session:
             await session.execute(sa.update(ProjectDocumentRow).where(ProjectDocumentRow.id == "d2").values(updated_at=datetime(2999, 1, 1, tzinfo=UTC)))
@@ -290,8 +290,8 @@ async def _trashed(docs: ProjectDocumentRepository, projects: ProjectRepository,
 async def _set_trashed_at(document_id: str, when: datetime) -> None:
     from sqlalchemy import update as sa_update
 
-    from deerflow.persistence.engine import get_session_factory
-    from deerflow.persistence.projects.model import ProjectDocumentRow
+    from operix.persistence.engine import get_session_factory
+    from operix.persistence.projects.model import ProjectDocumentRow
 
     sf = get_session_factory()
     async with sf() as session:

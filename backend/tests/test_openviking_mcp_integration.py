@@ -14,9 +14,9 @@ import uvicorn
 from mcp.server.fastmcp import FastMCP
 
 from app.gateway.routers.mcp import McpServerConfigResponse, _mask_server_config
-from deerflow.config.extensions_config import ExtensionsConfig
-from deerflow.mcp.client import build_server_params
-from deerflow.mcp.tools import get_mcp_tools
+from operix.config.extensions_config import ExtensionsConfig
+from operix.mcp.client import build_server_params
+from operix.mcp.tools import get_mcp_tools
 
 _IDENTITY_HEADERS = {
     "x-openviking-account",
@@ -155,7 +155,7 @@ async def test_openviking_http_mcp_discovers_exposes_and_calls_native_tools(
         _write_openviking_extensions_config(config_path, url)
         extensions = ExtensionsConfig.from_file(str(config_path))
 
-        with patch("deerflow.mcp.tools.ExtensionsConfig.from_file", return_value=extensions):
+        with patch("operix.mcp.tools.ExtensionsConfig.from_file", return_value=extensions):
             tools = await get_mcp_tools()
 
         assert {tool.name for tool in tools} == {"openviking_find", "openviking_forget"}

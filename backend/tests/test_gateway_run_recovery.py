@@ -11,15 +11,15 @@ import anyio
 import pytest
 from fastapi import FastAPI
 
-import deerflow.runtime as runtime_module
+import operix.runtime as runtime_module
 from app.gateway import deps as gateway_deps
-from deerflow.config.run_ownership_config import RunOwnershipConfig
-from deerflow.persistence import engine as engine_module
-from deerflow.persistence import thread_meta as thread_meta_module
-from deerflow.runtime import END_SENTINEL, MemoryStreamBridge, RunManager
-from deerflow.runtime.checkpointer import async_provider as checkpointer_module
-from deerflow.runtime.events import store as event_store_module
-from deerflow.runtime.runs.store.memory import MemoryRunStore
+from operix.config.run_ownership_config import RunOwnershipConfig
+from operix.persistence import engine as engine_module
+from operix.persistence import thread_meta as thread_meta_module
+from operix.runtime import END_SENTINEL, MemoryStreamBridge, RunManager
+from operix.runtime.checkpointer import async_provider as checkpointer_module
+from operix.runtime.events import store as event_store_module
+from operix.runtime.runs.store.memory import MemoryRunStore
 
 
 @asynccontextmanager

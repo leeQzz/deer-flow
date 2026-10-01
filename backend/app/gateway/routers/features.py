@@ -15,8 +15,8 @@ from app.gateway.conversation_access import conversation_references_enabled
 from app.gateway.deps import get_config
 from app.gateway.knowledge_scope_admission import RAGFLOW_KNOWLEDGE_SEARCH_PROVIDER
 from app.gateway.run_models import MAX_CONVERSATION_REFERENCES
-from deerflow.config.app_config import AppConfig
-from deerflow.subagents.capacity import configured_subagent_max_running
+from operix.config.app_config import AppConfig
+from operix.subagents.capacity import configured_subagent_max_running
 
 router = APIRouter(prefix="/api", tags=["features"])
 

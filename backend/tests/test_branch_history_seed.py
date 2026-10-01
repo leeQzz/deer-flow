@@ -11,8 +11,8 @@ import asyncio
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 
-from deerflow.runtime.events.store.memory import MemoryRunEventStore
-from deerflow.runtime.journal import build_branch_history_seed_events
+from operix.runtime.events.store.memory import MemoryRunEventStore
+from operix.runtime.journal import build_branch_history_seed_events
 
 
 def _seed(messages):

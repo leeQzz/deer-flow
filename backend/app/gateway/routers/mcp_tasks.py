@@ -8,8 +8,8 @@ from fastapi import APIRouter, HTTPException, Query, Request
 
 from app.gateway.authz import require_permission
 from app.gateway.deps import get_current_user, get_mcp_task_repo, get_mcp_task_service, get_thread_store
-from deerflow.mcp_scope import is_valid_thread_incarnation
-from deerflow.utils.thread_id import ThreadId
+from operix.mcp_scope import is_valid_thread_incarnation
+from operix.utils.thread_id import ThreadId
 
 router = APIRouter(prefix="/api/threads/{thread_id}/mcp-tasks", tags=["mcp-tasks"])
 

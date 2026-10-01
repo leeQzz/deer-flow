@@ -2,15 +2,15 @@ import pytest
 
 from app.gateway.routers.thread_runs import _record_to_response
 from app.gateway.routers.threads import HistoryEntry, ThreadResponse, ThreadStateResponse
-from deerflow.runtime.runs.manager import RunRecord
-from deerflow.runtime.runs.schemas import DisconnectMode, RunStatus
-from deerflow.runtime.secret_context import (
+from operix.runtime.runs.manager import RunRecord
+from operix.runtime.runs.schemas import DisconnectMode, RunStatus
+from operix.runtime.secret_context import (
     LegacyRunMetadataSecretError,
     redact_config_secrets,
     redact_metadata_secrets,
     validate_run_metadata_secrets,
 )
-from deerflow.trace_context import DEERFLOW_TRACE_METADATA_KEY
+from operix.trace_context import DEERFLOW_TRACE_METADATA_KEY
 
 
 @pytest.mark.parametrize("value", ["secret", "", None, {"nested": True}])
@@ -75,7 +75,7 @@ def test_redact_config_secrets_hides_legacy_config_metadata_without_mutating_sou
 
 def test_redact_config_secrets_drops_trace_id_from_metadata_and_context():
     """``body.config`` is persisted as ``runs.kwargs_json`` and echoed verbatim
-    by the runs API. ``deerflow_trace_id`` is ignored as an input everywhere
+    by the runs API. ``operix_trace_id`` is ignored as an input everywhere
     else, so echoing a caller-supplied one back would only manufacture
     disagreement with the response header, the logs, and the run record."""
     source = {

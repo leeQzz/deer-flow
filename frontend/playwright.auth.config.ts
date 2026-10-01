@@ -41,9 +41,9 @@ export default defineConfig({
         timeout: 240_000,
         env: {
           SKIP_ENV_VALIDATION: "1",
-          DEER_FLOW_AUTH_DISABLED: "0",
-          DEER_FLOW_INTERNAL_GATEWAY_BASE_URL: "http://127.0.0.1:65535",
-          DEER_FLOW_TRUSTED_ORIGINS: frontendURL,
+          OPERIX_AUTH_DISABLED: "0",
+          OPERIX_INTERNAL_GATEWAY_BASE_URL: "http://127.0.0.1:65535",
+          OPERIX_TRUSTED_ORIGINS: frontendURL,
         },
       },
 });

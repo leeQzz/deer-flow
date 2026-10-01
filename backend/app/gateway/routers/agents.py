@@ -11,9 +11,9 @@ from pydantic import BaseModel, Field
 
 from app.gateway.authz import require_permission
 from app.gateway.persistent_writes import run_drained_write
-from deerflow.agents.memory.manager import get_memory_manager
-from deerflow.config.agents_api_config import get_agents_api_config
-from deerflow.config.agents_config import (
+from operix.agents.memory.manager import get_memory_manager
+from operix.config.agents_api_config import get_agents_api_config
+from operix.config.agents_config import (
     AgentConfig,
     AgentDisplayName,
     AgentModelSettings,
@@ -22,11 +22,11 @@ from deerflow.config.agents_config import (
     load_agent_soul,
     preserve_non_managed_fields,
 )
-from deerflow.config.app_config import get_app_config
-from deerflow.config.paths import get_paths
-from deerflow.knowledge_scope import KnowledgeScope, canonicalize_knowledge_scope
-from deerflow.persistence.agents import AgentDeleteOutcome, AgentExistsError, get_agent_store
-from deerflow.runtime.user_context import get_effective_user_id
+from operix.config.app_config import get_app_config
+from operix.config.paths import get_paths
+from operix.knowledge_scope import KnowledgeScope, canonicalize_knowledge_scope
+from operix.persistence.agents import AgentDeleteOutcome, AgentExistsError, get_agent_store
+from operix.runtime.user_context import get_effective_user_id
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["agents"])

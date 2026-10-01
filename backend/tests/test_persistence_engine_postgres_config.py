@@ -12,8 +12,8 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
-from deerflow.config.database_config import DatabaseConfig
-from deerflow.persistence import engine as engine_mod
+from operix.config.database_config import DatabaseConfig
+from operix.persistence import engine as engine_mod
 
 
 def test_postgres_engine_kwargs_include_connection_hardening() -> None:
@@ -116,7 +116,7 @@ def test_database_pool_settings_reject_booleans_and_non_positive_integers(field:
 async def test_configured_command_timeout_ends_stalled_command(monkeypatch) -> None:
     config = DatabaseConfig(
         backend="postgres",
-        postgres_url="postgresql://user:password@localhost/deerflow",
+        postgres_url="postgresql://user:password@localhost/operix",
         command_timeout=0.01,
     )
 
@@ -142,7 +142,7 @@ async def test_configured_command_timeout_ends_stalled_command(monkeypatch) -> N
     with (
         patch.object(engine_mod, "create_async_engine", side_effect=_create_engine),
         patch.object(engine_mod, "async_sessionmaker", return_value=MagicMock()),
-        patch("deerflow.persistence.bootstrap.bootstrap_schema", new=bootstrap_schema),
+        patch("operix.persistence.bootstrap.bootstrap_schema", new=bootstrap_schema),
     ):
         try:
             await engine_mod.init_engine_from_config(config)
@@ -163,7 +163,7 @@ async def test_configured_command_timeout_ends_stalled_command(monkeypatch) -> N
 async def test_init_engine_from_config_preserves_longer_command_timeout_override(monkeypatch) -> None:
     config = DatabaseConfig(
         backend="postgres",
-        postgres_url="postgresql://user:password@localhost/deerflow",
+        postgres_url="postgresql://user:password@localhost/operix",
         pool_recycle=120,
         command_timeout=90,
     )
@@ -175,7 +175,7 @@ async def test_init_engine_from_config_preserves_longer_command_timeout_override
     with (
         patch.object(engine_mod, "create_async_engine", return_value=mock_engine) as create_engine,
         patch.object(engine_mod, "async_sessionmaker", return_value=MagicMock()),
-        patch("deerflow.persistence.bootstrap.bootstrap_schema", new=bootstrap_schema),
+        patch("operix.persistence.bootstrap.bootstrap_schema", new=bootstrap_schema),
     ):
         try:
             await engine_mod.init_engine_from_config(config)
@@ -189,7 +189,7 @@ async def test_init_engine_from_config_preserves_longer_command_timeout_override
 
 @pytest.mark.asyncio
 async def test_init_engine_postgres_uses_hardened_kwargs(monkeypatch) -> None:
-    url = "postgresql+asyncpg://user:password@localhost/deerflow"
+    url = "postgresql+asyncpg://user:password@localhost/operix"
     mock_engine = MagicMock()
     mock_engine.dispose = AsyncMock()
     bootstrap_schema = AsyncMock()
@@ -198,7 +198,7 @@ async def test_init_engine_postgres_uses_hardened_kwargs(monkeypatch) -> None:
     with (
         patch.object(engine_mod, "create_async_engine", return_value=mock_engine) as create_engine,
         patch.object(engine_mod, "async_sessionmaker", return_value=MagicMock()),
-        patch("deerflow.persistence.bootstrap.bootstrap_schema", new=bootstrap_schema),
+        patch("operix.persistence.bootstrap.bootstrap_schema", new=bootstrap_schema),
     ):
         try:
             await engine_mod.init_engine(backend="postgres", url=url, echo=True, pool_size=12)
@@ -211,7 +211,7 @@ async def test_init_engine_postgres_uses_hardened_kwargs(monkeypatch) -> None:
 
 @pytest.mark.asyncio
 async def test_init_engine_postgres_retry_uses_hardened_kwargs(monkeypatch) -> None:
-    url = "postgresql+asyncpg://user:password@localhost/deerflow"
+    url = "postgresql+asyncpg://user:password@localhost/operix"
     initial_engine = MagicMock()
     initial_engine.dispose = AsyncMock()
     retry_engine = MagicMock()
@@ -224,7 +224,7 @@ async def test_init_engine_postgres_retry_uses_hardened_kwargs(monkeypatch) -> N
         patch.object(engine_mod, "create_async_engine", side_effect=[initial_engine, retry_engine]) as create_engine,
         patch.object(engine_mod, "async_sessionmaker", return_value=MagicMock()),
         patch.object(engine_mod, "_auto_create_postgres_db", new=auto_create),
-        patch("deerflow.persistence.bootstrap.bootstrap_schema", new=bootstrap_schema),
+        patch("operix.persistence.bootstrap.bootstrap_schema", new=bootstrap_schema),
     ):
         try:
             await engine_mod.init_engine(backend="postgres", url=url, echo=False, pool_size=8)
@@ -243,7 +243,7 @@ async def test_init_engine_postgres_retry_uses_hardened_kwargs(monkeypatch) -> N
 
 @pytest.mark.asyncio
 async def test_init_engine_sqlite_omits_postgres_kwargs_and_keeps_wal_listener(tmp_path) -> None:
-    url = f"sqlite+aiosqlite:///{tmp_path / 'deerflow.db'}"
+    url = f"sqlite+aiosqlite:///{tmp_path / 'operix.db'}"
     mock_engine = MagicMock()
     mock_engine.sync_engine = object()
     mock_engine.dispose = AsyncMock()
@@ -264,7 +264,7 @@ async def test_init_engine_sqlite_omits_postgres_kwargs_and_keeps_wal_listener(t
         patch.object(engine_mod, "create_async_engine", return_value=mock_engine) as create_engine,
         patch.object(engine_mod, "async_sessionmaker", return_value=MagicMock()),
         patch("sqlalchemy.event.listens_for", new=_capture_listener),
-        patch("deerflow.persistence.bootstrap.bootstrap_schema", new=bootstrap_schema),
+        patch("operix.persistence.bootstrap.bootstrap_schema", new=bootstrap_schema),
     ):
         try:
             await engine_mod.init_engine(backend="sqlite", url=url, echo=True, sqlite_dir=str(tmp_path))

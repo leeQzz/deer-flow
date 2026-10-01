@@ -19,10 +19,10 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from deerflow.config.run_ownership_config import RunOwnershipConfig
-from deerflow.runtime import ORPHAN_RECOVERY_STOP_REASON, RunManager, RunStatus, ThreadOperationKind
-from deerflow.runtime.runs.manager import CancelOutcome, ConflictError, _generate_worker_id
-from deerflow.runtime.runs.store.memory import MemoryRunStore
+from operix.config.run_ownership_config import RunOwnershipConfig
+from operix.runtime import ORPHAN_RECOVERY_STOP_REASON, RunManager, RunStatus, ThreadOperationKind
+from operix.runtime.runs.manager import CancelOutcome, ConflictError, _generate_worker_id
+from operix.runtime.runs.store.memory import MemoryRunStore
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -676,7 +676,7 @@ async def test_periodic_reconciliation_logs_recovered_run_ids_when_callback_fail
             created_at=created_at,
         )
 
-    with caplog.at_level("WARNING", logger="deerflow.runtime.runs.manager"):
+    with caplog.at_level("WARNING", logger="operix.runtime.runs.manager"):
         await manager._reconcile_orphans_periodic()
         await asyncio.sleep(0)
 
@@ -2091,7 +2091,7 @@ class _EndingCrossProcessBridge:
         return None
 
     def subscribe(self, run_id, *, last_event_id=None, heartbeat_interval=15.0):
-        from deerflow.runtime import END_SENTINEL
+        from operix.runtime import END_SENTINEL
 
         async def events():
             yield END_SENTINEL
@@ -2108,7 +2108,7 @@ def _make_cancel_test_app(mgr: RunManager, *, bridge=None):
     from fastapi.testclient import TestClient
 
     from app.gateway.routers import thread_runs
-    from deerflow.runtime import MemoryStreamBridge
+    from operix.runtime import MemoryStreamBridge
 
     app = make_authed_test_app()
     app.include_router(thread_runs.router)

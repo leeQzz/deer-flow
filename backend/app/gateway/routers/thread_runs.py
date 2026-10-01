@@ -1,8 +1,8 @@
 """Runs endpoints — create, stream, wait, cancel.
 
 Implements the LangGraph Platform runs API on top of
-:class:`deerflow.agents.runs.RunManager` and
-:class:`deerflow.agents.stream_bridge.StreamBridge`.
+:class:`operix.agents.runs.RunManager` and
+:class:`operix.agents.stream_bridge.StreamBridge`.
 
 SSE format is aligned with the LangGraph Platform protocol so that
 the ``useStream`` React hook from ``@langchain/langgraph-sdk/react``
@@ -53,17 +53,17 @@ from app.gateway.pagination import trim_run_message_page
 from app.gateway.run_models import RunCreateRequest
 from app.gateway.services import abuild_checkpoint_state_accessor, build_thread_checkpoint_state_accessor, sse_consumer, start_run, wait_for_run_completion
 from app.gateway.utils import sanitize_log_param
-from deerflow.agents.human_input import read_human_input_response
-from deerflow.agents.middlewares.dynamic_context_middleware import strip_injected_user_message_id_suffix
-from deerflow.authz.sandbox_authz import safe_app_config_async
-from deerflow.config.paths import get_paths, make_safe_user_id
-from deerflow.runtime import CancelOutcome, ConflictError, RunRecord, RunStatus, ThreadOperationKind, serialize_channel_values_for_api
-from deerflow.runtime.runs.store.base import format_run_cursor_created_at, normalize_run_created_at_iso
-from deerflow.runtime.secret_context import redact_config_secrets, redact_metadata_secrets
-from deerflow.runtime.user_context import get_effective_user_id
-from deerflow.utils.messages import ORIGINAL_USER_CONTENT_KEY, get_original_user_content_text, message_to_text
-from deerflow.utils.thread_id import ThreadId
-from deerflow.workspace_changes import get_workspace_changes_response
+from operix.agents.human_input import read_human_input_response
+from operix.agents.middlewares.dynamic_context_middleware import strip_injected_user_message_id_suffix
+from operix.authz.sandbox_authz import safe_app_config_async
+from operix.config.paths import get_paths, make_safe_user_id
+from operix.runtime import CancelOutcome, ConflictError, RunRecord, RunStatus, ThreadOperationKind, serialize_channel_values_for_api
+from operix.runtime.runs.store.base import format_run_cursor_created_at, normalize_run_created_at_iso
+from operix.runtime.secret_context import redact_config_secrets, redact_metadata_secrets
+from operix.runtime.user_context import get_effective_user_id
+from operix.utils.messages import ORIGINAL_USER_CONTENT_KEY, get_original_user_content_text, message_to_text
+from operix.utils.thread_id import ThreadId
+from operix.workspace_changes import get_workspace_changes_response
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/threads", tags=["runs"])

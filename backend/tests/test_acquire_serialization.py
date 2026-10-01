@@ -9,8 +9,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-from deerflow.sandbox.acquire_serialization import AcquireSerializer
-from deerflow.trace_context import get_current_trace_id, request_trace_context
+from operix.sandbox.acquire_serialization import AcquireSerializer
+from operix.trace_context import get_current_trace_id, request_trace_context
 
 
 class TestSyncMutualExclusion:

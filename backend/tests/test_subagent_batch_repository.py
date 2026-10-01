@@ -3,10 +3,10 @@ from datetime import UTC, datetime, timedelta
 import pytest
 import pytest_asyncio
 
-from deerflow.config.database_config import DatabaseConfig
-from deerflow.mcp_scope import THREAD_INCARNATION_CONTEXT_KEY
-from deerflow.persistence.engine import close_engine, get_session_factory, init_engine_from_config
-from deerflow.persistence.subagent_batches import SubagentBatchRepository
+from operix.config.database_config import DatabaseConfig
+from operix.mcp_scope import THREAD_INCARNATION_CONTEXT_KEY
+from operix.persistence.engine import close_engine, get_session_factory, init_engine_from_config
+from operix.persistence.subagent_batches import SubagentBatchRepository
 
 _MISSING = object()
 

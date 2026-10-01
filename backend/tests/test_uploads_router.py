@@ -16,8 +16,8 @@ from fastapi.testclient import TestClient
 from app.gateway import upload_ingestion
 from app.gateway.deps import get_config
 from app.gateway.routers import uploads
-from deerflow.sandbox.lease import get_sandbox_lease_manager
-from deerflow.uploads.companions import resolve_companion
+from operix.sandbox.lease import get_sandbox_lease_manager
+from operix.uploads.companions import resolve_companion
 
 
 class ChunkedUpload:
@@ -748,7 +748,7 @@ def test_upload_files_in_flight_upload_is_invisible_to_listings(tmp_path):
 def test_orphaned_staging_part_is_hidden_from_listings_and_swept(tmp_path):
     """A crashed upload leaves only a hidden ``.upload-*.part`` file: the
     listing never exposes it and the startup cleanup removes it."""
-    from deerflow.uploads.manager import cleanup_stale_upload_staging_files
+    from operix.uploads.manager import cleanup_stale_upload_staging_files
 
     thread_uploads_dir = tmp_path / "threads" / "t1" / "user-data" / "uploads"
     thread_uploads_dir.mkdir(parents=True)
@@ -898,7 +898,7 @@ def test_upload_files_releases_non_local_sandbox_when_sync_fails(tmp_path, failu
 
 @pytest.mark.parametrize("run_finishes_during_sync", [False, True])
 def test_upload_files_keeps_active_run_sandbox_until_last_holder_finishes(tmp_path, run_finishes_during_sync):
-    from deerflow.sandbox.lease import discard_sandbox_lease_manager, get_sandbox_lease_manager
+    from operix.sandbox.lease import discard_sandbox_lease_manager, get_sandbox_lease_manager
 
     async def go():
         provider = MagicMock()

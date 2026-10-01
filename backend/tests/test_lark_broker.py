@@ -17,8 +17,8 @@ from pathlib import Path
 
 import pytest
 
-from deerflow.integrations import lark_broker
-from deerflow.integrations.lark_broker import BrokerConfig, run_lark_cli, serve
+from operix.integrations import lark_broker
+from operix.integrations.lark_broker import BrokerConfig, run_lark_cli, serve
 
 # Several tests execute the broker's POSIX artifacts directly: the fake
 # ``lark-cli`` binary, the shim, and the launcher are ``#!`` scripts (the real
@@ -502,7 +502,7 @@ def test_install_shim_writes_runtime_layout(tmp_path: Path) -> None:
     assert os.access(dest / "bin" / "lark-cli", os.X_OK)
     assert shim_body.read_text(encoding="utf-8") == lark_broker.LARK_CLI_BROKER_SHIM_SCRIPT
     assert os.access(shim_body, os.X_OK)
-    marker = json.loads((dest / ".deerflow-lark-cli-runtime.json").read_text())
+    marker = json.loads((dest / ".operix-lark-cli-runtime.json").read_text())
     assert marker == {"version": "v1.0.65", "kind": "shim"}
 
 

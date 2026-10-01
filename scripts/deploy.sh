@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# deploy.sh - Build, start, or stop DeerFlow production services
+# deploy.sh - Build, start, or stop Operix production services
 #
 # Commands:
 #   deploy.sh                    — build + start
@@ -48,7 +48,7 @@ COMPOSE_ENV_FILE_ARGS=()
 if [ -f "$ENV_FILE" ]; then
     COMPOSE_ENV_FILE_ARGS=(--env-file "$ENV_FILE")
 fi
-COMPOSE_CMD=(docker compose "${COMPOSE_ENV_FILE_ARGS[@]}" -p deer-flow -f "$DOCKER_DIR/docker-compose.yaml")
+COMPOSE_CMD=(docker compose "${COMPOSE_ENV_FILE_ARGS[@]}" -p operix -f "$DOCKER_DIR/docker-compose.yaml")
 
 load_uv_extras_from_dotenv() {
     local line=""
@@ -112,31 +112,31 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-# ── DEER_FLOW_HOME ────────────────────────────────────────────────────────────
+# ── OPERIX_HOME ────────────────────────────────────────────────────────────
 
-if [ -z "$DEER_FLOW_HOME" ]; then
-    export DEER_FLOW_HOME="$REPO_ROOT/backend/.deer-flow"
+if [ -z "$OPERIX_HOME" ]; then
+    export OPERIX_HOME="$REPO_ROOT/backend/.operix"
 fi
-echo -e "${BLUE}DEER_FLOW_HOME=$DEER_FLOW_HOME${NC}"
-mkdir -p "$DEER_FLOW_HOME"
+echo -e "${BLUE}OPERIX_HOME=$OPERIX_HOME${NC}"
+mkdir -p "$OPERIX_HOME"
 
-# ── DEER_FLOW_REPO_ROOT (for skills host path in DooD) ───────────────────────
+# ── OPERIX_REPO_ROOT (for skills host path in DooD) ───────────────────────
 
-export DEER_FLOW_REPO_ROOT="$REPO_ROOT"
+export OPERIX_REPO_ROOT="$REPO_ROOT"
 
 # ── config.yaml ───────────────────────────────────────────────────────────────
 
-if [ -z "$DEER_FLOW_CONFIG_PATH" ]; then
-    export DEER_FLOW_CONFIG_PATH="$REPO_ROOT/config.yaml"
+if [ -z "$OPERIX_CONFIG_PATH" ]; then
+    export OPERIX_CONFIG_PATH="$REPO_ROOT/config.yaml"
 fi
 
-if  [ "$CMD" != "down" ] && [ ! -f "$DEER_FLOW_CONFIG_PATH" ]; then
+if  [ "$CMD" != "down" ] && [ ! -f "$OPERIX_CONFIG_PATH" ]; then
     # Try to seed from repo (config.example.yaml is the canonical template)
     if [ -f "$REPO_ROOT/config.example.yaml" ]; then
-        cp "$REPO_ROOT/config.example.yaml" "$DEER_FLOW_CONFIG_PATH"
-        echo -e "${GREEN}✓ Seeded config.example.yaml → $DEER_FLOW_CONFIG_PATH${NC}"
+        cp "$REPO_ROOT/config.example.yaml" "$OPERIX_CONFIG_PATH"
+        echo -e "${GREEN}✓ Seeded config.example.yaml → $OPERIX_CONFIG_PATH${NC}"
         echo -e "${YELLOW}⚠ config.yaml was seeded from the example template.${NC}"
-        echo "  Run 'make setup' to generate a minimal config, or edit $DEER_FLOW_CONFIG_PATH manually before use."
+        echo "  Run 'make setup' to generate a minimal config, or edit $OPERIX_CONFIG_PATH manually before use."
     else
         echo -e "${RED}✗ No config.yaml found.${NC}"
         echo "  Run 'make setup' from the repo root (recommended),"
@@ -144,30 +144,30 @@ if  [ "$CMD" != "down" ] && [ ! -f "$DEER_FLOW_CONFIG_PATH" ]; then
         exit 1
     fi
 else
-    echo -e "${GREEN}✓ config.yaml: $DEER_FLOW_CONFIG_PATH${NC}"
+    echo -e "${GREEN}✓ config.yaml: $OPERIX_CONFIG_PATH${NC}"
 fi
 
 # ── extensions_config.json ───────────────────────────────────────────────────
 
-if [ -z "$DEER_FLOW_EXTENSIONS_CONFIG_PATH" ]; then
-    export DEER_FLOW_EXTENSIONS_CONFIG_PATH="$REPO_ROOT/extensions_config.json"
+if [ -z "$OPERIX_EXTENSIONS_CONFIG_PATH" ]; then
+    export OPERIX_EXTENSIONS_CONFIG_PATH="$REPO_ROOT/extensions_config.json"
 fi
 
-if [ ! -f "$DEER_FLOW_EXTENSIONS_CONFIG_PATH" ]; then
+if [ ! -f "$OPERIX_EXTENSIONS_CONFIG_PATH" ]; then
     if [ -f "$REPO_ROOT/extensions_config.json" ]; then
-        cp "$REPO_ROOT/extensions_config.json" "$DEER_FLOW_EXTENSIONS_CONFIG_PATH"
-        echo -e "${GREEN}✓ Seeded extensions_config.json → $DEER_FLOW_EXTENSIONS_CONFIG_PATH${NC}"
+        cp "$REPO_ROOT/extensions_config.json" "$OPERIX_EXTENSIONS_CONFIG_PATH"
+        echo -e "${GREEN}✓ Seeded extensions_config.json → $OPERIX_EXTENSIONS_CONFIG_PATH${NC}"
     else
         # Create a minimal empty config so the gateway doesn't fail on startup
-        echo '{"mcpServers":{},"skills":{}}' > "$DEER_FLOW_EXTENSIONS_CONFIG_PATH"
-        echo -e "${YELLOW}⚠ extensions_config.json not found, created empty config at $DEER_FLOW_EXTENSIONS_CONFIG_PATH${NC}"
+        echo '{"mcpServers":{},"skills":{}}' > "$OPERIX_EXTENSIONS_CONFIG_PATH"
+        echo -e "${YELLOW}⚠ extensions_config.json not found, created empty config at $OPERIX_EXTENSIONS_CONFIG_PATH${NC}"
     fi
 else
-    echo -e "${GREEN}✓ extensions_config.json: $DEER_FLOW_EXTENSIONS_CONFIG_PATH${NC}"
+    echo -e "${GREEN}✓ extensions_config.json: $OPERIX_EXTENSIONS_CONFIG_PATH${NC}"
 fi
 
 
-# Compose interpolates ${BETTER_AUTH_SECRET} and ${DEER_FLOW_INTERNAL_AUTH_TOKEN}
+# Compose interpolates ${BETTER_AUTH_SECRET} and ${OPERIX_INTERNAL_AUTH_TOKEN}
 # from the shell environment first and --env-file second. A secret the operator
 # wrote to $ENV_FILE therefore only reaches the stack while this script does not
 # export a competing value: generating or reloading one here would silently
@@ -187,13 +187,13 @@ fi
 compose_interpolated_value() {
     local key="$1"
     local rendered=""
-    if ! rendered="$(printf 'services:\n  probe:\n    image: scratch\n    environment:\n      DEER_FLOW_PROBE_VALUE: ${%s}\n' "$key" \
+    if ! rendered="$(printf 'services:\n  probe:\n    image: scratch\n    environment:\n      OPERIX_PROBE_VALUE: ${%s}\n' "$key" \
         | docker compose "${COMPOSE_ENV_FILE_ARGS[@]}" --project-directory "$DOCKER_DIR" -f - config 2>&1)"; then
         echo -e "${RED}✗ docker compose could not resolve $key from the environment and $ENV_FILE:${NC}" >&2
         printf '%s\n' "$rendered" >&2
         exit 1
     fi
-    printf '%s\n' "$rendered" | sed -n 's/^[[:space:]]*DEER_FLOW_PROBE_VALUE: //p' | head -n 1
+    printf '%s\n' "$rendered" | sed -n 's/^[[:space:]]*OPERIX_PROBE_VALUE: //p' | head -n 1
 }
 
 dotenv_provides_secret() {
@@ -207,7 +207,7 @@ dotenv_provides_secret() {
 # Required by Next.js in production. Generated once and persisted so auth
 # sessions survive container restarts.
 
-_secret_file="$DEER_FLOW_HOME/.better-auth-secret"
+_secret_file="$OPERIX_HOME/.better-auth-secret"
 if [ -z "$BETTER_AUTH_SECRET" ] && dotenv_provides_secret BETTER_AUTH_SECRET; then
     echo -e "${GREEN}✓ BETTER_AUTH_SECRET loaded from $ENV_FILE${NC}"
 elif [ -z "$BETTER_AUTH_SECRET" ]; then
@@ -237,37 +237,37 @@ elif [ -z "$BETTER_AUTH_SECRET" ]; then
     fi
 fi
 
-# ── DEER_FLOW_INTERNAL_AUTH_TOKEN ────────────────────────────────────────────
+# ── OPERIX_INTERNAL_AUTH_TOKEN ────────────────────────────────────────────
 # Shared by all Gateway workers so channel workers can call internal Gateway
 # APIs even when the request is handled by a different Uvicorn worker.
 
-_internal_auth_token_file="$DEER_FLOW_HOME/.internal-auth-token"
-if [ "$CMD" != "down" ] && [ -z "$DEER_FLOW_INTERNAL_AUTH_TOKEN" ] && dotenv_provides_secret DEER_FLOW_INTERNAL_AUTH_TOKEN; then
-    echo -e "${GREEN}✓ DEER_FLOW_INTERNAL_AUTH_TOKEN loaded from $ENV_FILE${NC}"
-elif [ "$CMD" != "down" ] && [ -z "$DEER_FLOW_INTERNAL_AUTH_TOKEN" ]; then
+_internal_auth_token_file="$OPERIX_HOME/.internal-auth-token"
+if [ "$CMD" != "down" ] && [ -z "$OPERIX_INTERNAL_AUTH_TOKEN" ] && dotenv_provides_secret OPERIX_INTERNAL_AUTH_TOKEN; then
+    echo -e "${GREEN}✓ OPERIX_INTERNAL_AUTH_TOKEN loaded from $ENV_FILE${NC}"
+elif [ "$CMD" != "down" ] && [ -z "$OPERIX_INTERNAL_AUTH_TOKEN" ]; then
     if [ -f "$_internal_auth_token_file" ]; then
-        export DEER_FLOW_INTERNAL_AUTH_TOKEN
-        DEER_FLOW_INTERNAL_AUTH_TOKEN="$(cat "$_internal_auth_token_file")"
-        echo -e "${GREEN}✓ DEER_FLOW_INTERNAL_AUTH_TOKEN loaded from $_internal_auth_token_file${NC}"
+        export OPERIX_INTERNAL_AUTH_TOKEN
+        OPERIX_INTERNAL_AUTH_TOKEN="$(cat "$_internal_auth_token_file")"
+        echo -e "${GREEN}✓ OPERIX_INTERNAL_AUTH_TOKEN loaded from $_internal_auth_token_file${NC}"
     else
-        export DEER_FLOW_INTERNAL_AUTH_TOKEN
+        export OPERIX_INTERNAL_AUTH_TOKEN
         if command -v python3 > /dev/null 2>&1 && \
-            DEER_FLOW_INTERNAL_AUTH_TOKEN="$(python3 -c 'import sys; sys.version_info >= (3, 6) or sys.exit(1); import secrets; print(secrets.token_urlsafe(32))' 2>/dev/null)"; then
+            OPERIX_INTERNAL_AUTH_TOKEN="$(python3 -c 'import sys; sys.version_info >= (3, 6) or sys.exit(1); import secrets; print(secrets.token_urlsafe(32))' 2>/dev/null)"; then
             true
         elif command -v python > /dev/null 2>&1 && \
-            DEER_FLOW_INTERNAL_AUTH_TOKEN="$(python -c 'import sys; sys.version_info >= (3, 6) or sys.exit(1); import secrets; print(secrets.token_urlsafe(32))' 2>/dev/null)"; then
+            OPERIX_INTERNAL_AUTH_TOKEN="$(python -c 'import sys; sys.version_info >= (3, 6) or sys.exit(1); import secrets; print(secrets.token_urlsafe(32))' 2>/dev/null)"; then
             true
         elif command -v openssl > /dev/null 2>&1 && \
-            DEER_FLOW_INTERNAL_AUTH_TOKEN="$(openssl rand -hex 32)"; then
+            OPERIX_INTERNAL_AUTH_TOKEN="$(openssl rand -hex 32)"; then
             true
         else
-            echo -e "${RED}✗ Cannot generate DEER_FLOW_INTERNAL_AUTH_TOKEN: python3, python, and openssl are all unavailable.${NC}" >&2
-            echo -e "${RED}  Set DEER_FLOW_INTERNAL_AUTH_TOKEN manually before running make up.${NC}" >&2
+            echo -e "${RED}✗ Cannot generate OPERIX_INTERNAL_AUTH_TOKEN: python3, python, and openssl are all unavailable.${NC}" >&2
+            echo -e "${RED}  Set OPERIX_INTERNAL_AUTH_TOKEN manually before running make up.${NC}" >&2
             exit 1
         fi
-        echo "$DEER_FLOW_INTERNAL_AUTH_TOKEN" > "$_internal_auth_token_file"
+        echo "$OPERIX_INTERNAL_AUTH_TOKEN" > "$_internal_auth_token_file"
         chmod 600 "$_internal_auth_token_file"
-        echo -e "${GREEN}✓ DEER_FLOW_INTERNAL_AUTH_TOKEN generated → $_internal_auth_token_file${NC}"
+        echo -e "${GREEN}✓ OPERIX_INTERNAL_AUTH_TOKEN generated → $_internal_auth_token_file${NC}"
     fi
 fi
 
@@ -315,7 +315,7 @@ detect_sandbox_mode() {
     local sandbox_use=""
     local provisioner_url=""
 
-    [ -f "$DEER_FLOW_CONFIG_PATH" ] || { echo "local"; return; }
+    [ -f "$OPERIX_CONFIG_PATH" ] || { echo "local"; return; }
 
     sandbox_use=$(awk '
         /^[[:space:]]*sandbox:[[:space:]]*$/ { in_sandbox=1; next }
@@ -323,7 +323,7 @@ detect_sandbox_mode() {
         in_sandbox && /^[[:space:]]*use:[[:space:]]*/ {
             line=$0; sub(/^[[:space:]]*use:[[:space:]]*/, "", line); print line; exit
         }
-    ' "$DEER_FLOW_CONFIG_PATH")
+    ' "$OPERIX_CONFIG_PATH")
 
     provisioner_url=$(awk '
         /^[[:space:]]*sandbox:[[:space:]]*$/ { in_sandbox=1; next }
@@ -331,9 +331,9 @@ detect_sandbox_mode() {
         in_sandbox && /^[[:space:]]*provisioner_url:[[:space:]]*/ {
             line=$0; sub(/^[[:space:]]*provisioner_url:[[:space:]]*/, "", line); print line; exit
         }
-    ' "$DEER_FLOW_CONFIG_PATH")
+    ' "$OPERIX_CONFIG_PATH")
 
-    if [[ "$sandbox_use" == *"deerflow.community.aio_sandbox:AioSandboxProvider"* ]]; then
+    if [[ "$sandbox_use" == *"operix.community.aio_sandbox:AioSandboxProvider"* ]]; then
         if [ -n "$provisioner_url" ]; then
             echo "provisioner"
         else
@@ -349,12 +349,12 @@ detect_sandbox_mode() {
 if [ "$CMD" = "down" ]; then
     # Set minimal env var defaults so docker compose can parse the file without
     # warning about unset variables that appear in volume specs.
-    export DEER_FLOW_HOME="${DEER_FLOW_HOME:-$REPO_ROOT/backend/.deer-flow}"
-    export DEER_FLOW_CONFIG_PATH="${DEER_FLOW_CONFIG_PATH:-$DEER_FLOW_HOME/config.yaml}"
-    export DEER_FLOW_EXTENSIONS_CONFIG_PATH="${DEER_FLOW_EXTENSIONS_CONFIG_PATH:-$DEER_FLOW_HOME/extensions_config.json}"
-    export DEER_FLOW_REPO_ROOT="${DEER_FLOW_REPO_ROOT:-$REPO_ROOT}"
+    export OPERIX_HOME="${OPERIX_HOME:-$REPO_ROOT/backend/.operix}"
+    export OPERIX_CONFIG_PATH="${OPERIX_CONFIG_PATH:-$OPERIX_HOME/config.yaml}"
+    export OPERIX_EXTENSIONS_CONFIG_PATH="${OPERIX_EXTENSIONS_CONFIG_PATH:-$OPERIX_HOME/extensions_config.json}"
+    export OPERIX_REPO_ROOT="${OPERIX_REPO_ROOT:-$REPO_ROOT}"
     export BETTER_AUTH_SECRET="${BETTER_AUTH_SECRET:-placeholder}"
-    export DEER_FLOW_INTERNAL_AUTH_TOKEN="${DEER_FLOW_INTERNAL_AUTH_TOKEN:-placeholder}"
+    export OPERIX_INTERNAL_AUTH_TOKEN="${OPERIX_INTERNAL_AUTH_TOKEN:-placeholder}"
     "${COMPOSE_CMD[@]}" down
     exit 0
 fi
@@ -364,7 +364,7 @@ fi
 
 if [ "$CMD" = "build" ]; then
     echo "=========================================="
-    echo "  DeerFlow — Building Images"
+    echo "  Operix — Building Images"
     echo "=========================================="
     echo ""
 
@@ -383,7 +383,7 @@ fi
 # ── Banner ────────────────────────────────────────────────────────────────────
 
 echo "=========================================="
-echo "  DeerFlow Production Deployment"
+echo "  Operix Production Deployment"
 echo "=========================================="
 echo ""
 
@@ -401,13 +401,13 @@ if [ "$sandbox_mode" = "provisioner" ]; then
     services="$services provisioner"
 fi
 
-# ── DEER_FLOW_DOCKER_SOCKET (aio / pure-DooD mode only) ──────────────────────
+# ── OPERIX_DOCKER_SOCKET (aio / pure-DooD mode only) ──────────────────────
 # Only aio mode (AioSandboxProvider without provisioner_url) needs the host
 # Docker socket. It is mounted via the opt-in docker-compose.dood.yaml overlay,
 # appended here, so the default (local) and provisioner modes never expose the
 # host daemon. Mounting the socket = root-equivalent host control; see SECURITY.md.
 
-docker_socket="$(read_dotenv_value DEER_FLOW_DOCKER_SOCKET)"
+docker_socket="$(read_dotenv_value OPERIX_DOCKER_SOCKET)"
 docker_socket="${docker_socket:-/var/run/docker.sock}"
 
 if [ "$sandbox_mode" = "aio" ]; then
@@ -425,9 +425,9 @@ if [ "$sandbox_mode" = "aio" ]; then
     # On Windows (Git Bash / MSYS), exporting /var/run/docker.sock causes MSYS to
     # convert it to C:\Program Files\Git\var\run\docker.sock when invoking native
     # docker compose, triggering mkdir errors. Unsetting the default allows Compose
-    # to evaluate its own default literal fallback (${DEER_FLOW_DOCKER_SOCKET:-/var/run/docker.sock}).
-    if [[ "$(uname -s)" =~ ^(MINGW|MSYS|CYGWIN) ]] && [ "$DEER_FLOW_DOCKER_SOCKET" = "/var/run/docker.sock" ]; then
-        unset DEER_FLOW_DOCKER_SOCKET
+    # to evaluate its own default literal fallback (${OPERIX_DOCKER_SOCKET:-/var/run/docker.sock}).
+    if [[ "$(uname -s)" =~ ^(MINGW|MSYS|CYGWIN) ]] && [ "$OPERIX_DOCKER_SOCKET" = "/var/run/docker.sock" ]; then
+        unset OPERIX_DOCKER_SOCKET
     fi
     echo -e "${GREEN}✓ Docker socket: $docker_socket${NC}"
     echo -e "${YELLOW}  Mounting host Docker socket into gateway (DooD = host root-equivalent). See SECURITY.md.${NC}"
@@ -439,7 +439,7 @@ echo ""
 # ── Start / Up ───────────────────────────────────────────────────────────────
 
 report_startup_failure() {
-    echo -e "${RED}✗ DeerFlow services failed to become ready.${NC}" >&2
+    echo -e "${RED}✗ Operix services failed to become ready.${NC}" >&2
     echo '  If Docker Compose reports "unknown flag: --wait", upgrade to a version that' >&2
     echo '  supports `docker compose up --wait`.' >&2
     echo "  Container status:" >&2
@@ -470,7 +470,7 @@ fi
 
 echo ""
 echo "=========================================="
-echo "  DeerFlow is running!"
+echo "  Operix is running!"
 echo "=========================================="
 echo ""
 RESOLVED_PORT="$(read_dotenv_value PORT)"

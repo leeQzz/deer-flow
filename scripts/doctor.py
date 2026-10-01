@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""DeerFlow Health Check (make doctor).
+"""Operix Health Check (make doctor).
 
 Checks system requirements, configuration, LLM provider, and optional
 components, then prints an actionable report.
@@ -89,7 +89,7 @@ def _load_yaml_file(path: Path) -> dict:
 
 
 def _load_app_config(config_path: Path) -> object:
-    from deerflow.config.app_config import AppConfig
+    from operix.config.app_config import AppConfig
 
     return AppConfig.from_file(str(config_path))
 
@@ -118,7 +118,7 @@ def _has_non_empty_token(value: object) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
 
-# Acceptance rules mirror backend/packages/harness/deerflow/models/credential_loader.py
+# Acceptance rules mirror backend/packages/harness/operix/models/credential_loader.py
 # (``load_codex_cli_credential``, ``_extract_claude_code_credential`` + ``is_expired``), which
 # stays the source of truth; keep the two in lockstep when the loader changes. The mirror is
 # deliberate: importing the loader could consume the one-shot
@@ -274,7 +274,7 @@ def check_nginx() -> CheckResult:
 
 
 # Environment variables that choose which config file the Gateway loads.
-CONFIG_LOCATION_ENV_VARS = ("DEER_FLOW_CONFIG_PATH", "DEER_FLOW_PROJECT_ROOT")
+CONFIG_LOCATION_ENV_VARS = ("OPERIX_CONFIG_PATH", "OPERIX_PROJECT_ROOT")
 
 
 def _unquoted_dotenv_keys(env_path: Path) -> set[str]:
@@ -288,17 +288,17 @@ def _unquoted_dotenv_keys(env_path: Path) -> set[str]:
 def resolve_config_path() -> tuple[Path, CheckResult | None]:
     """Locate the config.yaml the Gateway would read.
 
-    Delegates to the harness resolver (``DEER_FLOW_CONFIG_PATH``, then
-    ``config.yaml`` under ``DEER_FLOW_PROJECT_ROOT``, then the legacy
+    Delegates to the harness resolver (``OPERIX_CONFIG_PATH``, then
+    ``config.yaml`` under ``OPERIX_PROJECT_ROOT``, then the legacy
     backend/repository-root locations) so doctor checks the same file the
     Gateway loads. When an environment override would stop the Gateway from
     starting, returns the path it names (which does not exist) and a failed
     ``config.yaml found`` result carrying the Gateway's error.
     """
-    config_env = os.environ.get("DEER_FLOW_CONFIG_PATH")
-    default_path = Path(os.environ.get("DEER_FLOW_PROJECT_ROOT") or ".") / "config.yaml"
+    config_env = os.environ.get("OPERIX_CONFIG_PATH")
+    default_path = Path(os.environ.get("OPERIX_PROJECT_ROOT") or ".") / "config.yaml"
     try:
-        from deerflow.config.app_config import AppConfig
+        from operix.config.app_config import AppConfig
     except Exception as exc:
         # Keep diagnosing a broken backend environment instead of crashing
         # (any import-time failure, as in check_config_loadable); the
@@ -306,7 +306,7 @@ def resolve_config_path() -> tuple[Path, CheckResult | None]:
         return Path(config_env) if config_env else default_path, CheckResult(
             "config.yaml found",
             "fail",
-            f"cannot import the DeerFlow harness to resolve it ({type(exc).__name__}: {exc})",
+            f"cannot import the Operix harness to resolve it ({type(exc).__name__}: {exc})",
             fix="Run 'make install'",
         )
 
@@ -320,14 +320,14 @@ def resolve_config_path() -> tuple[Path, CheckResult | None]:
             "config.yaml found",
             "fail",
             str(exc),
-            fix="Point DEER_FLOW_CONFIG_PATH at an existing config.yaml, or unset it",
+            fix="Point OPERIX_CONFIG_PATH at an existing config.yaml, or unset it",
         )
     except ValueError as exc:
-        return Path(os.environ["DEER_FLOW_PROJECT_ROOT"]) / "config.yaml", CheckResult(
+        return Path(os.environ["OPERIX_PROJECT_ROOT"]) / "config.yaml", CheckResult(
             "config.yaml found",
             "fail",
             str(exc),
-            fix="Point DEER_FLOW_PROJECT_ROOT at the DeerFlow checkout, or unset it",
+            fix="Point OPERIX_PROJECT_ROOT at the Operix checkout, or unset it",
         )
 
 
@@ -514,7 +514,7 @@ def check_llm_auth(config_path: Path) -> list[CheckResult]:
             use = model.get("use", "")
             model_name = model.get("name", "default")
 
-            if use == "deerflow.models.openai_codex_provider:CodexChatModel":
+            if use == "operix.models.openai_codex_provider:CodexChatModel":
                 auth_path = Path(os.environ.get("CODEX_AUTH_PATH", "~/.codex/auth.json")).expanduser()
                 if _codex_auth_file_has_access_token(auth_path):
                     results.append(CheckResult(f"Codex CLI auth available (model: {model_name})", "ok", str(auth_path)))
@@ -528,7 +528,7 @@ def check_llm_auth(config_path: Path) -> list[CheckResult]:
                         )
                     )
 
-            if use == "deerflow.models.claude_provider:ClaudeChatModel":
+            if use == "operix.models.claude_provider:ClaudeChatModel":
                 credential_paths = [Path(os.environ["CLAUDE_CODE_CREDENTIALS_PATH"]).expanduser() for env_name in ("CLAUDE_CODE_CREDENTIALS_PATH",) if os.environ.get(env_name)]
                 credential_paths.append(Path("~/.claude/.credentials.json").expanduser())
                 has_oauth_env = any(
@@ -589,7 +589,7 @@ def check_web_tool(config_path: Path, *, tool_name: str, label: str) -> CheckRes
         free_providers = {
             "web_search": {"ddg_search": "DuckDuckGo (no key needed)"},
             "web_fetch": {"jina_ai": "Jina AI Reader (no key needed)", "crawl4ai": "Crawl4AI (self-hosted, no key needed)"},
-            "image_search": {"deerflow.community.image_search.tools": "DuckDuckGo Images (no key needed)"},
+            "image_search": {"operix.community.image_search.tools": "DuckDuckGo Images (no key needed)"},
         }
         key_providers = {
             "web_search": {
@@ -839,12 +839,12 @@ def main() -> int:
     # serve.sh then replaces an unset or empty runtime root with the
     # checkout, so config resolution and the loadable check see what the
     # Gateway sees.
-    if not os.environ.get("DEER_FLOW_PROJECT_ROOT"):
-        os.environ["DEER_FLOW_PROJECT_ROOT"] = str(project_root)
+    if not os.environ.get("OPERIX_PROJECT_ROOT"):
+        os.environ["OPERIX_PROJECT_ROOT"] = str(project_root)
     config_path, config_failure = resolve_config_path()
 
     print()
-    print(bold("DeerFlow Health Check"))
+    print(bold("Operix Health Check"))
     print("═" * 40)
 
     sections: list[tuple[str, list[CheckResult]]] = []
@@ -910,10 +910,10 @@ def main() -> int:
     print("═" * 40)
     if total_fails == 0 and total_warns == 0:
         print(f"Status: {green('Ready')}")
-        print(f"Run {cyan('make dev')} to start DeerFlow")
+        print(f"Run {cyan('make dev')} to start Operix")
     elif total_fails == 0:
         print(f"Status: {yellow(f'Ready ({total_warns} warning(s))')}")
-        print(f"Run {cyan('make dev')} to start DeerFlow")
+        print(f"Run {cyan('make dev')} to start Operix")
     else:
         print(f"Status: {red(f'{total_fails} error(s), {total_warns} warning(s)')}")
         print("Fix the errors above, then run 'make doctor' again.")

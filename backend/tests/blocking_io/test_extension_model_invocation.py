@@ -6,11 +6,11 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
-from deerflow_extension_api import ModelInvocationRequest, ModelMessage
+from operix_extension_api import ModelInvocationRequest, ModelMessage
 from langchain_core.messages import AIMessage
 
-from deerflow.extensions import model_invocation
-from deerflow.extensions.model_access import ModelInvocationBudget, ModelInvocationGrant
+from operix.extensions import model_invocation
+from operix.extensions.model_access import ModelInvocationBudget, ModelInvocationGrant
 
 
 @pytest.mark.asyncio

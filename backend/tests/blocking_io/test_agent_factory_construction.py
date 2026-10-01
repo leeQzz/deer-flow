@@ -10,8 +10,8 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from app.gateway import services
-from deerflow.runtime.runs.manager import RunManager
-from deerflow.runtime.runs.worker import RunContext, run_agent
+from operix.runtime.runs.manager import RunManager
+from operix.runtime.runs.worker import RunContext, run_agent
 
 
 class _Agent:

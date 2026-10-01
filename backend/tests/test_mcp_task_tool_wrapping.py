@@ -5,13 +5,13 @@ import pytest
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel
 
-from deerflow.config.extensions_config import ExtensionsConfig, McpServerConfig
-from deerflow.mcp.tasks.runtime import (
+from operix.config.extensions_config import ExtensionsConfig, McpServerConfig
+from operix.mcp.tasks.runtime import (
     McpTaskConfigurationError,
     set_mcp_task_config_snapshot,
     set_mcp_task_submitter,
 )
-from deerflow.mcp.tools import _configure_task_tools_for_server, get_mcp_tools
+from operix.mcp.tools import _configure_task_tools_for_server, get_mcp_tools
 
 
 class _SubmitArgs(BaseModel):
@@ -109,7 +109,7 @@ def test_submit_wrapper_preserves_server_description_and_appends_background_cont
     )
 
     assert configured[0].description == (
-        "Generate a quarterly financial report for the requested topic.\n\nSubmitted as durable background task 'report-generation'; returns a DeerFlow task ID immediately and status polling is handled automatically."
+        "Generate a quarterly financial report for the requested topic.\n\nSubmitted as durable background task 'report-generation'; returns a Operix task ID immediately and status polling is handled automatically."
     )
 
 
@@ -196,7 +196,7 @@ async def test_tool_reload_rejects_task_server_runtime_config_drift() -> None:
     try:
         with (
             patch(
-                "deerflow.mcp.tools.ExtensionsConfig.from_file",
+                "operix.mcp.tools.ExtensionsConfig.from_file",
                 return_value=current,
             ),
             pytest.raises(McpTaskConfigurationError, match="reports.*restart"),

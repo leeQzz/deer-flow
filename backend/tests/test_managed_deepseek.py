@@ -15,9 +15,9 @@ from fastapi import HTTPException
 from langchain_core.messages import HumanMessage, ToolMessage
 
 from app.gateway.routers import managed_models as router
-from deerflow.config.app_config import AppConfig
-from deerflow.config.managed_models import ManagedModel, ManagedModelStore, merge_managed_models
-from deerflow.models.factory import create_chat_model
+from operix.config.app_config import AppConfig
+from operix.config.managed_models import ManagedModel, ManagedModelStore, merge_managed_models
+from operix.models.factory import create_chat_model
 
 _KEY = "diagnostic-only-not-a-real-key"
 _ADMIN = SimpleNamespace(state=SimpleNamespace(user=SimpleNamespace(system_role="admin")))
@@ -34,7 +34,7 @@ def _base_config():
 
 @pytest.fixture
 def store(tmp_path, monkeypatch):
-    monkeypatch.setenv("DEER_FLOW_HOME", str(tmp_path))
+    monkeypatch.setenv("OPERIX_HOME", str(tmp_path))
     monkeypatch.setenv("LANGSMITH_TRACING", "false")
     monkeypatch.setenv("LANGCHAIN_TRACING_V2", "false")
     return ManagedModelStore()

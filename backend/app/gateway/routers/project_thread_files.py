@@ -23,11 +23,11 @@ from pydantic import BaseModel
 
 from app.gateway.authz import require_permission
 from app.gateway.deps import get_project_repo, get_thread_store
-from deerflow.config.paths import Paths, get_paths
-from deerflow.runtime.user_context import get_effective_user_id
-from deerflow.uploads.manager import list_files_in_dir, output_artifact_url, upload_artifact_url
-from deerflow.utils.file_io import run_file_io
-from deerflow.utils.time import coerce_iso
+from operix.config.paths import Paths, get_paths
+from operix.runtime.user_context import get_effective_user_id
+from operix.uploads.manager import list_files_in_dir, output_artifact_url, upload_artifact_url
+from operix.utils.file_io import run_file_io
+from operix.utils.time import coerce_iso
 
 logger = logging.getLogger(__name__)
 

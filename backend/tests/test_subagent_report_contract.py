@@ -10,19 +10,19 @@ from types import SimpleNamespace
 
 import pytest
 
-from deerflow.agents.lead_agent import prompt as prompt_module
-from deerflow.agents.middlewares.tool_receipt import format_citation, receipt_id
-from deerflow.subagents.report_contract import (
+from operix.agents.lead_agent import prompt as prompt_module
+from operix.agents.middlewares.tool_receipt import format_citation, receipt_id
+from operix.subagents.report_contract import (
     MAX_ACCEPTANCE_CRITERIA,
     MAX_CRITERION_CHARS,
     build_acceptance_criteria_system_note,
     build_report_contract_section,
     render_acceptance_criteria_block,
 )
-from deerflow.tools.builtins.task_tool import task_tool
+from operix.tools.builtins.task_tool import task_tool
 
 # Module import so tests can patch the exact symbols referenced inside task_tool().
-task_tool_module = importlib.import_module("deerflow.tools.builtins.task_tool")
+task_tool_module = importlib.import_module("operix.tools.builtins.task_tool")
 
 
 class TestReportContractSection:

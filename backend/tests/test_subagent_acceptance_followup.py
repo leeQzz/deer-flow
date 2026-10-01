@@ -5,10 +5,10 @@ from types import SimpleNamespace
 import pytest
 from langchain_core.messages import AIMessage, ToolMessage
 
-from deerflow.agents.lead_agent import prompt as prompt_module
-from deerflow.agents.middlewares.delegation_ledger import extract_delegations, render_delegation_ledger
-from deerflow.subagents.status_contract import make_subagent_additional_kwargs
-from deerflow.tools.builtins.task_tool import task_tool
+from operix.agents.lead_agent import prompt as prompt_module
+from operix.agents.middlewares.delegation_ledger import extract_delegations, render_delegation_ledger
+from operix.subagents.status_contract import make_subagent_additional_kwargs
+from operix.tools.builtins.task_tool import task_tool
 
 
 def _leaf(criterion, *, checked=True, holds=False, detail="missing"):

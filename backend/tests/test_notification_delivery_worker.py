@@ -810,8 +810,8 @@ async def test_wecom_send_notification_propagates_deterministic_errors():
 async def test_binding_check_reads_the_real_connection_repository_shape(tmp_path):
     # The worker matches on the dict keys the real repository emits; a key
     # rename there would otherwise fail every delivery silently.
-    from deerflow.persistence.channel_connections import ChannelConnectionRepository
-    from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
+    from operix.persistence.channel_connections import ChannelConnectionRepository
+    from operix.persistence.engine import close_engine, get_session_factory, init_engine
 
     await init_engine("sqlite", url=f"sqlite+aiosqlite:///{tmp_path / 'conn.db'}", sqlite_dir=str(tmp_path))
     try:

@@ -15,13 +15,13 @@ import pytest
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.outputs import ChatGeneration, LLMResult
 
-from deerflow.runtime.events.store.memory import MemoryRunEventStore
-from deerflow.runtime.journal import RunJournal
-from deerflow.utils.messages import ORIGINAL_USER_CONTENT_KEY
+from operix.runtime.events.store.memory import MemoryRunEventStore
+from operix.runtime.journal import RunJournal
+from operix.utils.messages import ORIGINAL_USER_CONTENT_KEY
 
 
 def test_run_journal_is_marked_as_loop_bound():
-    assert RunJournal.deerflow_loop_bound is True
+    assert RunJournal.operix_loop_bound is True
 
 
 def test_tool_promotion_claim_is_atomic_across_parallel_sync_wrappers():
@@ -702,7 +702,7 @@ class TestFinalToolMessageReconciliation:
 
         j, store = journal_setup
         j.on_llm_end(
-            _make_llm_response("", tool_calls=[{"id": "call_search", "name": "web_search", "args": {"query": "deerflow"}}]),
+            _make_llm_response("", tool_calls=[{"id": "call_search", "name": "web_search", "args": {"query": "operix"}}]),
             run_id=uuid4(),
             parent_run_id=None,
             tags=["subagent:general-purpose"],
@@ -1404,7 +1404,7 @@ class TestCallerBucketing:
                 "Canonical",
                 tool_calls=original_tool_calls,
                 additional_kwargs={
-                    "deerflow_error_fallback": True,
+                    "operix_error_fallback": True,
                     "error_detail": "canonical fallback",
                 },
             ),
@@ -1418,7 +1418,7 @@ class TestCallerBucketing:
                 usage=usage,
                 tool_calls=replay_tool_calls,
                 additional_kwargs={
-                    "deerflow_error_fallback": True,
+                    "operix_error_fallback": True,
                     "error_detail": "replay fallback",
                 },
             ),
@@ -1622,7 +1622,7 @@ class TestCallerBucketing:
                 "Late replay",
                 usage=usage,
                 tool_calls=[{"id": "late-call", "name": "write_file", "args": {}}],
-                additional_kwargs={"deerflow_error_fallback": True, "error_detail": "late fallback"},
+                additional_kwargs={"operix_error_fallback": True, "error_detail": "late fallback"},
             ),
             run_id=first_run_id,
             parent_run_id=None,
@@ -2274,8 +2274,8 @@ async def test_image_input_is_journaled_once_across_graph_model_calls(mode):
     from langgraph.checkpoint.memory import InMemorySaver
     from langgraph.graph import StateGraph
 
-    from deerflow.agents.thread_state import get_thread_state_schema
-    from deerflow.runtime.checkpoint_state import CheckpointStateAccessor
+    from operix.agents.thread_state import get_thread_state_schema
+    from operix.runtime.checkpoint_state import CheckpointStateAccessor
 
     store = MemoryRunEventStore()
     journal = RunJournal("image-run", "image-thread", store)

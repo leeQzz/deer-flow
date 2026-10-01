@@ -24,7 +24,7 @@ import pytest
 from _agent_e2e_helpers import FakeToolCallingModel, build_single_tool_call_model
 from langchain_core.messages import AIMessage, HumanMessage
 
-from deerflow.runtime.checkpoint_state import build_state_mutation_graph
+from operix.runtime.checkpoint_state import build_state_mutation_graph
 
 pytestmark = pytest.mark.no_auto_user
 
@@ -39,7 +39,7 @@ models:
     api_key: $OPENAI_API_KEY
     base_url: $OPENAI_API_BASE
 sandbox:
-  use: deerflow.sandbox.local:LocalSandboxProvider
+  use: operix.sandbox.local:LocalSandboxProvider
 agents_api:
   enabled: true
 title:
@@ -188,20 +188,20 @@ def _build_fake_setup_agent_model(agent_name: str):
 
 
 @pytest.fixture
-def isolated_deer_flow_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    home = tmp_path / "deer-flow-home"
+def isolated_operix_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    home = tmp_path / "operix-home"
     home.mkdir()
-    monkeypatch.setenv("DEER_FLOW_HOME", str(home))
+    monkeypatch.setenv("OPERIX_HOME", str(home))
     monkeypatch.setenv("OPENAI_API_KEY", "sk-fake-key-not-used")
     monkeypatch.setenv("OPENAI_API_BASE", "https://example.invalid")
 
     staged_config = tmp_path / "config.yaml"
     staged_config.write_text(_MINIMAL_CONFIG_YAML, encoding="utf-8")
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(staged_config))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(staged_config))
 
     staged_extensions_config = tmp_path / "extensions_config.json"
     staged_extensions_config.write_text('{"mcpServers": {}, "skills": {}}', encoding="utf-8")
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(staged_extensions_config))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(staged_extensions_config))
     return home
 
 
@@ -210,11 +210,11 @@ def _reset_process_singletons(monkeypatch: pytest.MonkeyPatch) -> None:
 
     The Gateway app/lifespan path reads process-wide caches before wiring
     request-scoped dependencies. These E2E tests stage a temporary
-    ``config.yaml``/``extensions_config.json`` and ``DEER_FLOW_HOME``, so the
+    ``config.yaml``/``extensions_config.json`` and ``OPERIX_HOME``, so the
     caches below must be reset before app creation:
 
     - app_config / extensions_config: parsed config file caches.
-    - paths: ``DEER_FLOW_HOME``-derived filesystem paths.
+    - paths: ``OPERIX_HOME``-derived filesystem paths.
     - persistence.engine: SQLAlchemy engine/session factory for the sqlite dir.
     - app.gateway.deps: cached local auth provider/repository.
 
@@ -224,10 +224,10 @@ def _reset_process_singletons(monkeypatch: pytest.MonkeyPatch) -> None:
     """
 
     from app.gateway import deps as deps_module
-    from deerflow.config import app_config as app_config_module
-    from deerflow.config import extensions_config as extensions_config_module
-    from deerflow.config import paths as paths_module
-    from deerflow.persistence import engine as engine_module
+    from operix.config import app_config as app_config_module
+    from operix.config import extensions_config as extensions_config_module
+    from operix.config import paths as paths_module
+    from operix.persistence import engine as engine_module
 
     for module, attr, value in (
         (app_config_module, "_app_config", None),
@@ -255,7 +255,7 @@ def _preserve_process_config_singletons(monkeypatch: pytest.MonkeyPatch) -> None
     loading the isolated test config does not leak into later tests.
     """
 
-    from deerflow.config import (
+    from operix.config import (
         acp_config,
         agents_api_config,
         checkpointer_config,
@@ -284,14 +284,14 @@ def _preserve_process_config_singletons(monkeypatch: pytest.MonkeyPatch) -> None
 
 
 @pytest.fixture
-def isolated_app(isolated_deer_flow_home: Path, monkeypatch: pytest.MonkeyPatch):
+def isolated_app(isolated_operix_home: Path, monkeypatch: pytest.MonkeyPatch):
     _preserve_process_config_singletons(monkeypatch)
     _reset_process_singletons(monkeypatch)
 
-    from deerflow.config import app_config as app_config_module
+    from operix.config import app_config as app_config_module
 
     cfg = app_config_module.get_app_config()
-    cfg.database.sqlite_dir = str(isolated_deer_flow_home / "db")
+    cfg.database.sqlite_dir = str(isolated_operix_home / "db")
 
     from app.gateway.app import create_app
 
@@ -308,18 +308,18 @@ def test_lifespan_uses_sqlite_store_from_database_config(isolated_app):
 
 
 @pytest.fixture
-def isolated_app_with_title(isolated_deer_flow_home: Path, monkeypatch: pytest.MonkeyPatch):
-    config_path = isolated_deer_flow_home.parent / "config-title-enabled.yaml"
+def isolated_app_with_title(isolated_operix_home: Path, monkeypatch: pytest.MonkeyPatch):
+    config_path = isolated_operix_home.parent / "config-title-enabled.yaml"
     config_path.write_text(_MINIMAL_CONFIG_YAML.replace("title:\n  enabled: false", "title:\n  enabled: true"), encoding="utf-8")
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(config_path))
 
     _preserve_process_config_singletons(monkeypatch)
     _reset_process_singletons(monkeypatch)
 
-    from deerflow.config import app_config as app_config_module
+    from operix.config import app_config as app_config_module
 
     cfg = app_config_module.get_app_config()
-    cfg.database.sqlite_dir = str(isolated_deer_flow_home / "db")
+    cfg.database.sqlite_dir = str(isolated_operix_home / "db")
 
     from app.gateway.app import create_app
 
@@ -567,7 +567,7 @@ def test_stream_run_completes_and_persists_runtime_state(isolated_app):
         assert any(row["content"]["content"] == "Lifecycle complete." for row in message_events if row["event_type"] == "llm.ai.response")
 
 
-def test_stream_run_executes_real_lead_agent_setup_agent_business_path(isolated_app, isolated_deer_flow_home: Path):
+def test_stream_run_executes_real_lead_agent_setup_agent_business_path(isolated_app, isolated_operix_home: Path):
     """A runtime stream should execute real lead-agent business code and tools."""
     from starlette.testclient import TestClient
 
@@ -575,7 +575,7 @@ def test_stream_run_executes_real_lead_agent_setup_agent_business_path(isolated_
 
     with (
         patch(
-            "deerflow.agents.lead_agent.agent.create_chat_model",
+            "operix.agents.lead_agent.agent.create_chat_model",
             new=_build_fake_setup_agent_model(agent_name),
         ),
         TestClient(isolated_app) as client,
@@ -621,10 +621,10 @@ def test_stream_run_executes_real_lead_agent_setup_agent_business_path(isolated_
         run = _wait_for_status(client, thread_id, run_id, "success", timeout=10.0)
         assert run["assistant_id"] == "lead_agent"
 
-        expected_soul = isolated_deer_flow_home / "users" / auth_user_id / "agents" / agent_name / "SOUL.md"
-        assert expected_soul.exists(), f"setup_agent did not write SOUL.md. tmp tree: {sorted(str(p.relative_to(isolated_deer_flow_home)) for p in isolated_deer_flow_home.rglob('SOUL.md'))}"
+        expected_soul = isolated_operix_home / "users" / auth_user_id / "agents" / agent_name / "SOUL.md"
+        assert expected_soul.exists(), f"setup_agent did not write SOUL.md. tmp tree: {sorted(str(p.relative_to(isolated_operix_home)) for p in isolated_operix_home.rglob('SOUL.md'))}"
         assert f"Agent name: {agent_name}" in expected_soul.read_text(encoding="utf-8")
-        assert not (isolated_deer_flow_home / "users" / "default" / "agents" / agent_name).exists()
+        assert not (isolated_operix_home / "users" / "default" / "agents" / agent_name).exists()
 
 
 def test_cancel_interrupt_stops_running_background_run(isolated_app):
@@ -767,7 +767,7 @@ def test_cancel_wait_false_generates_title_from_graph_input_before_checkpoint(is
 async def test_sse_consumer_disconnect_cancels_inflight_run():
     """A disconnected SSE request should cancel an in-flight run when configured."""
     from app.gateway.services import sse_consumer
-    from deerflow.runtime import DisconnectMode, MemoryStreamBridge, RunManager, RunStatus
+    from operix.runtime import DisconnectMode, MemoryStreamBridge, RunManager, RunStatus
 
     bridge = MemoryStreamBridge()
     run_manager = RunManager()

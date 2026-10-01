@@ -16,11 +16,11 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.schema import CreateTable
 
-from deerflow.persistence.bootstrap import _FORWARD_COMPATIBLE_REVISION, _get_alembic_config
+from operix.persistence.bootstrap import _FORWARD_COMPATIBLE_REVISION, _get_alembic_config
 
 _PREVIOUS = "0021_batch_acceptance"
 _REVISION = "0019_thread_incarnations"
-_MIGRATION_MODULE = "deerflow.persistence.migrations.versions.0019_thread_incarnations"
+_MIGRATION_MODULE = "operix.persistence.migrations.versions.0019_thread_incarnations"
 
 
 def _asyncpg_url(url: str | None) -> str | None:
@@ -183,7 +183,7 @@ async def test_sqlite_0019_reapply_does_not_report_varchar_drift(
             with Operations.context(context):
                 migration.upgrade()
 
-        with caplog.at_level("WARNING", logger="deerflow.persistence.migrations._helpers"):
+        with caplog.at_level("WARNING", logger="operix.persistence.migrations._helpers"):
             async with engine.begin() as connection:
                 await connection.run_sync(reapply)
 
@@ -289,7 +289,7 @@ def test_postgresql_ci_url_is_normalized_for_asyncpg() -> None:
 @pytest.mark.asyncio
 @pytest.mark.skipif(not _POSTGRES_URL, reason="set TEST_POSTGRES_URI or DEERFLOW_TEST_POSTGRES_URL to run live PostgreSQL tests")
 async def test_postgresql_0019_accepts_default_null_and_legacy_writer_omission() -> None:
-    schema = f"deerflow_0019_{uuid.uuid4().hex[:12]}"
+    schema = f"operix_0019_{uuid.uuid4().hex[:12]}"
     engine = create_async_engine(_POSTGRES_URL or "")
     cfg = _get_alembic_config(engine, postgres_schema=schema)
     try:

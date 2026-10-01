@@ -13,7 +13,7 @@ the identity rule `frontend/src/core/threads/hooks.ts::messageIdentity` applies
 (tool messages by `tool_call_id`; `X` / `X__user` human copies collapse to
 one). The two halves must stay in sync: a mismatch is silent, degrading
 placement rather than raising. `runs/worker.py::_MessageSeqStamper` attaches
-the result as `additional_kwargs.deerflow_seq` on root `values` frames only —
+the result as `additional_kwargs.operix_seq` on root `values` frames only —
 subgraph frames are not part of the thread feed's ordering, and nothing is
 written back to the checkpoint. The run-scoped cache makes the compaction frame
 the only one that costs a lookup, and the stamper soft-resolves the user id
@@ -35,7 +35,7 @@ in SQL (a LIKE clause per wanted raw id, wildcards escaped; an id `json.dumps`
 would escape falls the set back to the full scan) so a wanted identity absent
 from the feed — a message still streaming — does not force a full
 fetch-and-decode of every message row's tool outputs on long threads.
-`deerflow_seq` is server-owned display metadata: the gateway strips it from
+`operix_seq` is server-owned display metadata: the gateway strips it from
 client input, because a welded-in seq goes stale when a fork re-seeds the feed
 (#4380).
 

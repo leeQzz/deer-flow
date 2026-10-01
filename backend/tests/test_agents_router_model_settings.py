@@ -20,23 +20,23 @@ from app.gateway.routers.agents import (
     get_agent,
     update_agent,
 )
-from deerflow.config.agents_api_config import load_agents_api_config_from_dict
-from deerflow.config.app_config import AppConfig, reset_app_config, set_app_config
-from deerflow.config.model_config import ModelConfig
-from deerflow.config.sandbox_config import SandboxConfig
+from operix.config.agents_api_config import load_agents_api_config_from_dict
+from operix.config.app_config import AppConfig, reset_app_config, set_app_config
+from operix.config.model_config import ModelConfig
+from operix.config.sandbox_config import SandboxConfig
 
 pytestmark = pytest.mark.asyncio
 
 
 @pytest.fixture
 def _agent_env(tmp_path: Path, monkeypatch):
-    monkeypatch.setenv("DEER_FLOW_HOME", str(tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
+    monkeypatch.setenv("OPERIX_HOME", str(tmp_path))
+    monkeypatch.setattr("operix.config.paths._paths", None)
     load_agents_api_config_from_dict({"enabled": True})
     set_app_config(
         AppConfig(
             models=[ModelConfig(name="agent-model", display_name="Agent Model", description=None, use="langchain_openai:ChatOpenAI", model="agent-model")],
-            sandbox=SandboxConfig(use="deerflow.sandbox.local:LocalSandboxProvider"),
+            sandbox=SandboxConfig(use="operix.sandbox.local:LocalSandboxProvider"),
         )
     )
     try:

@@ -15,9 +15,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from deerflow.community.browser_automation import session as session_mod
-from deerflow.community.browser_automation import tools
-from deerflow.community.browser_automation.session import (
+from operix.community.browser_automation import session as session_mod
+from operix.community.browser_automation import tools
+from operix.community.browser_automation.session import (
     _LIVE_FRAME_JPEG_QUALITY,
     BrowserLiveViewerError,
     BrowserSession,

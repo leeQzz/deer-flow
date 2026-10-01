@@ -8,8 +8,8 @@ import pytest
 from langchain.agents.middleware import AgentMiddleware
 from pydantic import ValidationError
 
-from deerflow.agents.middlewares.configured_extensions import load_configured_extension_middlewares
-from deerflow.config.extensions_config import (
+from operix.agents.middlewares.configured_extensions import load_configured_extension_middlewares
+from operix.config.extensions_config import (
     ConfiguredMiddlewareSpec,
     ExtensionsConfig,
     atomic_write_extensions_config,

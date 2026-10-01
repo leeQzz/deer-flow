@@ -17,9 +17,9 @@ from app.gateway.authz import (
     resolve_route_permissions,
 )
 from app.gateway.routers import runs, scheduled_tasks
-from deerflow.authz.provider import AuthzDecision, AuthzReason
-from deerflow.authz.rbac import RbacAuthorizationProvider
-from deerflow.config.authorization_config import AuthorizationConfig, AuthorizationProviderConfig
+from operix.authz.provider import AuthzDecision, AuthzReason
+from operix.authz.rbac import RbacAuthorizationProvider
+from operix.config.authorization_config import AuthorizationConfig, AuthorizationProviderConfig
 
 
 class _RecordingProvider:
@@ -284,7 +284,7 @@ def _make_middleware_app() -> FastAPI:
 
 
 def test_auth_middleware_stamps_provider_derived_permissions(monkeypatch):
-    monkeypatch.setenv("DEER_FLOW_AUTH_DISABLED", "1")
+    monkeypatch.setenv("OPERIX_AUTH_DISABLED", "1")
     permission_resolver = AsyncMock(return_value=[Permissions.THREADS_READ])
     monkeypatch.setattr("app.gateway.auth_middleware.resolve_route_permissions", permission_resolver)
 
@@ -315,8 +315,8 @@ _STATELESS_RUN_PATHS = ("/api/runs/stream", "/api/runs/wait")
 
 
 def _enable_auth_disabled_for_route_test(monkeypatch) -> None:
-    monkeypatch.setenv("DEER_FLOW_AUTH_DISABLED", "1")
-    monkeypatch.delenv("DEER_FLOW_ENV", raising=False)
+    monkeypatch.setenv("OPERIX_AUTH_DISABLED", "1")
+    monkeypatch.delenv("OPERIX_ENV", raising=False)
     monkeypatch.delenv("ENVIRONMENT", raising=False)
 
 
@@ -431,7 +431,7 @@ class TestRouteProviderCache:
         config = AuthorizationConfig(
             enabled=True,
             provider=AuthorizationProviderConfig(
-                use="deerflow.authz.rbac:RbacAuthorizationProvider",
+                use="operix.authz.rbac:RbacAuthorizationProvider",
                 config={"roles": {"user": {"routes": {"allow": "*"}}}},
             ),
         )
@@ -452,14 +452,14 @@ class TestRouteProviderCache:
         config1 = AuthorizationConfig(
             enabled=True,
             provider=AuthorizationProviderConfig(
-                use="deerflow.authz.rbac:RbacAuthorizationProvider",
+                use="operix.authz.rbac:RbacAuthorizationProvider",
                 config={"roles": {"user": {"routes": {"allow": "*"}}}},
             ),
         )
         config2 = AuthorizationConfig(
             enabled=True,
             provider=AuthorizationProviderConfig(
-                use="deerflow.authz.rbac:RbacAuthorizationProvider",
+                use="operix.authz.rbac:RbacAuthorizationProvider",
                 config={"roles": {"user": {"routes": {"allow": []}}}},
             ),
         )
@@ -481,7 +481,7 @@ class TestRouteProviderCache:
         config1 = AuthorizationConfig(
             enabled=True,
             provider=AuthorizationProviderConfig(
-                use="deerflow.authz.rbac:RbacAuthorizationProvider",
+                use="operix.authz.rbac:RbacAuthorizationProvider",
                 config={"roles": {"user": {"routes": {"allow": "*"}}}},
             ),
         )
@@ -489,7 +489,7 @@ class TestRouteProviderCache:
         config2 = AuthorizationConfig(
             enabled=True,
             provider=AuthorizationProviderConfig(
-                use="deerflow.authz.rbac:RbacAuthorizationProvider",
+                use="operix.authz.rbac:RbacAuthorizationProvider",
                 config={"roles": {"user": {"routes": {"allow": "*"}}}},
             ),
         )

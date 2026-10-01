@@ -93,7 +93,7 @@ test("record write/read-file run through the real frontend", async ({
 
   await page.addInitScript(() => {
     window.localStorage.setItem(
-      "deerflow.local-settings",
+      "operix.local-settings",
       JSON.stringify({ context: { mode: "ultra" } }),
     );
   });

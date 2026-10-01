@@ -14,11 +14,11 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.tools import tool
 from langgraph.checkpoint.memory import InMemorySaver
 
-from deerflow.agents.middlewares.artifact_capture_middleware import ArtifactCaptureMiddleware
-from deerflow.agents.middlewares.artifact_resolution_middleware import ArtifactResolutionMiddleware
-from deerflow.agents.middlewares.durable_context_middleware import DurableContextMiddleware
-from deerflow.agents.thread_state import ThreadState
-from deerflow.tools.artifact_registry import generate_handle
+from operix.agents.middlewares.artifact_capture_middleware import ArtifactCaptureMiddleware
+from operix.agents.middlewares.artifact_resolution_middleware import ArtifactResolutionMiddleware
+from operix.agents.middlewares.durable_context_middleware import DurableContextMiddleware
+from operix.agents.thread_state import ThreadState
+from operix.tools.artifact_registry import generate_handle
 
 THREAD_ID = "artifact-cycle-thread"
 REAL_REF = "/mnt/user-data/outputs/report.md"

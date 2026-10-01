@@ -34,7 +34,7 @@ from app.gateway.checkpoint_retention import (
     _row_field,
     enforce_thread_retention,
 )
-from deerflow.runtime.runs.worker import _new_checkpoint_marker, persist_run_durations
+from operix.runtime.runs.worker import _new_checkpoint_marker, persist_run_durations
 
 
 class FullState(TypedDict):

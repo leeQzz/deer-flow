@@ -1,10 +1,10 @@
 # AGENTS.md
 
-This file provides guidance to AI coding agents (Claude Code, Codex, and others) when working with the DeerFlow frontend. It is the source of truth; the sibling `CLAUDE.md` imports it via `@AGENTS.md`.
+This file provides guidance to AI coding agents (Claude Code, Codex, and others) when working with the Operix frontend. It is the source of truth; the sibling `CLAUDE.md` imports it via `@AGENTS.md`.
 
 ## Project Overview
 
-DeerFlow Frontend is a Next.js 16 web interface for an AI agent system. It communicates with a LangGraph-based backend to provide thread-based AI conversations with streaming responses, artifacts, and a skills/tools system.
+Operix Frontend is a Next.js 16 web interface for an AI agent system. It communicates with a LangGraph-based backend to provide thread-based AI conversations with streaming responses, artifacts, and a skills/tools system.
 
 **Stack**: Next.js 16, React 19, TypeScript 5.8, Tailwind CSS 4, pnpm 10.26.2. Requires Node.js 22+ and pnpm 10.26.2+.
 
@@ -38,7 +38,7 @@ upstream dependency chain resolves a patched version without it; regenerate
 
 Unit tests live under `tests/unit/` and mirror the `src/` layout (e.g., `tests/unit/core/api/stream-mode.test.ts` tests `src/core/api/stream-mode.ts`). Powered by Rstest; import source modules via the `@/` path alias.
 
-Webpack is the default development bundler. Use `DEER_FLOW_DEV_BUNDLER=turbo` with `pnpm dev` to opt in to Turbopack when diagnosing a local Next.js bundler issue.
+Webpack is the default development bundler. Use `OPERIX_DEV_BUNDLER=turbo` with `pnpm dev` to opt in to Turbopack when diagnosing a local Next.js bundler issue.
 
 On Windows `pnpm dev` binds `127.0.0.1` by default because Hyper-V/winnat excluded port ranges can reject Next's default `0.0.0.0` bind with `EACCES` (#2870). Pass `pnpm dev -- --hostname 0.0.0.0` to listen on a LAN interface instead.
 
@@ -143,7 +143,7 @@ GitHub data for one hour, and returns 204 when the count is unavailable. Start
 the standalone server from `frontend/` with `node --env-file=.env
 .next/standalone/server.js` to load the current credentials.
 
-To reach a dev server on anything other than localhost — a LAN address, or a proxied hostname — list the host in `DEER_FLOW_DEV_ALLOWED_ORIGINS` (comma-separated; a full URL is reduced to its host). It feeds Next's `allowedDevOrigins`, which gates `/_next/*`, fonts, and HMR. Without it those requests get a 403 and the page renders server-side but never hydrates, so nothing on it — including the login form — responds. Development only; production builds ignore it.
+To reach a dev server on anything other than localhost — a LAN address, or a proxied hostname — list the host in `OPERIX_DEV_ALLOWED_ORIGINS` (comma-separated; a full URL is reduced to its host). It feeds Next's `allowedDevOrigins`, which gates `/_next/*`, fonts, and HMR. Without it those requests get a 403 and the page renders server-side but never hydrates, so nothing on it — including the login form — responds. Development only; production builds ignore it.
 
 One-time schedule input uses `validZonedLocalToUtcIso` to reject wall times that
 do not round-trip in the selected timezone. Invalid input emits an empty spec and
@@ -178,7 +178,7 @@ totals with `performance-budgets.json`. Fix route ownership or split points when
 budget fails; do not raise a ceiling without documenting and reviewing the measured
 regression.
 
-Chat archive is a thread metadata flag (`deerflow_archived === true`), independent
+Chat archive is a thread metadata flag (`operix_archived === true`), independent
 of run status. Sidebar and Chats explicitly request the Gateway's optional
 `archived` filter through `searchThreadsByArchive`; the SDK drops this extension,
 so use the authenticated REST fetcher. Static demos retain SDK fixture queries.
@@ -217,7 +217,7 @@ mutation permissions, and cache ownership remain in the existing hooks. Skill di
 metadata; runtime names and full descriptions remain unchanged. Public, custom,
 integration, and legacy sources must stay distinct. Community currently offers
 archive import, not a remote marketplace. Screenshot E2E fixtures are demo data.
-`backend/packages/harness/deerflow/capabilities/builtin.json` owns localized
+`backend/packages/harness/operix/capabilities/builtin.json` owns localized
 catalog manifests. Refresh the generated demo snapshot with `pnpm catalog:sync`
 after changing the catalog; unit tests enforce equality with the source. Demo
 business projections derive provider IDs from the catalog adapter metadata. The

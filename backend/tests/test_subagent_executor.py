@@ -10,7 +10,7 @@ Covers:
 - Parent/child checkpoint-lineage and message-stream isolation
 
 Note: Due to circular import issues in the main codebase, conftest.py mocks
-deerflow.subagents.executor. This test file uses delayed import via fixture to test
+operix.subagents.executor. This test file uses delayed import via fixture to test
 the real implementation in isolation.
 """
 
@@ -31,24 +31,24 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from packaging.version import Version
 
-from deerflow.agents.middlewares.tool_receipt_middleware import ToolReceiptMiddleware
-from deerflow.runtime.journal import RunJournal
-from deerflow.sandbox.lease import SandboxLeaseManager
-from deerflow.skills.types import Skill
-from deerflow.subagents.capacity import SubagentCapacityRejected
-from deerflow.trace_context import request_trace_context
+from operix.agents.middlewares.tool_receipt_middleware import ToolReceiptMiddleware
+from operix.runtime.journal import RunJournal
+from operix.sandbox.lease import SandboxLeaseManager
+from operix.skills.types import Skill
+from operix.subagents.capacity import SubagentCapacityRejected
+from operix.trace_context import request_trace_context
 
 # Module names that need to be mocked to break circular imports
 _MOCKED_MODULE_NAMES = [
-    "deerflow.agents",
-    "deerflow.agents.thread_state",
-    "deerflow.agents.middlewares",
-    "deerflow.agents.middlewares.thread_data_middleware",
-    "deerflow.sandbox",
-    "deerflow.sandbox.middleware",
-    "deerflow.sandbox.security",
-    "deerflow.models",
-    "deerflow.skills.storage",
+    "operix.agents",
+    "operix.agents.thread_state",
+    "operix.agents.middlewares",
+    "operix.agents.middlewares.thread_data_middleware",
+    "operix.sandbox",
+    "operix.sandbox.middleware",
+    "operix.sandbox.security",
+    "operix.models",
+    "operix.skills.storage",
 ]
 
 _LANGGRAPH_HAS_ROOT_LINEAGE_STREAM_REGRESSION = Version(package_version("langgraph")) >= Version("1.2.6")
@@ -72,7 +72,7 @@ def _patch_default_get_app_config(executor_module):
 
 
 def _clear_stale_executor_package_attr() -> None:
-    subagents_pkg = sys.modules.get("deerflow.subagents")
+    subagents_pkg = sys.modules.get("operix.subagents")
     if subagents_pkg is not None and hasattr(subagents_pkg, "executor"):
         delattr(subagents_pkg, "executor")
 
@@ -86,51 +86,51 @@ def _setup_executor_classes():
     """
     # Save original modules
     original_modules = {name: sys.modules.get(name) for name in _MOCKED_MODULE_NAMES}
-    original_executor = sys.modules.get("deerflow.subagents.executor")
-    original_audit_context = sys.modules.get("deerflow.agents.middlewares.audit_context")
-    original_tool_declarations = sys.modules.get("deerflow.agents.middlewares.tool_declarations")
-    original_tool_search = sys.modules.get("deerflow.tools.builtins.tool_search")
-    original_sandbox_provider = sys.modules.get("deerflow.sandbox.sandbox_provider")
-    original_sandbox_overwrite = sys.modules.get("deerflow.sandbox.overwrite")
+    original_executor = sys.modules.get("operix.subagents.executor")
+    original_audit_context = sys.modules.get("operix.agents.middlewares.audit_context")
+    original_tool_declarations = sys.modules.get("operix.agents.middlewares.tool_declarations")
+    original_tool_search = sys.modules.get("operix.tools.builtins.tool_search")
+    original_sandbox_provider = sys.modules.get("operix.sandbox.sandbox_provider")
+    original_sandbox_overwrite = sys.modules.get("operix.sandbox.overwrite")
 
     # Preload real executor dependencies before replacing their parent packages
     # with cycle-breaking test doubles. Keeping the concrete leaf modules in
     # sys.modules makes this fixture independent of test collection order.
-    audit_context_module = importlib.import_module("deerflow.agents.middlewares.audit_context")
-    tool_declarations_module = importlib.import_module("deerflow.agents.middlewares.tool_declarations")
-    tool_search_module = importlib.import_module("deerflow.tools.builtins.tool_search")
-    sandbox_provider_module = importlib.import_module("deerflow.sandbox.sandbox_provider")
-    sandbox_overwrite_module = importlib.import_module("deerflow.sandbox.overwrite")
+    audit_context_module = importlib.import_module("operix.agents.middlewares.audit_context")
+    tool_declarations_module = importlib.import_module("operix.agents.middlewares.tool_declarations")
+    tool_search_module = importlib.import_module("operix.tools.builtins.tool_search")
+    sandbox_provider_module = importlib.import_module("operix.sandbox.sandbox_provider")
+    sandbox_overwrite_module = importlib.import_module("operix.sandbox.overwrite")
 
     # Remove mocked executor if exists (from conftest.py)
-    if "deerflow.subagents.executor" in sys.modules:
-        del sys.modules["deerflow.subagents.executor"]
+    if "operix.subagents.executor" in sys.modules:
+        del sys.modules["operix.subagents.executor"]
     _clear_stale_executor_package_attr()
 
     # Set up mocks
     for name in _MOCKED_MODULE_NAMES:
         sys.modules[name] = MagicMock()
-    storage_module = ModuleType("deerflow.skills.storage")
+    storage_module = ModuleType("operix.skills.storage")
     storage_module.get_or_new_skill_storage = lambda **kwargs: SimpleNamespace(load_skills=lambda *, enabled_only: [])
     storage_module.get_or_new_user_skill_storage = lambda user_id, **kwargs: SimpleNamespace(load_skills=lambda *, enabled_only: [])
-    sys.modules["deerflow.skills.storage"] = storage_module
-    sys.modules["deerflow.agents.middlewares.audit_context"] = audit_context_module
-    sys.modules["deerflow.agents.middlewares.tool_declarations"] = tool_declarations_module
-    sys.modules["deerflow.tools.builtins.tool_search"] = tool_search_module
-    sys.modules["deerflow.sandbox.sandbox_provider"] = sandbox_provider_module
-    sys.modules["deerflow.sandbox.overwrite"] = sandbox_overwrite_module
+    sys.modules["operix.skills.storage"] = storage_module
+    sys.modules["operix.agents.middlewares.audit_context"] = audit_context_module
+    sys.modules["operix.agents.middlewares.tool_declarations"] = tool_declarations_module
+    sys.modules["operix.tools.builtins.tool_search"] = tool_search_module
+    sys.modules["operix.sandbox.sandbox_provider"] = sandbox_provider_module
+    sys.modules["operix.sandbox.overwrite"] = sandbox_overwrite_module
 
     # Import real classes inside fixture
     from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
-    from deerflow.subagents.config import SubagentConfig
-    from deerflow.subagents.executor import (
+    from operix.subagents.config import SubagentConfig
+    from operix.subagents.executor import (
         SubagentExecutor,
         SubagentResult,
         SubagentStatus,
     )
 
-    executor_module = sys.modules["deerflow.subagents.executor"]
+    executor_module = sys.modules["operix.subagents.executor"]
 
     # Most tests in this module patch _create_agent and exercise executor
     # control flow only. Keep those tests hermetic: CI checkouts do not include
@@ -160,29 +160,29 @@ def _setup_executor_classes():
 
     # Restore executor module (conftest.py mock)
     if original_executor is not None:
-        sys.modules["deerflow.subagents.executor"] = original_executor
-    elif "deerflow.subagents.executor" in sys.modules:
-        del sys.modules["deerflow.subagents.executor"]
+        sys.modules["operix.subagents.executor"] = original_executor
+    elif "operix.subagents.executor" in sys.modules:
+        del sys.modules["operix.subagents.executor"]
     if original_audit_context is not None:
-        sys.modules["deerflow.agents.middlewares.audit_context"] = original_audit_context
+        sys.modules["operix.agents.middlewares.audit_context"] = original_audit_context
     else:
-        sys.modules.pop("deerflow.agents.middlewares.audit_context", None)
+        sys.modules.pop("operix.agents.middlewares.audit_context", None)
     if original_tool_declarations is not None:
-        sys.modules["deerflow.agents.middlewares.tool_declarations"] = original_tool_declarations
+        sys.modules["operix.agents.middlewares.tool_declarations"] = original_tool_declarations
     else:
-        sys.modules.pop("deerflow.agents.middlewares.tool_declarations", None)
+        sys.modules.pop("operix.agents.middlewares.tool_declarations", None)
     if original_tool_search is not None:
-        sys.modules["deerflow.tools.builtins.tool_search"] = original_tool_search
+        sys.modules["operix.tools.builtins.tool_search"] = original_tool_search
     else:
-        sys.modules.pop("deerflow.tools.builtins.tool_search", None)
+        sys.modules.pop("operix.tools.builtins.tool_search", None)
     if original_sandbox_provider is not None:
-        sys.modules["deerflow.sandbox.sandbox_provider"] = original_sandbox_provider
+        sys.modules["operix.sandbox.sandbox_provider"] = original_sandbox_provider
     else:
-        sys.modules.pop("deerflow.sandbox.sandbox_provider", None)
+        sys.modules.pop("operix.sandbox.sandbox_provider", None)
     if original_sandbox_overwrite is not None:
-        sys.modules["deerflow.sandbox.overwrite"] = original_sandbox_overwrite
+        sys.modules["operix.sandbox.overwrite"] = original_sandbox_overwrite
     else:
-        sys.modules.pop("deerflow.sandbox.overwrite", None)
+        sys.modules.pop("operix.sandbox.overwrite", None)
 
 
 def _async_create_agent_double(agent):
@@ -329,8 +329,8 @@ class TestAgentConstruction:
         monkeypatch: pytest.MonkeyPatch,
     ):
         """Explicit app_config must flow into both model and middleware factories."""
-        import deerflow.config as config_module
-        from deerflow.subagents import executor as executor_module
+        import operix.config as config_module
+        from operix.subagents import executor as executor_module
 
         SubagentExecutor = classes["SubagentExecutor"]
 
@@ -364,9 +364,9 @@ class TestAgentConstruction:
         monkeypatch.setattr(executor_module, "create_agent", fake_create_agent)
         monkeypatch.setitem(
             sys.modules,
-            "deerflow.agents.middlewares.tool_error_handling_middleware",
+            "operix.agents.middlewares.tool_error_handling_middleware",
             _module(
-                "deerflow.agents.middlewares.tool_error_handling_middleware",
+                "operix.agents.middlewares.tool_error_handling_middleware",
                 build_subagent_runtime_middlewares=fake_build_subagent_runtime_middlewares,
             ),
         )
@@ -421,7 +421,7 @@ class TestAgentConstruction:
         from langchain.agents.middleware import AgentMiddleware
         from langchain_core.tools import StructuredTool
 
-        from deerflow.subagents import executor as executor_module
+        from operix.subagents import executor as executor_module
 
         SubagentExecutor = classes["SubagentExecutor"]
 
@@ -435,7 +435,7 @@ class TestAgentConstruction:
                 self.calls = []
 
             def authorize(self, request):
-                from deerflow.authz.provider import AuthzDecision
+                from operix.authz.provider import AuthzDecision
 
                 return AuthzDecision(allow=True)
 
@@ -470,9 +470,9 @@ class TestAgentConstruction:
         monkeypatch.setattr(executor_module, "create_agent", fake_create_agent)
         monkeypatch.setitem(
             sys.modules,
-            "deerflow.agents.middlewares.tool_error_handling_middleware",
+            "operix.agents.middlewares.tool_error_handling_middleware",
             _module(
-                "deerflow.agents.middlewares.tool_error_handling_middleware",
+                "operix.agents.middlewares.tool_error_handling_middleware",
                 build_subagent_runtime_middlewares=fake_build_subagent_runtime_middlewares,
             ),
         )
@@ -486,7 +486,7 @@ class TestAgentConstruction:
         provider = _Provider()
         executor._authz_provider = provider
         executor._authz_context = {"user_role": "user"}
-        from deerflow.agents.middlewares.tool_declarations import LayerOneOutcome
+        from operix.agents.middlewares.tool_declarations import LayerOneOutcome
 
         executor._layer_one_outcome = LayerOneOutcome(submitted=frozenset({"regular"}), allowed=frozenset({"regular"}))
         # Phase 3's skill-authorization resolution needs a real AuthorizationConfig;
@@ -516,7 +516,7 @@ class TestAgentConstruction:
     ):
         """Fail-open must not be silent: a configured provider without the seeded
         Layer-1 state skips the declaration pass but logs a warning."""
-        from deerflow.subagents import executor as executor_module
+        from operix.subagents import executor as executor_module
 
         SubagentExecutor = classes["SubagentExecutor"]
 
@@ -529,9 +529,9 @@ class TestAgentConstruction:
         monkeypatch.setattr(executor_module, "create_agent", lambda **kwargs: MagicMock())
         monkeypatch.setitem(
             sys.modules,
-            "deerflow.agents.middlewares.tool_error_handling_middleware",
+            "operix.agents.middlewares.tool_error_handling_middleware",
             _module(
-                "deerflow.agents.middlewares.tool_error_handling_middleware",
+                "operix.agents.middlewares.tool_error_handling_middleware",
                 build_subagent_runtime_middlewares=lambda **kwargs: [],
             ),
         )
@@ -548,7 +548,7 @@ class TestAgentConstruction:
         # the skip-warning branch is what runs.
         monkeypatch.setattr(executor, "_resolve_skill_authorization", lambda: None)
 
-        with caplog.at_level(logging.WARNING, logger="deerflow.subagents.executor"):
+        with caplog.at_level(logging.WARNING, logger="operix.subagents.executor"):
             asyncio.run(executor._create_agent())
 
         assert "skipping the middleware-declared tool pass" in caplog.text
@@ -569,7 +569,7 @@ class TestAgentConstruction:
         """
         from langchain.agents.middleware import AgentMiddleware
 
-        from deerflow.subagents import executor as executor_module
+        from operix.subagents import executor as executor_module
 
         SubagentExecutor = classes["SubagentExecutor"]
 
@@ -583,9 +583,9 @@ class TestAgentConstruction:
         monkeypatch.setattr(executor_module, "create_agent", lambda **kwargs: SimpleNamespace(get_graph=lambda: SimpleNamespace(nodes={})))
         monkeypatch.setitem(
             sys.modules,
-            "deerflow.agents.middlewares.tool_error_handling_middleware",
+            "operix.agents.middlewares.tool_error_handling_middleware",
             _module(
-                "deerflow.agents.middlewares.tool_error_handling_middleware",
+                "operix.agents.middlewares.tool_error_handling_middleware",
                 build_subagent_runtime_middlewares=lambda **kwargs: middlewares,
             ),
         )
@@ -619,7 +619,7 @@ class TestAgentConstruction:
 
         from langchain.agents.middleware import AgentMiddleware, hook_config
 
-        from deerflow.subagents import executor as executor_module
+        from operix.subagents import executor as executor_module
 
         SubagentExecutor = classes["SubagentExecutor"]
 
@@ -632,9 +632,9 @@ class TestAgentConstruction:
         monkeypatch.setattr(executor_module, "create_agent", lambda **kwargs: SimpleNamespace(get_graph=lambda: SimpleNamespace(nodes={})))
         monkeypatch.setitem(
             sys.modules,
-            "deerflow.agents.middlewares.tool_error_handling_middleware",
+            "operix.agents.middlewares.tool_error_handling_middleware",
             _module(
-                "deerflow.agents.middlewares.tool_error_handling_middleware",
+                "operix.agents.middlewares.tool_error_handling_middleware",
                 build_subagent_runtime_middlewares=lambda **kwargs: [_Jumper()],
             ),
         )
@@ -674,7 +674,7 @@ class TestAgentConstruction:
             captured["app_config"] = app_config
             return SimpleNamespace(load_skills=lambda *, enabled_only: [SimpleNamespace(name="demo-skill", skill_file=skill_file)])
 
-        monkeypatch.setattr(sys.modules["deerflow.skills.storage"], "get_or_new_user_skill_storage", fake_get_or_new_user_skill_storage)
+        monkeypatch.setattr(sys.modules["operix.skills.storage"], "get_or_new_user_skill_storage", fake_get_or_new_user_skill_storage)
 
         executor = SubagentExecutor(
             config=base_config,
@@ -703,8 +703,8 @@ class TestAgentConstruction:
             return SimpleNamespace(load_skills=lambda *, enabled_only: [SimpleNamespace(name="shared-skill", owner=user_id)])
 
         global_storage = MagicMock(side_effect=AssertionError("subagents must not read the global-only skill catalog"))
-        monkeypatch.setattr(sys.modules["deerflow.skills.storage"], "get_or_new_skill_storage", global_storage)
-        monkeypatch.setattr(sys.modules["deerflow.skills.storage"], "get_or_new_user_skill_storage", user_storage)
+        monkeypatch.setattr(sys.modules["operix.skills.storage"], "get_or_new_skill_storage", global_storage)
+        monkeypatch.setattr(sys.modules["operix.skills.storage"], "get_or_new_user_skill_storage", user_storage)
 
         alice = SubagentExecutor(config=base_config, tools=[], app_config=app_config, thread_id="alice-thread", user_id="alice")
         bob = SubagentExecutor(config=base_config, tools=[], app_config=app_config, thread_id="bob-thread", user_id="bob")
@@ -727,8 +727,8 @@ class TestAgentConstruction:
         SubagentExecutor = classes["SubagentExecutor"]
         user_storage = MagicMock(return_value=SimpleNamespace(load_skills=lambda *, enabled_only: []))
         global_storage = MagicMock(side_effect=AssertionError("subagents must not read the global-only skill catalog"))
-        monkeypatch.setattr(sys.modules["deerflow.skills.storage"], "get_or_new_skill_storage", global_storage)
-        monkeypatch.setattr(sys.modules["deerflow.skills.storage"], "get_or_new_user_skill_storage", user_storage)
+        monkeypatch.setattr(sys.modules["operix.skills.storage"], "get_or_new_skill_storage", global_storage)
+        monkeypatch.setattr(sys.modules["operix.skills.storage"], "get_or_new_user_skill_storage", user_storage)
 
         executor = SubagentExecutor(config=base_config, tools=[], thread_id="test-thread", user_id=None)
 
@@ -753,7 +753,7 @@ class TestAgentConstruction:
         skill_file.write_text("Skill instructions here", encoding="utf-8")
 
         monkeypatch.setattr(
-            sys.modules["deerflow.skills.storage"],
+            sys.modules["operix.skills.storage"],
             "get_or_new_user_skill_storage",
             lambda user_id, *, app_config=None: SimpleNamespace(load_skills=lambda *, enabled_only: [SimpleNamespace(name="my-skill", skill_file=skill_file, allowed_tools=None)]),
         )
@@ -782,7 +782,7 @@ class TestAgentConstruction:
     async def test_task_child_does_not_inherit_agent_local_artifact_registry(self, classes, base_config, monkeypatch):
         """The documented MVP delegation boundary starts with a fresh registry."""
         monkeypatch.setattr(
-            sys.modules["deerflow.skills.storage"],
+            sys.modules["operix.skills.storage"],
             "get_or_new_user_skill_storage",
             lambda user_id, *, app_config=None: SimpleNamespace(load_skills=lambda *, enabled_only: []),
         )
@@ -803,7 +803,7 @@ class TestAgentConstruction:
         SubagentExecutor = classes["SubagentExecutor"]
 
         monkeypatch.setattr(
-            sys.modules["deerflow.skills.storage"],
+            sys.modules["operix.skills.storage"],
             "get_or_new_user_skill_storage",
             lambda user_id, *, app_config=None: SimpleNamespace(load_skills=lambda *, enabled_only: []),
         )
@@ -828,8 +828,8 @@ class TestAgentConstruction:
     async def test_prompt_overlay_surrounds_complete_system_message(self, classes):
         from langchain_core.messages import SystemMessage
 
-        from deerflow.config.subagents_config import SubagentsAppConfig
-        from deerflow.subagents.registry import get_subagent_config
+        from operix.config.subagents_config import SubagentsAppConfig
+        from operix.subagents.registry import get_subagent_config
 
         overrides = SubagentsAppConfig(agents={"general-purpose": {"prompt_overlay": {"prepend": "Operator first", "append": "Operator last"}}})
         config = get_subagent_config("general-purpose", app_config=overrides)
@@ -849,8 +849,8 @@ class TestAgentConstruction:
     async def test_build_initial_state_inherits_background_without_execution_evidence(self, classes, base_config):
         from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 
-        from deerflow.subagents.context_snapshot import ParentContextSnapshot
-        from deerflow.subagents.executor import _harvest_bash_executions, _harvest_tool_receipts
+        from operix.subagents.context_snapshot import ParentContextSnapshot
+        from operix.subagents.executor import _harvest_bash_executions, _harvest_tool_receipts
 
         parent_state = {
             "messages": [
@@ -889,8 +889,8 @@ class TestAgentConstruction:
         from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
         from langchain_core.tools import tool
 
-        from deerflow.agents.middlewares.input_sanitization_middleware import InputSanitizationMiddleware
-        from deerflow.subagents.context_snapshot import ParentContextSnapshot
+        from operix.agents.middlewares.input_sanitization_middleware import InputSanitizationMiddleware
+        from operix.subagents.context_snapshot import ParentContextSnapshot
 
         parent = {
             "messages": [
@@ -995,7 +995,7 @@ class TestAgentConstruction:
         SubagentExecutor = classes["SubagentExecutor"]
 
         monkeypatch.setattr(
-            sys.modules["deerflow.skills.storage"],
+            sys.modules["operix.skills.storage"],
             "get_or_new_user_skill_storage",
             lambda user_id, *, app_config=None: SimpleNamespace(load_skills=lambda *, enabled_only: []),
         )
@@ -1065,7 +1065,7 @@ class TestAgentConstruction:
         skill_file.write_text("Skill content", encoding="utf-8")
 
         monkeypatch.setattr(
-            sys.modules["deerflow.skills.storage"],
+            sys.modules["operix.skills.storage"],
             "get_or_new_user_skill_storage",
             lambda user_id, *, app_config=None: SimpleNamespace(load_skills=lambda *, enabled_only: [SimpleNamespace(name="my-skill", skill_file=skill_file, allowed_tools=None)]),
         )
@@ -1096,7 +1096,7 @@ class TestAgentConstruction:
         SubagentExecutor = classes["SubagentExecutor"]
 
         monkeypatch.setattr(
-            sys.modules["deerflow.skills.storage"],
+            sys.modules["operix.skills.storage"],
             "get_or_new_user_skill_storage",
             lambda user_id, *, app_config=None: SimpleNamespace(load_skills=lambda *, enabled_only: []),
         )
@@ -1133,7 +1133,7 @@ class TestAgentConstruction:
             timeout_seconds=60,
         )
         monkeypatch.setattr(
-            sys.modules["deerflow.skills.storage"],
+            sys.modules["operix.skills.storage"],
             "get_or_new_user_skill_storage",
             lambda user_id, *, app_config=None: SimpleNamespace(load_skills=lambda *, enabled_only: []),
         )
@@ -1160,10 +1160,10 @@ class TestAgentConstruction:
 
         app_config = _default_app_config()
         app_config.verification = SimpleNamespace(receipts_enabled=False)
-        executor_module = sys.modules["deerflow.subagents.executor"]
+        executor_module = sys.modules["operix.subagents.executor"]
         monkeypatch.setattr(executor_module, "get_app_config", lambda: app_config)
         monkeypatch.setattr(
-            sys.modules["deerflow.skills.storage"],
+            sys.modules["operix.skills.storage"],
             "get_or_new_user_skill_storage",
             lambda user_id, *, app_config=None: SimpleNamespace(load_skills=lambda *, enabled_only: []),
         )
@@ -1192,7 +1192,7 @@ class TestAgentConstruction:
         SubagentExecutor = classes["SubagentExecutor"]
 
         monkeypatch.setattr(
-            sys.modules["deerflow.skills.storage"],
+            sys.modules["operix.skills.storage"],
             "get_or_new_user_skill_storage",
             lambda user_id, *, app_config=None: SimpleNamespace(load_skills=lambda *, enabled_only: []),
         )
@@ -1235,7 +1235,7 @@ class TestAgentConstruction:
         SubagentExecutor = classes["SubagentExecutor"]
 
         monkeypatch.setattr(
-            sys.modules["deerflow.skills.storage"],
+            sys.modules["operix.skills.storage"],
             "get_or_new_user_skill_storage",
             lambda user_id, *, app_config=None: SimpleNamespace(load_skills=lambda *, enabled_only: []),
         )
@@ -1275,7 +1275,7 @@ class TestAgentConstruction:
         SubagentExecutor = classes["SubagentExecutor"]
 
         monkeypatch.setattr(
-            sys.modules["deerflow.skills.storage"],
+            sys.modules["operix.skills.storage"],
             "get_or_new_user_skill_storage",
             lambda user_id, *, app_config=None: SimpleNamespace(load_skills=lambda *, enabled_only: []),
         )
@@ -1299,13 +1299,13 @@ class TestAgentConstruction:
         <available-deferred-tools> section into the SystemMessage."""
         from langchain_core.tools import tool as as_tool
 
-        from deerflow.subagents import executor as executor_module
-        from deerflow.tools.mcp_metadata import tag_mcp_tool
+        from operix.subagents import executor as executor_module
+        from operix.tools.mcp_metadata import tag_mcp_tool
 
         SubagentExecutor = classes["SubagentExecutor"]
 
         monkeypatch.setattr(
-            sys.modules["deerflow.skills.storage"],
+            sys.modules["operix.skills.storage"],
             "get_or_new_user_skill_storage",
             lambda user_id, *, app_config=None: SimpleNamespace(load_skills=lambda *, enabled_only: []),
         )
@@ -1348,13 +1348,13 @@ class TestAgentConstruction:
         with an MCP-tagged tool present."""
         from langchain_core.tools import tool as as_tool
 
-        from deerflow.subagents import executor as executor_module
-        from deerflow.tools.mcp_metadata import tag_mcp_tool
+        from operix.subagents import executor as executor_module
+        from operix.tools.mcp_metadata import tag_mcp_tool
 
         SubagentExecutor = classes["SubagentExecutor"]
 
         monkeypatch.setattr(
-            sys.modules["deerflow.skills.storage"],
+            sys.modules["operix.skills.storage"],
             "get_or_new_user_skill_storage",
             lambda user_id, *, app_config=None: SimpleNamespace(load_skills=lambda *, enabled_only: []),
         )
@@ -1388,11 +1388,11 @@ class TestAgentConstruction:
         base_config,
         monkeypatch: pytest.MonkeyPatch,
     ):
-        from deerflow.config.authorization_config import AuthorizationConfig, AuthorizationProviderConfig
+        from operix.config.authorization_config import AuthorizationConfig, AuthorizationProviderConfig
 
         SubagentExecutor = classes["SubagentExecutor"]
         monkeypatch.setattr(
-            sys.modules["deerflow.skills.storage"],
+            sys.modules["operix.skills.storage"],
             "get_or_new_skill_storage",
             lambda *, app_config=None: SimpleNamespace(load_skills=lambda *, enabled_only: []),
         )
@@ -1400,7 +1400,7 @@ class TestAgentConstruction:
             authorization=AuthorizationConfig(
                 enabled=True,
                 provider=AuthorizationProviderConfig(
-                    use="deerflow.authz.rbac:RbacAuthorizationProvider",
+                    use="operix.authz.rbac:RbacAuthorizationProvider",
                     config={"roles": {"user": {"tools": {"allow": ["safe_tool"]}}}},
                 ),
             ),
@@ -1442,14 +1442,14 @@ class TestAgentConstruction:
         """
         from langchain_core.tools import tool as as_tool
 
-        from deerflow.subagents import executor as executor_module
-        from deerflow.tools.mcp_metadata import tag_mcp_tool
+        from operix.subagents import executor as executor_module
+        from operix.tools.mcp_metadata import tag_mcp_tool
 
         SubagentConfig = classes["SubagentConfig"]
         SubagentExecutor = classes["SubagentExecutor"]
 
         monkeypatch.setattr(
-            sys.modules["deerflow.skills.storage"],
+            sys.modules["operix.skills.storage"],
             "get_or_new_user_skill_storage",
             lambda user_id, *, app_config=None: SimpleNamespace(load_skills=lambda *, enabled_only: []),
         )
@@ -1510,8 +1510,8 @@ class TestAgentConstruction:
     ):
         """A deferred setup passed to _create_agent flows into the subagent
         middleware factory (so DeferredToolFilterMiddleware can attach)."""
-        from deerflow.subagents import executor as executor_module
-        from deerflow.tools.builtins.tool_search import DeferredToolSetup
+        from operix.subagents import executor as executor_module
+        from operix.tools.builtins.tool_search import DeferredToolSetup
 
         SubagentExecutor = classes["SubagentExecutor"]
         app_config = SimpleNamespace(models=[SimpleNamespace(name="default-model")], tool_search=SimpleNamespace(enabled=True, auto_promote_top_k=3))
@@ -1525,9 +1525,9 @@ class TestAgentConstruction:
         monkeypatch.setattr(executor_module, "create_agent", lambda **kwargs: SimpleNamespace(get_graph=lambda: SimpleNamespace(nodes={})))
         monkeypatch.setitem(
             sys.modules,
-            "deerflow.agents.middlewares.tool_error_handling_middleware",
+            "operix.agents.middlewares.tool_error_handling_middleware",
             _module(
-                "deerflow.agents.middlewares.tool_error_handling_middleware",
+                "operix.agents.middlewares.tool_error_handling_middleware",
                 build_subagent_runtime_middlewares=fake_build_subagent_runtime_middlewares,
             ),
         )
@@ -1644,7 +1644,7 @@ class TestAsyncExecutionPath:
         fallback_message = AIMessage(
             content=fallback_text,
             additional_kwargs={
-                "deerflow_error_fallback": True,
+                "operix_error_fallback": True,
                 "error_type": "BadRequestError",
                 "error_reason": "generic",
                 "error_detail": "Error code: 400 - InvalidParameter",
@@ -1679,7 +1679,7 @@ class TestAsyncExecutionPath:
             update={
                 "content": None,
                 "additional_kwargs": {
-                    "deerflow_error_fallback": True,
+                    "operix_error_fallback": True,
                     "error_type": "APIConnectionError",
                     "error_detail": "Connection error.",
                 },
@@ -1732,7 +1732,7 @@ class TestAsyncExecutionPath:
         stale_fallback = AIMessage(
             content="LLM request failed: an earlier parent-history error",
             additional_kwargs={
-                "deerflow_error_fallback": True,
+                "operix_error_fallback": True,
                 "error_type": "BadRequestError",
                 "error_reason": "generic",
                 "error_detail": "Error code: 400 - InvalidParameter",
@@ -1752,7 +1752,7 @@ class TestAsyncExecutionPath:
     @pytest.mark.anyio
     async def test_aexecute_exposes_collected_usage_before_subagent_finishes(self, classes, base_config, mock_agent, msg, monkeypatch):
         """Polling callers can read a cumulative token snapshot while running."""
-        from deerflow.subagents import executor as executor_module
+        from operix.subagents import executor as executor_module
 
         SubagentExecutor = classes["SubagentExecutor"]
         SubagentResult = classes["SubagentResult"]
@@ -1939,7 +1939,7 @@ class TestAsyncExecutionPath:
 
     @pytest.mark.anyio
     async def test_aexecute_step_capture_survives_history_contraction(self, classes, base_config, mock_agent, msg):
-        """Regression for #3875 Phase 3: DeerFlowSummarizationMiddleware rewrites the
+        """Regression for #3875 Phase 3: OperixSummarizationMiddleware rewrites the
         messages channel mid-run via ``RemoveMessage(id=REMOVE_ALL_MESSAGES)``,
         so a later ``values`` snapshot hands the executor a SHORTER message list
         than the cursor it was tracking. Without the contraction reset in
@@ -2145,7 +2145,7 @@ class TestAsyncExecutionPath:
 
         with (
             patch.object(executor, "_create_agent", return_value=mock_agent),
-            caplog.at_level("ERROR", logger="deerflow.subagents.executor"),
+            caplog.at_level("ERROR", logger="operix.subagents.executor"),
         ):
             result = await executor._aexecute(
                 "Task",
@@ -2164,7 +2164,7 @@ class TestAsyncExecutionPath:
         mock_agent,
         monkeypatch,
     ):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
+        executor_module = importlib.import_module("operix.subagents.executor")
         SubagentExecutor = classes["SubagentExecutor"]
         SubagentStatus = classes["SubagentStatus"]
         warning_handle = MagicMock()
@@ -2237,7 +2237,7 @@ class TestAsyncExecutionPath:
             thread_id="test-thread",
         )
 
-        with caplog.at_level(logging.WARNING, logger="deerflow.subagents.executor"):
+        with caplog.at_level(logging.WARNING, logger="operix.subagents.executor"):
             with patch.object(executor, "_create_agent", return_value=mock_agent):
                 execution = asyncio.create_task(executor._aexecute("Task"))
                 await started.wait()
@@ -2288,8 +2288,8 @@ class TestAsyncExecutionPath:
             yield  # pragma: no cover - make this an async generator
 
         mock_agent.astream = failing_stream
-        sys.modules["deerflow.sandbox"].get_sandbox_provider.return_value = provider
-        lease_module = importlib.import_module("deerflow.sandbox.lease")
+        sys.modules["operix.sandbox"].get_sandbox_provider.return_value = provider
+        lease_module = importlib.import_module("operix.sandbox.lease")
         monkeypatch.setattr(lease_module, "get_sandbox_lease_manager", lambda _provider: manager)
 
         executor = SubagentExecutor(
@@ -2348,8 +2348,8 @@ class TestAsyncExecutionPath:
             yield  # pragma: no cover - make this an async generator
 
         mock_agent.astream = failing_stream
-        sys.modules["deerflow.sandbox"].get_sandbox_provider.return_value = provider
-        lease_module = importlib.import_module("deerflow.sandbox.lease")
+        sys.modules["operix.sandbox"].get_sandbox_provider.return_value = provider
+        lease_module = importlib.import_module("operix.sandbox.lease")
         monkeypatch.setattr(lease_module, "get_sandbox_lease_manager", lambda _provider: manager)
 
         executor = SubagentExecutor(
@@ -2486,7 +2486,7 @@ class TestAsyncExecutionPath:
 
         ``_extract_llm_error_fallback`` (#4042) marks a terminal ``AIMessage``
         as a handled provider failure via
-        ``additional_kwargs.deerflow_error_fallback``, and the
+        ``additional_kwargs.operix_error_fallback``, and the
         normal-completion branch above already consults it before falling
         back to ``_extract_final_result``. This except-block must apply the
         same check before recovering ``usable_partial`` from raw non-empty
@@ -2505,7 +2505,7 @@ class TestAsyncExecutionPath:
         fallback_message = AIMessage(
             content=fallback_text,
             additional_kwargs={
-                "deerflow_error_fallback": True,
+                "operix_error_fallback": True,
                 "error_type": "BadRequestError",
                 "error_reason": "generic",
                 "error_detail": "Error code: 400 - InvalidParameter",
@@ -2654,7 +2654,7 @@ class TestAsyncExecutionPath:
         (skill_dir / "SKILL.md").write_text("Skill instruction text", encoding="utf-8")
 
         monkeypatch.setattr(
-            sys.modules["deerflow.skills.storage"],
+            sys.modules["operix.skills.storage"],
             "get_or_new_user_skill_storage",
             lambda user_id, *, app_config=None: SimpleNamespace(load_skills=lambda *, enabled_only: [SimpleNamespace(name="regression-skill", skill_file=skill_dir / "SKILL.md", allowed_tools=None)]),
         )
@@ -2857,7 +2857,7 @@ class TestSyncExecutionPath:
     @pytest.mark.anyio
     async def test_execute_in_running_event_loop_calls_isolated_loop_directly(self, classes, base_config, mock_agent, msg):
         """Test that execute() calls the isolated-loop helper directly in a running loop."""
-        from deerflow.runtime.user_context import (
+        from operix.runtime.user_context import (
             get_effective_user_id,
             reset_current_user,
             set_current_user,
@@ -3102,7 +3102,7 @@ class TestThreadSafety:
     @pytest.fixture
     def executor_module(self, _setup_executor_classes):
         """Import the executor module with real classes."""
-        executor = importlib.import_module("deerflow.subagents.executor")
+        executor = importlib.import_module("operix.subagents.executor")
 
         return _patch_default_get_app_config(importlib.reload(executor))
 
@@ -3138,8 +3138,8 @@ class TestThreadSafety:
         """Test multiple executors running in parallel via thread pool."""
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
-        from deerflow.config.subagent_runtime_config import SubagentRuntimeConfig
-        from deerflow.subagents.capacity import SubagentExecutionCapacity
+        from operix.config.subagent_runtime_config import SubagentRuntimeConfig
+        from operix.subagents.capacity import SubagentExecutionCapacity
 
         SubagentExecutor = classes["SubagentExecutor"]
         SubagentStatus = classes["SubagentStatus"]
@@ -3272,7 +3272,7 @@ class TestCleanupBackgroundTask:
     def executor_module(self, _setup_executor_classes):
         """Import the executor module with real classes."""
         # Re-import to get the real module with cleanup_background_task
-        executor = importlib.import_module("deerflow.subagents.executor")
+        executor = importlib.import_module("operix.subagents.executor")
 
         return _patch_default_get_app_config(importlib.reload(executor))
 
@@ -3531,7 +3531,7 @@ class TestCooperativeCancellation:
     @pytest.fixture
     def executor_module(self, _setup_executor_classes):
         """Import the executor module with real classes."""
-        executor = importlib.import_module("deerflow.subagents.executor")
+        executor = importlib.import_module("operix.subagents.executor")
 
         return _patch_default_get_app_config(importlib.reload(executor))
 
@@ -3637,14 +3637,14 @@ class TestCooperativeCancellation:
             async def release_async(self, _owner_id):
                 events.append("lease_release")
 
-        sandbox_module = sys.modules["deerflow.sandbox"]
+        sandbox_module = sys.modules["operix.sandbox"]
         monkeypatch.setattr(
             sandbox_module,
             "get_sandbox_provider",
             lambda: object(),
             raising=False,
         )
-        lease_module = importlib.import_module("deerflow.sandbox.lease")
+        lease_module = importlib.import_module("operix.sandbox.lease")
         monkeypatch.setattr(
             lease_module,
             "get_sandbox_lease_manager",
@@ -3830,7 +3830,7 @@ class TestCooperativeCancellation:
         msg,
         caplog,
     ):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
+        executor_module = importlib.import_module("operix.subagents.executor")
         SubagentExecutor = classes["SubagentExecutor"]
         SubagentResult = classes["SubagentResult"]
         SubagentStatus = classes["SubagentStatus"]
@@ -3883,7 +3883,7 @@ class TestCooperativeCancellation:
 
         with (
             patch.object(executor, "_create_agent", return_value=mock_agent),
-            caplog.at_level("WARNING", logger="deerflow.subagents.executor"),
+            caplog.at_level("WARNING", logger="operix.subagents.executor"),
         ):
             execution = asyncio.create_task(
                 executor._aexecute(
@@ -4046,7 +4046,7 @@ class TestCooperativeCancellation:
         """Regression: background subagent execution must keep request user context."""
         import concurrent.futures
 
-        from deerflow.runtime.user_context import (
+        from operix.runtime.user_context import (
             get_effective_user_id,
             reset_current_user,
             set_current_user,
@@ -4103,7 +4103,7 @@ class TestCooperativeCancellation:
 
         SubagentExecutor = classes["SubagentExecutor"]
         SubagentStatus = classes["SubagentStatus"]
-        parent_callback = SimpleNamespace(deerflow_loop_bound=True)
+        parent_callback = SimpleNamespace(operix_loop_bound=True)
         stream_callback = object()
         child_callback = object()
         observed: dict[str, object] = {}
@@ -4162,7 +4162,7 @@ class TestCooperativeCancellation:
         from langchain_core.callbacks.manager import AsyncCallbackManager
         from langchain_core.runnables.config import var_child_runnable_config
 
-        loop_bound = SimpleNamespace(deerflow_loop_bound=True)
+        loop_bound = SimpleNamespace(operix_loop_bound=True)
         stream_handler = object()
         manager = AsyncCallbackManager(
             handlers=[loop_bound, stream_handler],
@@ -4408,9 +4408,9 @@ async def test_subagent_mcp_uses_captured_thread_incarnation(classes, monkeypatc
     from langgraph.prebuilt import ToolNode
     from mcp.types import CallToolResult
 
-    from deerflow.mcp import tools as mcp_tools
+    from operix.mcp import tools as mcp_tools
 
-    executor_module = importlib.import_module("deerflow.subagents.executor")
+    executor_module = importlib.import_module("operix.subagents.executor")
     monkeypatch.setattr(executor_module, "build_tracing_callbacks", lambda: [])
     pool = SimpleNamespace(get_session=AsyncMock(return_value=object()))
     call_remote = AsyncMock(return_value=CallToolResult(content=[], isError=False))
@@ -4470,7 +4470,7 @@ class TestSubagentCheckpointLineage:
         ``thread_id`` clears the ambient ``checkpoint_ns`` on LangGraph 1.2.6+,
         so the child is routed as a root graph instead of a subgraph.
         """
-        executor_module = importlib.import_module("deerflow.subagents.executor")
+        executor_module = importlib.import_module("operix.subagents.executor")
         monkeypatch.setattr(executor_module, "build_tracing_callbacks", lambda: [])
 
         executor = classes["SubagentExecutor"](
@@ -4523,7 +4523,7 @@ class TestSubagentCheckpointLineage:
         from langgraph.checkpoint.memory import MemorySaver
         from langgraph.graph import END, START, MessagesState, StateGraph
 
-        executor_module = importlib.import_module("deerflow.subagents.executor")
+        executor_module = importlib.import_module("operix.subagents.executor")
         monkeypatch.setattr(executor_module, "build_tracing_callbacks", lambda: [])
 
         child_builder = StateGraph(MessagesState)
@@ -4651,7 +4651,7 @@ class TestSubagentTracingWiring:
 
     @pytest.fixture
     def executor_module(self, _setup_executor_classes):
-        executor = importlib.import_module("deerflow.subagents.executor")
+        executor = importlib.import_module("operix.subagents.executor")
         return _patch_default_get_app_config(importlib.reload(executor))
 
     @pytest.fixture(autouse=True)
@@ -4659,7 +4659,7 @@ class TestSubagentTracingWiring:
         """Reset tracing config and env between tests so monkeypatched env
         vars do not leak across tests in this class or the rest of the suite.
         """
-        from deerflow.config.tracing_config import reset_tracing_config
+        from operix.config.tracing_config import reset_tracing_config
 
         for name in ("LANGFUSE_TRACING", "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_BASE_URL"):
             monkeypatch.delenv(name, raising=False)
@@ -4667,7 +4667,7 @@ class TestSubagentTracingWiring:
         yield
         reset_tracing_config()
 
-    def _make_executor(self, classes, *, user_id=None, name="general-purpose", parent_model="test-model", deerflow_trace_id=None):
+    def _make_executor(self, classes, *, user_id=None, name="general-purpose", parent_model="test-model", operix_trace_id=None):
         SubagentExecutor = classes["SubagentExecutor"]
         SubagentConfig = classes["SubagentConfig"]
         config = SubagentConfig(
@@ -4684,7 +4684,7 @@ class TestSubagentTracingWiring:
             thread_id="thread-trace-1",
             trace_id="trace-1",
             user_id=user_id,
-            deerflow_trace_id=deerflow_trace_id,
+            operix_trace_id=operix_trace_id,
         )
 
     @pytest.mark.anyio
@@ -4717,19 +4717,19 @@ class TestSubagentTracingWiring:
         assert len(callbacks) >= 2, "existing callbacks must be preserved when tracing is injected"
         assert result.status.value == SubagentStatus.COMPLETED.value
 
-    def test_deerflow_trace_id_is_never_none(self, classes):
+    def test_operix_trace_id_is_never_none(self, classes):
         """The attribute is part of the non-nullable trace contract: consumers
         write it into the child runtime context unconditionally, so an
         undelegated id must resolve rather than propagate ``None``."""
-        executor = self._make_executor(classes, deerflow_trace_id=None)
+        executor = self._make_executor(classes, operix_trace_id=None)
 
-        assert executor.deerflow_trace_id
+        assert executor.operix_trace_id
 
-    def test_deerflow_trace_id_falls_back_to_the_ambient_trace(self, classes):
+    def test_operix_trace_id_falls_back_to_the_ambient_trace(self, classes):
         with request_trace_context("ambient-trace-1"):
-            executor = self._make_executor(classes, deerflow_trace_id=None)
+            executor = self._make_executor(classes, operix_trace_id=None)
 
-        assert executor.deerflow_trace_id == "ambient-trace-1"
+        assert executor.operix_trace_id == "ambient-trace-1"
 
     @pytest.mark.anyio
     async def test_aexecute_rebinds_the_parent_trace_on_the_isolated_loop(
@@ -4741,9 +4741,9 @@ class TestSubagentTracingWiring:
         """Sync callers reach execution on the persistent isolated loop thread,
         where the parent ContextVar is not guaranteed to have survived. The id
         also travels as data precisely so it can be rebound here."""
-        from deerflow.trace_context import get_current_trace_id
+        from operix.trace_context import get_current_trace_id
 
-        executor = self._make_executor(classes, deerflow_trace_id="parent-trace-1")
+        executor = self._make_executor(classes, operix_trace_id="parent-trace-1")
         fake_agent = _FakeStreamAgent()
         monkeypatch.setattr(executor, "_build_initial_state", self._noop_build_initial_state)
         monkeypatch.setattr(executor, "_create_agent", _async_create_agent_double(fake_agent))
@@ -4776,7 +4776,7 @@ class TestSubagentTracingWiring:
         monkeypatch.setenv("LANGFUSE_TRACING", "true")
         monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "pk-lf-test")
         monkeypatch.setenv("LANGFUSE_SECRET_KEY", "sk-lf-test")
-        from deerflow.config.tracing_config import reset_tracing_config
+        from operix.config.tracing_config import reset_tracing_config
 
         reset_tracing_config()
 
@@ -4786,7 +4786,7 @@ class TestSubagentTracingWiring:
         sentinel = _Sentinel()
         monkeypatch.setattr(executor_module, "build_tracing_callbacks", lambda: [sentinel])
 
-        executor = self._make_executor(classes, user_id="alice", name="general_purpose", deerflow_trace_id="gateway-trace-sub")
+        executor = self._make_executor(classes, user_id="alice", name="general_purpose", operix_trace_id="gateway-trace-sub")
         fake_agent = _FakeStreamAgent()
         monkeypatch.setattr(executor, "_build_initial_state", self._noop_build_initial_state)
         monkeypatch.setattr(executor, "_create_agent", _async_create_agent_double(fake_agent))
@@ -4799,8 +4799,8 @@ class TestSubagentTracingWiring:
         # Underscores are normalized to hyphens so the trace name matches the
         # lead-agent naming shape.
         assert metadata.get("langfuse_trace_name") == "subagent:general-purpose"
-        assert metadata.get("deerflow_trace_id") == "gateway-trace-sub"
-        assert fake_agent.captured_context.get("deerflow_trace_id") == "gateway-trace-sub"
+        assert metadata.get("operix_trace_id") == "gateway-trace-sub"
+        assert fake_agent.captured_context.get("operix_trace_id") == "gateway-trace-sub"
         tags = metadata.get("langfuse_tags") or []
         assert any(t.startswith("model:") for t in tags), "model tag must be emitted for cost attribution"
 
@@ -4842,7 +4842,7 @@ class TestSubagentTracingWiring:
         monkeypatch.setenv("LANGFUSE_TRACING", "true")
         monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "pk-lf-test")
         monkeypatch.setenv("LANGFUSE_SECRET_KEY", "sk-lf-test")
-        from deerflow.config.tracing_config import reset_tracing_config
+        from operix.config.tracing_config import reset_tracing_config
 
         reset_tracing_config()
         monkeypatch.setattr(executor_module, "build_tracing_callbacks", lambda: [object()])
@@ -4855,7 +4855,7 @@ class TestSubagentTracingWiring:
         await executor._aexecute("do something")
 
         metadata = (fake_agent.captured_config or {}).get("metadata") or {}
-        # DEFAULT_USER_ID is "default" (see deerflow.runtime.user_context).
+        # DEFAULT_USER_ID is "default" (see operix.runtime.user_context).
         assert metadata.get("langfuse_user_id") == "default"
 
     @pytest.mark.anyio
@@ -4871,7 +4871,7 @@ class TestSubagentTracingWiring:
         monkeypatch.setenv("LANGFUSE_TRACING", "true")
         monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "pk-lf-test")
         monkeypatch.setenv("LANGFUSE_SECRET_KEY", "sk-lf-test")
-        from deerflow.config.tracing_config import reset_tracing_config
+        from operix.config.tracing_config import reset_tracing_config
 
         reset_tracing_config()
         monkeypatch.setattr(executor_module, "build_tracing_callbacks", lambda: [object()])
@@ -4901,20 +4901,20 @@ class TestSubagentTracingWiring:
         assert metadata.get("langfuse_trace_name") == "subagent"
 
     @pytest.mark.anyio
-    async def test_environment_tag_emitted_from_deer_flow_env(
+    async def test_environment_tag_emitted_from_operix_env(
         self,
         classes,
         executor_module,
         monkeypatch,
     ):
-        """``DEER_FLOW_ENV`` must surface as an ``env:<value>`` tag so Langfuse
+        """``OPERIX_ENV`` must surface as an ``env:<value>`` tag so Langfuse
         cost aggregation can split traces by deployment environment.
         """
         monkeypatch.setenv("LANGFUSE_TRACING", "true")
         monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "pk-lf-test")
         monkeypatch.setenv("LANGFUSE_SECRET_KEY", "sk-lf-test")
-        monkeypatch.setenv("DEER_FLOW_ENV", "staging")
-        from deerflow.config.tracing_config import reset_tracing_config
+        monkeypatch.setenv("OPERIX_ENV", "staging")
+        from operix.config.tracing_config import reset_tracing_config
 
         reset_tracing_config()
         monkeypatch.setattr(executor_module, "build_tracing_callbacks", lambda: [object()])
@@ -4948,7 +4948,7 @@ class TestSubagentGuardrailAttribution:
 
     @pytest.fixture
     def executor_module(self, _setup_executor_classes):
-        executor = importlib.import_module("deerflow.subagents.executor")
+        executor = importlib.import_module("operix.subagents.executor")
         return _patch_default_get_app_config(importlib.reload(executor))
 
     def _make_executor(
@@ -5308,11 +5308,11 @@ class TestInterruptedTokenUsage:
         from langchain_core.language_models.fake_chat_models import FakeMessagesListChatModel
         from langchain_core.tools import tool
 
-        from deerflow.config.subagent_runtime_config import SubagentRuntimeConfig
-        from deerflow.subagents.capacity import SubagentExecutionCapacity
-        from deerflow.tools.builtins.task_tool import _report_usage_records, _summarize_usage, _task_result_command
+        from operix.config.subagent_runtime_config import SubagentRuntimeConfig
+        from operix.subagents.capacity import SubagentExecutionCapacity
+        from operix.tools.builtins.task_tool import _report_usage_records, _summarize_usage, _task_result_command
 
-        executor_module = importlib.import_module("deerflow.subagents.executor")
+        executor_module = importlib.import_module("operix.subagents.executor")
         model_returned = threading.Event()
         terminal = threading.Event()
         gate = {}
@@ -5537,14 +5537,14 @@ class TestToolReceiptHarvest:
                 assert not thread.is_alive()
 
     def test_harvest_uses_current_scan_when_latest_chunk_ends_in_tool_result(self, classes, msg, monkeypatch):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
+        executor_module = importlib.import_module("operix.subagents.executor")
         latest = [{"id": "r1", "tool_call_id": "tc-latest"}]
         fake_tool_receipt = _module(
-            "deerflow.agents.middlewares.tool_receipt",
+            "operix.agents.middlewares.tool_receipt",
             extract_citing_turn_receipts=lambda messages: [],
             extract_tool_receipts=lambda messages: latest,
         )
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_receipt", fake_tool_receipt)
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_receipt", fake_tool_receipt)
         state = {
             "messages": [
                 msg.ai("Earlier report", "msg-1"),
@@ -5555,18 +5555,18 @@ class TestToolReceiptHarvest:
         assert executor_module._harvest_tool_receipts(state) == latest
 
     def test_completed_tool_ended_partial_prefers_bounded_citing_snapshot(self, classes, msg, monkeypatch):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
+        executor_module = importlib.import_module("operix.subagents.executor")
         bounded = [{"id": "r24", "tool_call_id": "tc-cited"}]
         latest = [
             {"id": "r1", "tool_call_id": "tc-omitted"},
             {"id": "r31", "tool_call_id": "tc-latest"},
         ]
         fake_tool_receipt = _module(
-            "deerflow.agents.middlewares.tool_receipt",
+            "operix.agents.middlewares.tool_receipt",
             extract_citing_turn_receipts=lambda messages: bounded,
             extract_tool_receipts=lambda messages: latest,
         )
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_receipt", fake_tool_receipt)
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_receipt", fake_tool_receipt)
         state = {
             "messages": [
                 msg.ai("Partial report [r24]", "msg-1"),
@@ -5578,14 +5578,14 @@ class TestToolReceiptHarvest:
         assert executor_module._harvest_tool_receipts(state, prefer_citing_turn=True) == bounded
 
     def test_completed_result_does_not_fallback_when_citing_snapshot_is_invalid(self, classes, msg, monkeypatch):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
+        executor_module = importlib.import_module("operix.subagents.executor")
         current = [{"id": "r1", "tool_call_id": "tc-renumbered"}]
         fake_tool_receipt = _module(
-            "deerflow.agents.middlewares.tool_receipt",
+            "operix.agents.middlewares.tool_receipt",
             extract_citing_turn_receipts=lambda messages: None,
             extract_tool_receipts=lambda messages: current,
         )
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_receipt", fake_tool_receipt)
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_receipt", fake_tool_receipt)
         state = {"messages": [msg.ai("Completed report [r1]", "msg-1")]}
 
         assert executor_module._harvest_tool_receipts(state) == current
@@ -5606,11 +5606,11 @@ class TestToolReceiptHarvest:
         bounded = [{"id": "r24", "tool_call_id": "tc-cited"}]
         latest = [{"id": "r1", "tool_call_id": "tc-omitted"}]
         fake_tool_receipt = _module(
-            "deerflow.agents.middlewares.tool_receipt",
+            "operix.agents.middlewares.tool_receipt",
             extract_citing_turn_receipts=lambda messages: bounded,
             extract_tool_receipts=lambda messages: latest,
         )
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_receipt", fake_tool_receipt)
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_receipt", fake_tool_receipt)
         final_state = {
             "messages": [
                 msg.ai("Partial report [r24]", "msg-1"),
@@ -5657,11 +5657,11 @@ class TestToolReceiptHarvest:
             }
         ]
         fake_tool_receipt = _module(
-            "deerflow.agents.middlewares.tool_receipt",
+            "operix.agents.middlewares.tool_receipt",
             extract_citing_turn_receipts=lambda messages: harvested,
             extract_tool_receipts=lambda messages: harvested,
         )
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_receipt", fake_tool_receipt)
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_receipt", fake_tool_receipt)
 
         final_state = {
             "messages": [
@@ -5717,11 +5717,11 @@ class TestToolReceiptHarvest:
             }
         ]
         fake_tool_receipt = _module(
-            "deerflow.agents.middlewares.tool_receipt",
+            "operix.agents.middlewares.tool_receipt",
             extract_citing_turn_receipts=lambda messages: harvested if messages[-1].id == "msg-2" else None,
             extract_tool_receipts=lambda messages: harvested,
         )
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_receipt", fake_tool_receipt)
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_receipt", fake_tool_receipt)
 
         holder = classes["SubagentResult"](
             task_id="cancel-after-tool",
@@ -5748,16 +5748,16 @@ class TestToolReceiptHarvest:
         assert result.tool_receipts == harvested
 
     def test_execute_async_preserves_published_receipts_on_forced_cancellation(self, classes, base_config, msg, monkeypatch):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
+        executor_module = importlib.import_module("operix.subagents.executor")
         SubagentExecutor = classes["SubagentExecutor"]
         SubagentStatus = classes["SubagentStatus"]
         harvested = [{"id": "r1", "tool_call_id": "tc-1"}]
         fake_tool_receipt = _module(
-            "deerflow.agents.middlewares.tool_receipt",
+            "operix.agents.middlewares.tool_receipt",
             extract_citing_turn_receipts=lambda messages: harvested,
             extract_tool_receipts=lambda messages: harvested,
         )
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_receipt", fake_tool_receipt)
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_receipt", fake_tool_receipt)
         chunk_seen = threading.Event()
 
         async def mock_astream(*args, **kwargs):
@@ -5799,7 +5799,7 @@ class TestToolReceiptHarvest:
         assert result.tool_receipts == harvested
 
     def test_execute_async_preserves_published_receipts_on_timeout(self, classes, msg, monkeypatch):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
+        executor_module = importlib.import_module("operix.subagents.executor")
         SubagentExecutor = classes["SubagentExecutor"]
         SubagentStatus = classes["SubagentStatus"]
         short_config = classes["SubagentConfig"](
@@ -5811,11 +5811,11 @@ class TestToolReceiptHarvest:
         )
         harvested = [{"id": "r1", "tool_call_id": "tc-1"}]
         fake_tool_receipt = _module(
-            "deerflow.agents.middlewares.tool_receipt",
+            "operix.agents.middlewares.tool_receipt",
             extract_citing_turn_receipts=lambda messages: harvested,
             extract_tool_receipts=lambda messages: harvested,
         )
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_receipt", fake_tool_receipt)
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_receipt", fake_tool_receipt)
         chunk_seen = threading.Event()
 
         async def mock_astream(*args, **kwargs):
@@ -5871,11 +5871,11 @@ class TestToolReceiptHarvest:
             }
         ]
         fake_tool_receipt = _module(
-            "deerflow.agents.middlewares.tool_receipt",
+            "operix.agents.middlewares.tool_receipt",
             extract_citing_turn_receipts=lambda messages: harvested,
             extract_tool_receipts=lambda messages: harvested,
         )
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_receipt", fake_tool_receipt)
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_receipt", fake_tool_receipt)
 
         app_config = _default_app_config()
         app_config.models = [SimpleNamespace(name="default-model")]
@@ -5894,16 +5894,16 @@ class TestToolReceiptHarvest:
 
     @pytest.mark.anyio
     async def test_harvest_honors_globally_resolved_disabled_receipts(self, classes, base_config, mock_agent, msg, monkeypatch):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
+        executor_module = importlib.import_module("operix.subagents.executor")
         SubagentExecutor = classes["SubagentExecutor"]
         SubagentStatus = classes["SubagentStatus"]
         harvested = [{"id": "r1", "tool_call_id": "tc-1"}]
         fake_tool_receipt = _module(
-            "deerflow.agents.middlewares.tool_receipt",
+            "operix.agents.middlewares.tool_receipt",
             extract_citing_turn_receipts=lambda messages: harvested,
             extract_tool_receipts=lambda messages: harvested,
         )
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_receipt", fake_tool_receipt)
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_receipt", fake_tool_receipt)
         resolved_config = _default_app_config()
         resolved_config.verification = SimpleNamespace(receipts_enabled=False)
         monkeypatch.setattr(executor_module, "get_app_config", lambda: resolved_config)
@@ -5931,11 +5931,11 @@ class TestToolReceiptHarvest:
             raise RuntimeError("boom")
 
         fake_tool_receipt = _module(
-            "deerflow.agents.middlewares.tool_receipt",
+            "operix.agents.middlewares.tool_receipt",
             extract_citing_turn_receipts=_explode,
             extract_tool_receipts=_explode,
         )
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_receipt", fake_tool_receipt)
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_receipt", fake_tool_receipt)
 
         final_state = {"messages": [msg.human("Do something"), msg.ai("Done", "msg-1")]}
         mock_agent.astream = lambda *args, **kwargs: async_iterator([final_state])
@@ -5967,8 +5967,8 @@ class TestBashExecutionHarvest:
         return {"messages": [classes["HumanMessage"](content="task"), ai, tool_ok, tool_other]}
 
     def test_harvests_only_bash_family_calls_with_bounded_fields(self, classes, monkeypatch):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
 
         executions = executor_module._harvest_bash_executions(self._final_state(classes))
 
@@ -5982,11 +5982,11 @@ class TestBashExecutionHarvest:
         assert "12 passed" in entry["output_tail"]
 
     def test_status_comes_from_tool_meta_when_present(self, classes, monkeypatch):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
         state = self._final_state(classes)
         tool_msg = state["messages"][2]
-        tool_msg.additional_kwargs["deerflow_tool_meta"] = {"status": "error"}
+        tool_msg.additional_kwargs["operix_tool_meta"] = {"status": "error"}
 
         executions = executor_module._harvest_bash_executions(state)
 
@@ -5996,11 +5996,11 @@ class TestBashExecutionHarvest:
         """PR review: a failing test run returns ordinary text ending in
         ``Exit Code: N`` — tool_meta stays success, so the pass summary would
         otherwise satisfy the leaf. The recorded status must be the shell's."""
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
         state = self._final_state(classes)
         state["messages"][2].content = "12 passed, 1 error in 2.0s\nExit Code: 1"
-        state["messages"][2].additional_kwargs["deerflow_tool_meta"] = {"status": "success"}
+        state["messages"][2].additional_kwargs["operix_tool_meta"] = {"status": "success"}
 
         executions = executor_module._harvest_bash_executions(state)
 
@@ -6008,8 +6008,8 @@ class TestBashExecutionHarvest:
         assert "12 passed" in executions[0]["output_tail"]
 
     def test_command_exited_with_code_marker_is_error(self, classes, monkeypatch):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
         state = self._final_state(classes)
         state["messages"][2].content = "Command exited with code 3"
 
@@ -6021,8 +6021,8 @@ class TestBashExecutionHarvest:
         """PR review: remote providers use ``Command exited with code N``
         only as the COMPLETE output — a successful command that prints the
         phrase while exercising an error path must not record failure."""
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
         state = self._final_state(classes)
         state["messages"][2].content = "validating error path: Command exited with code 3\n5 passed"
 
@@ -6031,8 +6031,8 @@ class TestBashExecutionHarvest:
         assert executions[0]["status"] == "success"
 
     def test_zero_exit_code_marker_is_success(self, classes, monkeypatch):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
         state = self._final_state(classes)
         state["messages"][2].content = "12 passed\nExit Code: 0"
 
@@ -6044,8 +6044,8 @@ class TestBashExecutionHarvest:
         """PR review: the entry must carry the marker the status was derived
         from, so the leaf detail can report what was seen instead of asserting
         a failure indistinguishable from the command's own trailing text."""
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
         state = self._final_state(classes)
         state["messages"][2].content = "green\nExit Code: 5"
 
@@ -6055,8 +6055,8 @@ class TestBashExecutionHarvest:
         assert executions[0]["status_marker"] == "Exit Code: 5"
 
     def test_remote_form_records_its_marker_text(self, classes, monkeypatch):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
         state = self._final_state(classes)
         state["messages"][2].content = "Command exited with code 3"
 
@@ -6065,8 +6065,8 @@ class TestBashExecutionHarvest:
         assert executions[0]["status_marker"] == "Command exited with code 3"
 
     def test_meta_status_without_marker_records_none(self, classes, monkeypatch):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
 
         executions = executor_module._harvest_bash_executions(self._final_state(classes))
 
@@ -6076,8 +6076,8 @@ class TestBashExecutionHarvest:
     def test_timeout_marker_is_error(self, classes, monkeypatch):
         """A command killed on timeout carries Exit Code: 124 after the
         notice — partial passing output must not record success."""
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
         state = self._final_state(classes)
         state["messages"][2].content = "12 passed\nCommand timed out after 30 seconds and was terminated. ...\nExit Code: 124"
 
@@ -6089,8 +6089,8 @@ class TestBashExecutionHarvest:
         """PR review: a signal-killed local subprocess reports a signed
         marker (Exit Code: -9) — it must record failure, not fall back to
         the meta success of an ordinary bash return."""
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
         state = self._final_state(classes)
         state["messages"][2].content = "5 passed\nExit Code: -9"
 
@@ -6106,7 +6106,7 @@ class TestBashExecutionHarvest:
         retain it even when a later chunk no longer carries the messages."""
         SubagentExecutor = classes["SubagentExecutor"]
         SubagentStatus = classes["SubagentStatus"]
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
 
         ai_with_call = classes["AIMessage"](
             content="",
@@ -6133,8 +6133,8 @@ class TestBashExecutionHarvest:
         assert [e["command"] for e in result.bash_executions] == ["make test"]
 
     def test_output_tail_is_bounded(self, classes, monkeypatch):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
         state = self._final_state(classes)
         state["messages"][2].content = "x" * 5000
 
@@ -6144,8 +6144,8 @@ class TestBashExecutionHarvest:
 
     def test_long_command_is_capped_and_flagged_truncated(self, classes, monkeypatch):
         """PR review: the matcher must know the command lost its suffix."""
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
         state = self._final_state(classes)
         long_command = "make test " + "--long-option " * 60
         state["messages"][1].tool_calls[0]["args"]["command"] = long_command
@@ -6157,8 +6157,8 @@ class TestBashExecutionHarvest:
         assert entry["command_truncated"] is True
 
     def test_short_command_is_not_flagged(self, classes, monkeypatch):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
 
         executions = executor_module._harvest_bash_executions(self._final_state(classes))
 
@@ -6170,13 +6170,13 @@ class TestBashExecutionHarvest:
         parent task runtime, so a parent that delegated before touching a
         sandbox cannot mis-adjudicate persistent-session evidence as
         trusted."""
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
 
         class _PersistentShellSandbox:
             persistent_shell_sessions = True
 
-        monkeypatch.setattr("deerflow.sandbox.sandbox_provider.get_sandbox_provider", lambda: SimpleNamespace(get=lambda _id: _PersistentShellSandbox()))
+        monkeypatch.setattr("operix.sandbox.sandbox_provider.get_sandbox_provider", lambda: SimpleNamespace(get=lambda _id: _PersistentShellSandbox()))
         state = self._final_state(classes)
         state["sandbox"] = {"sandbox_id": "sb-1"}
 
@@ -6185,13 +6185,13 @@ class TestBashExecutionHarvest:
         assert executions[0]["shell_persistent"] is True
 
     def test_fresh_process_sandbox_stamps_false(self, classes, monkeypatch):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
 
         class _OneShotSandbox:
             persistent_shell_sessions = False
 
-        monkeypatch.setattr("deerflow.sandbox.sandbox_provider.get_sandbox_provider", lambda: SimpleNamespace(get=lambda _id: _OneShotSandbox()))
+        monkeypatch.setattr("operix.sandbox.sandbox_provider.get_sandbox_provider", lambda: SimpleNamespace(get=lambda _id: _OneShotSandbox()))
         state = self._final_state(classes)
         state["sandbox"] = {"sandbox_id": "sb-1"}
 
@@ -6203,13 +6203,13 @@ class TestBashExecutionHarvest:
         """PR review (P2): a custom provider that never declared
         ``persistent_shell_sessions`` is UNKNOWN, not fresh-shell — silence
         cannot be read as a clean-environment proof."""
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
 
         class _UndeclaredSandbox:
             pass
 
-        monkeypatch.setattr("deerflow.sandbox.sandbox_provider.get_sandbox_provider", lambda: SimpleNamespace(get=lambda _id: _UndeclaredSandbox()))
+        monkeypatch.setattr("operix.sandbox.sandbox_provider.get_sandbox_provider", lambda: SimpleNamespace(get=lambda _id: _UndeclaredSandbox()))
         state = self._final_state(classes)
         state["sandbox"] = {"sandbox_id": "sb-1"}
 
@@ -6220,21 +6220,21 @@ class TestBashExecutionHarvest:
     def test_unidentifiable_sandbox_stamps_none(self, classes, monkeypatch):
         """No sandbox channel in the evidence-carrying state → unknown
         provenance; the acceptance matcher fails closed on it."""
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
 
         executions = executor_module._harvest_bash_executions(self._final_state(classes))
 
         assert executions[0]["shell_persistent"] is None
 
     def test_no_bash_calls_returns_empty_list(self, classes, monkeypatch):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        executor_module = importlib.import_module("operix.subagents.executor")
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
 
         assert executor_module._harvest_bash_executions({"messages": [classes["HumanMessage"](content="task")]}) == []
 
     def test_empty_state_returns_none(self, classes):
-        executor_module = importlib.import_module("deerflow.subagents.executor")
+        executor_module = importlib.import_module("operix.subagents.executor")
 
         assert executor_module._harvest_bash_executions(None) is None
         assert executor_module._harvest_bash_executions({}) is None
@@ -6243,7 +6243,7 @@ class TestBashExecutionHarvest:
     async def test_completed_run_attaches_bash_executions_only_with_criteria(self, classes, base_config, mock_agent, msg, monkeypatch):
         SubagentExecutor = classes["SubagentExecutor"]
         SubagentStatus = classes["SubagentStatus"]
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
 
         ai_with_call = classes["AIMessage"](
             content="",
@@ -6275,7 +6275,7 @@ class TestBashExecutionHarvest:
         ``tool_receipts`` already makes."""
         SubagentExecutor = classes["SubagentExecutor"]
         SubagentStatus = classes["SubagentStatus"]
-        monkeypatch.setitem(sys.modules, "deerflow.agents.middlewares.tool_result_meta", _module("deerflow.agents.middlewares.tool_result_meta", TOOL_META_KEY="deerflow_tool_meta"))
+        monkeypatch.setitem(sys.modules, "operix.agents.middlewares.tool_result_meta", _module("operix.agents.middlewares.tool_result_meta", TOOL_META_KEY="operix_tool_meta"))
 
         final_state = {"messages": [msg.human("Do something"), msg.ai("Done", "msg-9")]}
         mock_agent.astream = lambda *args, **kwargs: async_iterator([final_state])
@@ -6328,7 +6328,7 @@ def test_timestamp_writers_stamp_utc_aware_datetimes(classes):
 
 def test_utcnow_helper_returns_utc_aware_datetime(classes):
     """The shared timestamp writer must never depend on the host wall clock."""
-    executor_module = sys.modules["deerflow.subagents.executor"]
+    executor_module = sys.modules["operix.subagents.executor"]
 
     now = executor_module._utcnow()
     assert now.tzinfo is not None

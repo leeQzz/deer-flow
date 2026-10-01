@@ -11,9 +11,9 @@ import yaml
 from fastapi.testclient import TestClient
 
 from app.gateway.routers.agents import AGENT_NAME_PATTERN as GATEWAY_AGENT_NAME_PATTERN
-from deerflow.agents.memory.backends.deermem.deermem.core.paths import AGENT_NAME_PATTERN as DEERMEM_AGENT_NAME_PATTERN
-from deerflow.agents.memory.backends.deermem.deermem.core.paths import DEFAULT_AGENT_BUCKET, agent_facts_directory, validate_agent_name
-from deerflow.config.agents_api_config import AgentsApiConfig, get_agents_api_config, set_agents_api_config
+from operix.agents.memory.backends.deermem.deermem.core.paths import AGENT_NAME_PATTERN as DEERMEM_AGENT_NAME_PATTERN
+from operix.agents.memory.backends.deermem.deermem.core.paths import DEFAULT_AGENT_BUCKET, agent_facts_directory, validate_agent_name
+from operix.config.agents_api_config import AgentsApiConfig, get_agents_api_config, set_agents_api_config
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -46,7 +46,7 @@ def test_agent_name_validation_rejects_trailing_newline(name: str) -> None:
 
 def _make_paths(base_dir: Path):
     """Return a Paths instance pointing to base_dir."""
-    from deerflow.config.paths import Paths
+    from operix.config.paths import Paths
 
     return Paths(base_dir=base_dir)
 
@@ -103,7 +103,7 @@ class TestPaths:
 
 class TestAgentConfig:
     def test_minimal_config(self):
-        from deerflow.config.agents_config import AgentConfig
+        from operix.config.agents_config import AgentConfig
 
         cfg = AgentConfig(name="my-agent")
         assert cfg.name == "my-agent"
@@ -112,7 +112,7 @@ class TestAgentConfig:
         assert cfg.tool_groups is None
 
     def test_full_config(self):
-        from deerflow.config.agents_config import AgentConfig
+        from operix.config.agents_config import AgentConfig
 
         cfg = AgentConfig(
             name="code-reviewer",
@@ -125,7 +125,7 @@ class TestAgentConfig:
         assert cfg.tool_groups == ["file:read", "bash"]
 
     def test_config_from_dict(self):
-        from deerflow.config.agents_config import AgentConfig
+        from operix.config.agents_config import AgentConfig
 
         data = {"name": "test-agent", "description": "A test", "model": "gpt-4"}
         cfg = AgentConfig(**data)
@@ -144,8 +144,8 @@ class TestLoadAgentConfig:
         config_dict = {"name": "code-reviewer", "description": "Code review agent", "model": "deepseek-v3"}
         _write_agent(tmp_path, "code-reviewer", config_dict)
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
-            from deerflow.config.agents_config import load_agent_config
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
+            from operix.config.agents_config import load_agent_config
 
             cfg = load_agent_config("code-reviewer")
 
@@ -154,8 +154,8 @@ class TestLoadAgentConfig:
         assert cfg.model == "deepseek-v3"
 
     def test_load_missing_agent_raises(self, tmp_path):
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
-            from deerflow.config.agents_config import load_agent_config
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
+            from operix.config.agents_config import load_agent_config
 
             with pytest.raises(FileNotFoundError):
                 load_agent_config("nonexistent-agent")
@@ -164,8 +164,8 @@ class TestLoadAgentConfig:
         # Create directory without config.yaml
         (tmp_path / "agents" / "broken-agent").mkdir(parents=True)
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
-            from deerflow.config.agents_config import load_agent_config
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
+            from operix.config.agents_config import load_agent_config
 
             with pytest.raises(FileNotFoundError):
                 load_agent_config("broken-agent")
@@ -177,8 +177,8 @@ class TestLoadAgentConfig:
         (agent_dir / "config.yaml").write_text("description: My agent\n")
         (agent_dir / "SOUL.md").write_text("Hello")
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
-            from deerflow.config.agents_config import load_agent_config
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
+            from operix.config.agents_config import load_agent_config
 
             cfg = load_agent_config("inferred-name")
 
@@ -188,8 +188,8 @@ class TestLoadAgentConfig:
         config_dict = {"name": "restricted", "tool_groups": ["file:read", "file:write"]}
         _write_agent(tmp_path, "restricted", config_dict)
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
-            from deerflow.config.agents_config import load_agent_config
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
+            from operix.config.agents_config import load_agent_config
 
             cfg = load_agent_config("restricted")
 
@@ -199,8 +199,8 @@ class TestLoadAgentConfig:
         config_dict = {"name": "no-skills-agent", "skills": []}
         _write_agent(tmp_path, "no-skills-agent", config_dict)
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
-            from deerflow.config.agents_config import load_agent_config
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
+            from operix.config.agents_config import load_agent_config
 
             cfg = load_agent_config("no-skills-agent")
 
@@ -210,8 +210,8 @@ class TestLoadAgentConfig:
         config_dict = {"name": "default-skills-agent"}
         _write_agent(tmp_path, "default-skills-agent", config_dict)
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
-            from deerflow.config.agents_config import load_agent_config
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
+            from operix.config.agents_config import load_agent_config
 
             cfg = load_agent_config("default-skills-agent")
 
@@ -224,8 +224,8 @@ class TestLoadAgentConfig:
         (agent_dir / "config.yaml").write_text("name: legacy-agent\nprompt_file: system.md\n")
         (agent_dir / "SOUL.md").write_text("Soul content")
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
-            from deerflow.config.agents_config import load_agent_config
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
+            from operix.config.agents_config import load_agent_config
 
             cfg = load_agent_config("legacy-agent")
 
@@ -248,7 +248,7 @@ class TestResolveAgentDirMemoryOnlyFallback:
 
     def test_user_dir_with_only_memory_falls_back_to_legacy(self, tmp_path):
         """User dir has memory.json but no config.yaml → use legacy dir."""
-        from deerflow.config.agents_config import resolve_agent_dir
+        from operix.config.agents_config import resolve_agent_dir
 
         # Legacy agent with full config
         legacy_dir = tmp_path / "agents" / "my-agent"
@@ -261,14 +261,14 @@ class TestResolveAgentDirMemoryOnlyFallback:
         user_dir.mkdir(parents=True)
         (user_dir / "memory.json").write_text("{}", encoding="utf-8")
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)), patch("deerflow.config.agents_config.get_effective_user_id", return_value="u1"):
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)), patch("operix.config.agents_config.get_effective_user_id", return_value="u1"):
             result = resolve_agent_dir("my-agent", user_id="u1")
 
         assert result == legacy_dir
 
     def test_user_dir_with_config_takes_priority(self, tmp_path):
         """User dir with config.yaml should still win over legacy."""
-        from deerflow.config.agents_config import resolve_agent_dir
+        from operix.config.agents_config import resolve_agent_dir
 
         # Legacy
         legacy_dir = tmp_path / "agents" / "my-agent"
@@ -281,7 +281,7 @@ class TestResolveAgentDirMemoryOnlyFallback:
         (user_dir / "config.yaml").write_text("name: my-agent\nmodel: gpt-4\n", encoding="utf-8")
         (user_dir / "memory.json").write_text("{}", encoding="utf-8")
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)), patch("deerflow.config.agents_config.get_effective_user_id", return_value="u1"):
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)), patch("operix.config.agents_config.get_effective_user_id", return_value="u1"):
             result = resolve_agent_dir("my-agent", user_id="u1")
 
         assert result == user_dir
@@ -296,8 +296,8 @@ class TestResolveAgentDirMemoryOnlyFallback:
         user_dir.mkdir(parents=True)
         (user_dir / "memory.json").write_text("{}", encoding="utf-8")
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)), patch("deerflow.config.agents_config.get_effective_user_id", return_value="u1"):
-            from deerflow.config.agents_config import load_agent_config
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)), patch("operix.config.agents_config.get_effective_user_id", return_value="u1"):
+            from operix.config.agents_config import load_agent_config
 
             cfg = load_agent_config("my-agent", user_id="u1")
 
@@ -315,8 +315,8 @@ class TestLoadAgentSoul:
         expected_soul = "You are a specialized code review expert."
         _write_agent(tmp_path, "code-reviewer", {"name": "code-reviewer"}, soul=expected_soul)
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
-            from deerflow.config.agents_config import AgentConfig, load_agent_soul
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
+            from operix.config.agents_config import AgentConfig, load_agent_soul
 
             cfg = AgentConfig(name="code-reviewer")
             soul = load_agent_soul(cfg.name)
@@ -329,8 +329,8 @@ class TestLoadAgentSoul:
         (agent_dir / "config.yaml").write_text("name: no-soul\n")
         # No SOUL.md created
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
-            from deerflow.config.agents_config import AgentConfig, load_agent_soul
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
+            from operix.config.agents_config import AgentConfig, load_agent_soul
 
             cfg = AgentConfig(name="no-soul")
             soul = load_agent_soul(cfg.name)
@@ -343,8 +343,8 @@ class TestLoadAgentSoul:
         (agent_dir / "config.yaml").write_text("name: empty-soul\n")
         (agent_dir / "SOUL.md").write_text("   \n   ")
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
-            from deerflow.config.agents_config import AgentConfig, load_agent_soul
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
+            from operix.config.agents_config import AgentConfig, load_agent_soul
 
             cfg = AgentConfig(name="empty-soul")
             soul = load_agent_soul(cfg.name)
@@ -358,8 +358,8 @@ class TestLoadAgentSoul:
         # Deliberately no config.yaml – the agent is configured externally
         (agent_dir / "SOUL.md").write_text("You are a brave agent.", encoding="utf-8")
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)), patch("deerflow.config.agents_config.get_effective_user_id", return_value="default"):
-            from deerflow.config.agents_config import load_agent_soul
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)), patch("operix.config.agents_config.get_effective_user_id", return_value="default"):
+            from operix.config.agents_config import load_agent_soul
 
             soul = load_agent_soul("soul-only")
 
@@ -384,8 +384,8 @@ class TestLoadAgentSoul:
         legacy_dir.mkdir(parents=True)
         (legacy_dir / "SOUL.md").write_text("You are a legacy agent.", encoding="utf-8")
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)), patch("deerflow.config.agents_config.get_effective_user_id", return_value="test-user"):
-            from deerflow.config.agents_config import load_agent_soul
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)), patch("operix.config.agents_config.get_effective_user_id", return_value="test-user"):
+            from operix.config.agents_config import load_agent_soul
 
             soul = load_agent_soul("foo")
 
@@ -411,8 +411,8 @@ class TestLoadAgentSoul:
         (user_dir / "config.yaml").write_text("name: foo\n")
         # No SOUL.md in per-user dir
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)), patch("deerflow.config.agents_config.get_effective_user_id", return_value="test-user"):
-            from deerflow.config.agents_config import load_agent_soul
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)), patch("operix.config.agents_config.get_effective_user_id", return_value="test-user"):
+            from operix.config.agents_config import load_agent_soul
 
             soul = load_agent_soul("foo")
 
@@ -426,8 +426,8 @@ class TestLoadAgentSoul:
 
 class TestListCustomAgents:
     def test_empty_when_no_agents_dir(self, tmp_path):
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
-            from deerflow.config.agents_config import list_custom_agents
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
+            from operix.config.agents_config import list_custom_agents
 
             agents = list_custom_agents()
 
@@ -437,8 +437,8 @@ class TestListCustomAgents:
         _write_agent(tmp_path, "agent-a", {"name": "agent-a"})
         _write_agent(tmp_path, "agent-b", {"name": "agent-b", "description": "B"})
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
-            from deerflow.config.agents_config import list_custom_agents
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
+            from operix.config.agents_config import list_custom_agents
 
             agents = list_custom_agents()
 
@@ -452,8 +452,8 @@ class TestListCustomAgents:
         # Invalid dir (no config.yaml)
         (tmp_path / "agents" / "invalid-dir").mkdir(parents=True)
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
-            from deerflow.config.agents_config import list_custom_agents
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
+            from operix.config.agents_config import list_custom_agents
 
             agents = list_custom_agents()
 
@@ -467,8 +467,8 @@ class TestListCustomAgents:
         (agents_dir / "not-a-dir.txt").write_text("hello")
         _write_agent(tmp_path, "real-agent", {"name": "real-agent"})
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
-            from deerflow.config.agents_config import list_custom_agents
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
+            from operix.config.agents_config import list_custom_agents
 
             agents = list_custom_agents()
 
@@ -480,8 +480,8 @@ class TestListCustomAgents:
         _write_agent(tmp_path, "a-agent", {"name": "a-agent"})
         _write_agent(tmp_path, "m-agent", {"name": "m-agent"})
 
-        with patch("deerflow.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
-            from deerflow.config.agents_config import list_custom_agents
+        with patch("operix.config.agents_config.get_paths", return_value=_make_paths(tmp_path)):
+            from operix.config.agents_config import list_custom_agents
 
             agents = list_custom_agents()
 
@@ -497,8 +497,8 @@ class TestListCustomAgents:
 class TestMemoryFilePath:
     def test_global_memory_path(self, tmp_path, monkeypatch):
         """None agent_name should return global memory file."""
-        from deerflow.agents.memory.backends.deermem.deermem.config import DeerMemConfig
-        from deerflow.agents.memory.backends.deermem.deermem.core.storage import FileMemoryStorage
+        from operix.agents.memory.backends.deermem.deermem.config import DeerMemConfig
+        from operix.agents.memory.backends.deermem.deermem.core.storage import FileMemoryStorage
 
         monkeypatch.setenv("DEERMEM_DATA_DIR", str(tmp_path))
         storage = FileMemoryStorage(DeerMemConfig())
@@ -507,8 +507,8 @@ class TestMemoryFilePath:
 
     def test_agent_memory_path(self, tmp_path, monkeypatch):
         """All agents share the user-global summary JSON path."""
-        from deerflow.agents.memory.backends.deermem.deermem.config import DeerMemConfig
-        from deerflow.agents.memory.backends.deermem.deermem.core.storage import FileMemoryStorage
+        from operix.agents.memory.backends.deermem.deermem.config import DeerMemConfig
+        from operix.agents.memory.backends.deermem.deermem.core.storage import FileMemoryStorage
 
         monkeypatch.setenv("DEERMEM_DATA_DIR", str(tmp_path))
         storage = FileMemoryStorage(DeerMemConfig())
@@ -516,8 +516,8 @@ class TestMemoryFilePath:
         assert path == tmp_path / "memory.json"
 
     def test_agents_share_summary_path(self, tmp_path, monkeypatch):
-        from deerflow.agents.memory.backends.deermem.deermem.config import DeerMemConfig
-        from deerflow.agents.memory.backends.deermem.deermem.core.storage import FileMemoryStorage
+        from operix.agents.memory.backends.deermem.deermem.config import DeerMemConfig
+        from operix.agents.memory.backends.deermem.deermem.core.storage import FileMemoryStorage
 
         monkeypatch.setenv("DEERMEM_DATA_DIR", str(tmp_path))
         storage = FileMemoryStorage(DeerMemConfig())
@@ -572,7 +572,7 @@ def agent_client(tmp_path):
     previous_config = AgentsApiConfig(**get_agents_api_config().model_dump())
 
     with (
-        patch("deerflow.config.agents_config.get_paths", return_value=paths_instance),
+        patch("operix.config.agents_config.get_paths", return_value=paths_instance),
         patch.object(agents_router, "get_paths", return_value=paths_instance),
         patch.object(agents_router, "get_app_config", _stub_app_config),
     ):
@@ -594,7 +594,7 @@ def disabled_agent_client(tmp_path):
     paths_instance = _make_paths(tmp_path)
     previous_config = AgentsApiConfig(**get_agents_api_config().model_dump())
 
-    with patch("deerflow.config.agents_config.get_paths", return_value=paths_instance), patch.object(agents_router, "get_paths", return_value=paths_instance):
+    with patch("operix.config.agents_config.get_paths", return_value=paths_instance), patch.object(agents_router, "get_paths", return_value=paths_instance):
         set_agents_api_config(AgentsApiConfig(enabled=False))
         try:
             app = _make_test_app(tmp_path)
@@ -607,7 +607,7 @@ def disabled_agent_client(tmp_path):
 class TestAgentsAPI:
     @pytest.mark.parametrize("display_name", ["x" * 150, 123, "\u200b" * 3])
     def test_invalid_stored_display_name_falls_back_in_api(self, agent_client, display_name):
-        from deerflow.persistence.agents.file import FileAgentStore
+        from operix.persistence.agents.file import FileAgentStore
 
         FileAgentStore().create("reviewer", {"display_name": display_name, "description": "healthy"}, "Soul")
         response = agent_client.get("/api/agents/reviewer")
@@ -623,9 +623,9 @@ class TestAgentsAPI:
     def test_invalid_display_name_cannot_be_persisted(self, agent_client, display_name):
         assert agent_client.post("/api/agents", json={"name": "reviewer", "display_name": display_name}).status_code == 422
         assert agent_client.get("/api/agents").json()["agents"] == []
-        assert agent_client.post("/api/agents", json={"name": "reviewer", "display_name": "🦌" * 100}).status_code == 201
+        assert agent_client.post("/api/agents", json={"name": "reviewer", "display_name": "⚙" * 100}).status_code == 201
         assert agent_client.put("/api/agents/reviewer", json={"display_name": display_name}).status_code == 422
-        assert agent_client.get("/api/agents/reviewer").json()["display_name"] == "🦌" * 100
+        assert agent_client.get("/api/agents/reviewer").json()["display_name"] == "⚙" * 100
 
     @pytest.mark.parametrize("name", ["reviewer\n", "reviewer\n\n"])
     def test_trailing_newline_in_agent_name_is_rejected(self, agent_client, name):
@@ -647,9 +647,9 @@ class TestAgentsAPI:
         assert agent_client.get("/api/agents").json()["agents"][0]["display_name"] == "代码审查助手"
         response = agent_client.put("/api/agents/code-reviewer", json={"description": "Updated"})
         assert response.json()["display_name"] == "代码审查助手"
-        response = agent_client.put("/api/agents/code-reviewer", json={"display_name": "审查员 🦌"})
-        assert response.json()["display_name"] == "审查员 🦌"
-        assert agent_client.get("/api/agents/code-reviewer").json()["display_name"] == "审查员 🦌"
+        response = agent_client.put("/api/agents/code-reviewer", json={"display_name": "审查员 ⚙"})
+        assert response.json()["display_name"] == "审查员 ⚙"
+        assert agent_client.get("/api/agents/code-reviewer").json()["display_name"] == "审查员 ⚙"
         response = agent_client.put("/api/agents/code-reviewer", json={"display_name": None})
         assert response.json()["display_name"] is None
         assert response.json()["name"] == "code-reviewer"

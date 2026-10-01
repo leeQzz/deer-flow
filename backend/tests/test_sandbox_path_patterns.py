@@ -22,11 +22,11 @@ from pathlib import Path
 
 import pytest
 
-from deerflow.sandbox import path_patterns as path_patterns_module
-from deerflow.sandbox.local import local_sandbox as local_sandbox_module
-from deerflow.sandbox.local.local_sandbox import LocalSandbox, PathMapping
-from deerflow.sandbox.path_patterns import build_output_mask_pattern, normalize_mask_tail
-from deerflow.sandbox.tools import _compiled_mask_patterns
+from operix.sandbox import path_patterns as path_patterns_module
+from operix.sandbox.local import local_sandbox as local_sandbox_module
+from operix.sandbox.local.local_sandbox import LocalSandbox, PathMapping
+from operix.sandbox.path_patterns import build_output_mask_pattern, normalize_mask_tail
+from operix.sandbox.tools import _compiled_mask_patterns
 
 
 def _legacy_tools_pattern(base: str) -> re.Pattern[str]:
@@ -57,7 +57,7 @@ _BASES = [
     "/host/dir with spaces",
     "/host/re+meta(chars)[x]",
     "/host/dots.in.name",
-    "/Users/a/.deer-flow/users/u1/threads/t1/user-data",
+    "/Users/a/.operix/users/u1/threads/t1/user-data",
     "C:\\host\\skills",
     "/host/技能",
     # Drive root: the only base either caller can hand the helper that still ends in a

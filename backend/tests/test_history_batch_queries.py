@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import pytest
 
-from deerflow.runtime import RunManager, RunStatus
-from deerflow.runtime.events.store.memory import MemoryRunEventStore
-from deerflow.runtime.runs.manager import EditReplayVisibility
-from deerflow.runtime.runs.store.memory import MemoryRunStore
+from operix.runtime import RunManager, RunStatus
+from operix.runtime.events.store.memory import MemoryRunEventStore
+from operix.runtime.runs.manager import EditReplayVisibility
+from operix.runtime.runs.store.memory import MemoryRunStore
 
 
 async def _seed_ai_messages(store):
@@ -92,7 +92,7 @@ async def test_memory_event_store_defensively_rechecks_message_category():
 
 @pytest.mark.anyio
 async def test_jsonl_event_store_returns_global_last_non_middleware_ai_seq(tmp_path):
-    from deerflow.runtime.events.store.jsonl import JsonlRunEventStore
+    from operix.runtime.events.store.jsonl import JsonlRunEventStore
 
     store = JsonlRunEventStore(base_dir=tmp_path)
     expected = await _seed_ai_messages(store)
@@ -103,8 +103,8 @@ async def test_jsonl_event_store_returns_global_last_non_middleware_ai_seq(tmp_p
 
 @pytest.mark.anyio
 async def test_db_event_store_returns_global_last_non_middleware_ai_seq(tmp_path):
-    from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-    from deerflow.runtime.events.store.db import DbRunEventStore
+    from operix.persistence.engine import close_engine, get_session_factory, init_engine
+    from operix.runtime.events.store.db import DbRunEventStore
 
     await init_engine("sqlite", url=f"sqlite+aiosqlite:///{tmp_path / 'events.db'}", sqlite_dir=str(tmp_path))
     try:
@@ -149,8 +149,8 @@ async def test_memory_run_store_supersession_is_unbounded_and_owner_scoped():
 
 @pytest.mark.anyio
 async def test_run_repository_batch_queries_are_unbounded_and_owner_scoped(tmp_path):
-    from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-    from deerflow.persistence.run import RunRepository
+    from operix.persistence.engine import close_engine, get_session_factory, init_engine
+    from operix.persistence.run import RunRepository
 
     await init_engine("sqlite", url=f"sqlite+aiosqlite:///{tmp_path / 'runs.db'}", sqlite_dir=str(tmp_path))
     try:
@@ -221,7 +221,7 @@ async def test_run_manager_uses_latest_attempt_for_shared_regenerate_source():
 async def test_run_manager_batch_history_methods_default_to_current_user():
     from types import SimpleNamespace
 
-    from deerflow.runtime.user_context import reset_current_user, set_current_user
+    from operix.runtime.user_context import reset_current_user, set_current_user
 
     store = MemoryRunStore()
     await store.put(
@@ -255,7 +255,7 @@ async def test_run_manager_owner_scoped_history_includes_runs_admitted_without_e
     """A run admitted with the ambient user must count as that user's run."""
     from types import SimpleNamespace
 
-    from deerflow.runtime.user_context import reset_current_user, set_current_user
+    from operix.runtime.user_context import reset_current_user, set_current_user
 
     manager = RunManager(store=MemoryRunStore())
     token = set_current_user(SimpleNamespace(id="alice"))
@@ -284,7 +284,7 @@ async def test_run_manager_keeps_omitted_owner_unset_without_user_context():
 
 @pytest.mark.anyio
 async def test_run_manager_batch_history_methods_fail_closed_without_user_context():
-    from deerflow.runtime import user_context
+    from operix.runtime import user_context
 
     manager = RunManager(store=MemoryRunStore())
     token = user_context._current_user.set(None)
@@ -357,8 +357,8 @@ async def test_memory_run_store_lists_edit_replay_runs_unbounded_and_owner_scope
 
 @pytest.mark.anyio
 async def test_run_repository_lists_edit_replay_runs_unbounded_and_owner_scoped(tmp_path):
-    from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-    from deerflow.persistence.run import RunRepository
+    from operix.persistence.engine import close_engine, get_session_factory, init_engine
+    from operix.persistence.run import RunRepository
 
     await init_engine("sqlite", url=f"sqlite+aiosqlite:///{tmp_path / 'runs.db'}", sqlite_dir=str(tmp_path))
     try:

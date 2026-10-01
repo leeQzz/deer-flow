@@ -19,7 +19,7 @@ from app.gateway.health import (
     readiness_payload,
     resolve_checkpointer_config,
 )
-from deerflow.config.checkpointer_config import CheckpointerConfig
+from operix.config.checkpointer_config import CheckpointerConfig
 
 
 class _FakeConnection:
@@ -274,7 +274,7 @@ async def test_probe_checkpointer_postgres_without_psycopg_is_unreachable(monkey
     result = await _probe_checkpointer_backend(
         CheckpointerConfig(
             type="postgres",
-            connection_string="postgresql://user:pass@localhost:5432/deerflow",
+            connection_string="postgresql://user:pass@localhost:5432/operix",
         )
     )
 
@@ -284,7 +284,7 @@ async def test_probe_checkpointer_postgres_without_psycopg_is_unreachable(monkey
 def test_resolve_checkpointer_config_passes_through_resolution(monkeypatch):
     resolved = CheckpointerConfig(type="memory")
     monkeypatch.setattr(
-        "deerflow.runtime.checkpointer.provider._resolve_checkpointer_config",
+        "operix.runtime.checkpointer.provider._resolve_checkpointer_config",
         lambda app_config: resolved,
     )
 
@@ -298,7 +298,7 @@ def test_resolve_checkpointer_config_failure_fails_closed(monkeypatch):
         raise RuntimeError("broken checkpointer config")
 
     monkeypatch.setattr(
-        "deerflow.runtime.checkpointer.provider._resolve_checkpointer_config",
+        "operix.runtime.checkpointer.provider._resolve_checkpointer_config",
         _raise,
     )
 
@@ -354,7 +354,7 @@ async def test_sqlite_probe_drains_connection_close_across_repeated_cancellation
     monkeypatch.setattr(aiosqlite, "connect", fake_connect)
 
     await _assert_probe_close_is_drained(
-        health_module._probe_sqlite_backend("/tmp/deerflow-health-probe.db"),
+        health_module._probe_sqlite_backend("/tmp/operix-health-probe.db"),
         connection,
         "SQLite",
     )
@@ -393,7 +393,7 @@ async def test_postgres_probe_drains_connection_close_across_repeated_cancellati
 
     await _assert_probe_close_is_drained(
         health_module._probe_postgres_backend(
-            "postgresql://user:pass@localhost:5432/deerflow",
+            "postgresql://user:pass@localhost:5432/operix",
             "",
         ),
         connection,

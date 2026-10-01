@@ -7,7 +7,7 @@ import threading
 
 import pytest
 
-from deerflow.runtime.events.store.jsonl import JsonlRunEventStore
+from operix.runtime.events.store.jsonl import JsonlRunEventStore
 
 
 def _event(content: str = "message") -> dict:

@@ -15,8 +15,8 @@ import pytest
 from mcp.shared.exceptions import McpError
 from mcp.types import CONNECTION_CLOSED, CallToolResult, ErrorData, TextContent
 
-from deerflow.mcp.session_pool import MCPSessionPool, call_pooled_session_tool, get_session_pool, reset_session_pool
-from deerflow.mcp_scope import (
+from operix.mcp.session_pool import MCPSessionPool, call_pooled_session_tool, get_session_pool, reset_session_pool
+from operix.mcp_scope import (
     THREAD_INCARNATION_METADATA_GUARD_KEY,
     mcp_scope_belongs_to_thread,
     mcp_session_scope_key,
@@ -593,7 +593,7 @@ def _make_test_pool_tool(*, pool, call_tool, tool_interceptors=None):
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.mcp.tools import _make_session_pool_tool
+    from operix.mcp.tools import _make_session_pool_tool
 
     class Args(BaseModel):
         value: int = Field(..., description="value")
@@ -613,7 +613,7 @@ def _make_test_pool_tool(*, pool, call_tool, tool_interceptors=None):
     pool.get_session = AsyncMock(return_value=session)
     pool.close_session_if_current = AsyncMock()
 
-    with patch("deerflow.mcp.tools.get_session_pool", return_value=pool):
+    with patch("operix.mcp.tools.get_session_pool", return_value=pool):
         wrapped = _make_session_pool_tool(
             original_tool,
             "srv",
@@ -629,8 +629,8 @@ async def test_session_pool_tool_reconnects_after_real_stdio_process_disconnect(
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel
 
-    from deerflow.config.paths import Paths
-    from deerflow.mcp.tools import _make_session_pool_tool
+    from operix.config.paths import Paths
+    from operix.mcp.tools import _make_session_pool_tool
 
     server = """
 import os
@@ -672,7 +672,7 @@ mcp.run(transport="stdio")
     runtime.context = {"thread_id": "thread", "user_id": "user", "thread_incarnation": "incarnation-1"}
     runtime.config = {}
 
-    with patch("deerflow.mcp.tools.get_paths", return_value=Paths(tmp_path)):
+    with patch("operix.mcp.tools.get_paths", return_value=Paths(tmp_path)):
         wrapped = _make_session_pool_tool(original_tool, "crash", connection)
         with pytest.raises(McpError, match="Connection closed") as exc_info:
             await wrapped.coroutine(runtime=runtime)
@@ -701,13 +701,13 @@ mcp.run(transport="stdio")
 )
 async def test_session_pool_tool_evicts_session_after_transport_disconnect(tmp_path, transport_error):
     """Low-level closed-stream signals evict the exact pooled session."""
-    from deerflow.config.paths import Paths
+    from operix.config.paths import Paths
 
     pool = MagicMock()
     wrapped, session = _make_test_pool_tool(pool=pool, call_tool=transport_error)
 
     with (
-        patch("deerflow.mcp.tools.get_paths", return_value=Paths(tmp_path)),
+        patch("operix.mcp.tools.get_paths", return_value=Paths(tmp_path)),
         pytest.raises(type(transport_error)),
     ):
         await wrapped.coroutine(runtime=_legacy_tool_runtime(), value=1)
@@ -718,7 +718,7 @@ async def test_session_pool_tool_evicts_session_after_transport_disconnect(tmp_p
 @pytest.mark.asyncio
 async def test_session_pool_tool_evicts_connection_closed_through_interceptor(tmp_path):
     """A passthrough interceptor must retain transport-failure recovery."""
-    from deerflow.config.paths import Paths
+    from operix.config.paths import Paths
 
     async def passthrough(request, handler):
         return await handler(request)
@@ -732,7 +732,7 @@ async def test_session_pool_tool_evicts_connection_closed_through_interceptor(tm
     )
 
     with (
-        patch("deerflow.mcp.tools.get_paths", return_value=Paths(tmp_path)),
+        patch("operix.mcp.tools.get_paths", return_value=Paths(tmp_path)),
         pytest.raises(McpError, match="Connection closed"),
     ):
         await wrapped.coroutine(runtime=_legacy_tool_runtime(), value=1)
@@ -750,13 +750,13 @@ async def test_session_pool_tool_evicts_connection_closed_through_interceptor(tm
 )
 async def test_session_pool_tool_keeps_session_after_nonfatal_mcp_error(tmp_path, error):
     """Protocol errors such as timeouts do not prove that the session is dead."""
-    from deerflow.config.paths import Paths
+    from operix.config.paths import Paths
 
     pool = MagicMock()
     wrapped, _session = _make_test_pool_tool(pool=pool, call_tool=error)
 
     with (
-        patch("deerflow.mcp.tools.get_paths", return_value=Paths(tmp_path)),
+        patch("operix.mcp.tools.get_paths", return_value=Paths(tmp_path)),
         pytest.raises(McpError, match=str(error)),
     ):
         await wrapped.coroutine(runtime=_legacy_tool_runtime(), value=1)
@@ -767,7 +767,7 @@ async def test_session_pool_tool_keeps_session_after_nonfatal_mcp_error(tmp_path
 @pytest.mark.asyncio
 async def test_session_pool_tool_preserves_disconnect_error_when_eviction_fails(tmp_path):
     """Cleanup failure must not replace the transport error seen by the caller."""
-    from deerflow.config.paths import Paths
+    from operix.config.paths import Paths
 
     error = anyio.ClosedResourceError()
     pool = MagicMock()
@@ -775,7 +775,7 @@ async def test_session_pool_tool_preserves_disconnect_error_when_eviction_fails(
     pool.close_session_if_current.side_effect = RuntimeError("cleanup failed")
 
     with (
-        patch("deerflow.mcp.tools.get_paths", return_value=Paths(tmp_path)),
+        patch("operix.mcp.tools.get_paths", return_value=Paths(tmp_path)),
         pytest.raises(anyio.ClosedResourceError) as exc_info,
     ):
         await wrapped.coroutine(runtime=_legacy_tool_runtime(), value=1)
@@ -829,7 +829,7 @@ async def test_session_pool_tool_keeps_session_after_tool_error_result(tmp_path)
     """An MCP tool-level error is a valid response from a live session."""
     from langchain_core.tools import ToolException
 
-    from deerflow.config.paths import Paths
+    from operix.config.paths import Paths
 
     result = CallToolResult(
         content=[TextContent(type="text", text="invalid input")],
@@ -839,7 +839,7 @@ async def test_session_pool_tool_keeps_session_after_tool_error_result(tmp_path)
     wrapped, _session = _make_test_pool_tool(pool=pool, call_tool=result)
 
     with (
-        patch("deerflow.mcp.tools.get_paths", return_value=Paths(tmp_path)),
+        patch("operix.mcp.tools.get_paths", return_value=Paths(tmp_path)),
         pytest.raises(ToolException, match="invalid input"),
     ):
         await wrapped.coroutine(runtime=_legacy_tool_runtime(), value=1)
@@ -850,7 +850,7 @@ async def test_session_pool_tool_keeps_session_after_tool_error_result(tmp_path)
 @pytest.mark.asyncio
 async def test_session_pool_tool_keeps_session_after_interceptor_error(tmp_path):
     """Interceptor failures happen outside the transport and must not evict it."""
-    from deerflow.config.paths import Paths
+    from operix.config.paths import Paths
 
     async def failing_interceptor(_request, _handler):
         raise RuntimeError("interceptor failed")
@@ -863,7 +863,7 @@ async def test_session_pool_tool_keeps_session_after_interceptor_error(tmp_path)
     )
 
     with (
-        patch("deerflow.mcp.tools.get_paths", return_value=Paths(tmp_path)),
+        patch("operix.mcp.tools.get_paths", return_value=Paths(tmp_path)),
         pytest.raises(RuntimeError, match="interceptor failed"),
     ):
         await wrapped.coroutine(runtime=_legacy_tool_runtime(), value=1)
@@ -878,8 +878,8 @@ async def test_late_disconnect_from_old_session_does_not_evict_replacement(tmp_p
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.config.paths import Paths
-    from deerflow.mcp.tools import _make_session_pool_tool
+    from operix.config.paths import Paths
+    from operix.mcp.tools import _make_session_pool_tool
 
     first_failure = asyncio.Event()
     late_failure = asyncio.Event()
@@ -920,7 +920,7 @@ async def test_late_disconnect_from_old_session_does_not_evict_replacement(tmp_p
     pool = get_session_pool()
 
     with (
-        patch("deerflow.mcp.tools.get_paths", return_value=Paths(tmp_path)),
+        patch("operix.mcp.tools.get_paths", return_value=Paths(tmp_path)),
         patch("langchain_mcp_adapters.sessions.create_session", side_effect=create_session),
     ):
         wrapped = _make_session_pool_tool(
@@ -953,7 +953,7 @@ async def test_session_pool_tool_wrapping():
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.mcp.tools import _make_session_pool_tool
+    from operix.mcp.tools import _make_session_pool_tool
 
     class Args(BaseModel):
         url: str = Field(..., description="url")
@@ -995,9 +995,9 @@ async def test_session_pool_tool_pins_cwd_and_temp_env(tmp_path):
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.config.paths import Paths
-    from deerflow.constants import MCP_TMP_SUBDIR
-    from deerflow.mcp.tools import _make_session_pool_tool
+    from operix.config.paths import Paths
+    from operix.constants import MCP_TMP_SUBDIR
+    from operix.mcp.tools import _make_session_pool_tool
 
     class Args(BaseModel):
         url: str = Field(..., description="url")
@@ -1023,7 +1023,7 @@ async def test_session_pool_tool_pins_cwd_and_temp_env(tmp_path):
     mock_runtime.config = {}
 
     with (
-        patch("deerflow.mcp.tools.get_paths", return_value=paths),
+        patch("operix.mcp.tools.get_paths", return_value=paths),
         patch("langchain_mcp_adapters.sessions.create_session", return_value=mock_cm) as create_session,
     ):
         wrapped = _make_session_pool_tool(original_tool, "playwright", connection)
@@ -1051,9 +1051,9 @@ async def test_session_pool_tool_does_not_override_explicit_tmpdir(tmp_path):
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.config.paths import Paths
-    from deerflow.constants import MCP_TMP_SUBDIR
-    from deerflow.mcp.tools import _make_session_pool_tool
+    from operix.config.paths import Paths
+    from operix.constants import MCP_TMP_SUBDIR
+    from operix.mcp.tools import _make_session_pool_tool
 
     class Args(BaseModel):
         url: str = Field(..., description="url")
@@ -1079,7 +1079,7 @@ async def test_session_pool_tool_does_not_override_explicit_tmpdir(tmp_path):
     mock_runtime.config = {}
 
     with (
-        patch("deerflow.mcp.tools.get_paths", return_value=paths),
+        patch("operix.mcp.tools.get_paths", return_value=paths),
         patch("langchain_mcp_adapters.sessions.create_session", return_value=mock_cm) as create_session,
     ):
         wrapped = _make_session_pool_tool(original_tool, "playwright", connection)
@@ -1097,9 +1097,9 @@ async def test_session_pool_tool_does_not_override_explicit_cwd(tmp_path):
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.config.paths import Paths
-    from deerflow.constants import MCP_TMP_SUBDIR
-    from deerflow.mcp.tools import _make_session_pool_tool
+    from operix.config.paths import Paths
+    from operix.constants import MCP_TMP_SUBDIR
+    from operix.mcp.tools import _make_session_pool_tool
 
     class Args(BaseModel):
         url: str = Field(..., description="url")
@@ -1126,7 +1126,7 @@ async def test_session_pool_tool_does_not_override_explicit_cwd(tmp_path):
     mock_runtime.config = {}
 
     with (
-        patch("deerflow.mcp.tools.get_paths", return_value=paths),
+        patch("operix.mcp.tools.get_paths", return_value=paths),
         patch("langchain_mcp_adapters.sessions.create_session", return_value=mock_cm) as create_session,
     ):
         wrapped = _make_session_pool_tool(original_tool, "playwright", connection)
@@ -1146,8 +1146,8 @@ async def test_session_pool_tool_skips_fs_work_for_non_stdio_transport(tmp_path)
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.config.paths import Paths
-    from deerflow.mcp.tools import _make_session_pool_tool
+    from operix.config.paths import Paths
+    from operix.mcp.tools import _make_session_pool_tool
 
     class Args(BaseModel):
         url: str = Field(..., description="url")
@@ -1173,7 +1173,7 @@ async def test_session_pool_tool_skips_fs_work_for_non_stdio_transport(tmp_path)
     mock_runtime.config = {}
 
     with (
-        patch("deerflow.mcp.tools.get_paths", return_value=paths) as get_paths,
+        patch("operix.mcp.tools.get_paths", return_value=paths) as get_paths,
         patch("langchain_mcp_adapters.sessions.create_session", return_value=mock_cm) as create_session,
     ):
         wrapped = _make_session_pool_tool(original_tool, "srv", connection)
@@ -1194,8 +1194,8 @@ async def test_session_pool_tool_skips_after_walk_when_no_text_content(tmp_path)
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.config.paths import Paths
-    from deerflow.mcp.tools import _make_session_pool_tool
+    from operix.config.paths import Paths
+    from operix.mcp.tools import _make_session_pool_tool
 
     class Args(BaseModel):
         url: str = Field(..., description="url")
@@ -1226,9 +1226,9 @@ async def test_session_pool_tool_skips_after_walk_when_no_text_content(tmp_path)
     mock_runtime.config = {}
 
     with (
-        patch("deerflow.mcp.tools.get_paths", return_value=paths),
+        patch("operix.mcp.tools.get_paths", return_value=paths),
         patch("langchain_mcp_adapters.sessions.create_session", return_value=mock_cm),
-        patch("deerflow.mcp.tools._changed_workspace_files") as changed_files,
+        patch("operix.mcp.tools._changed_workspace_files") as changed_files,
     ):
         wrapped = _make_session_pool_tool(original_tool, "playwright", connection)
         await wrapped.coroutine(runtime=mock_runtime, url="https://example.com")
@@ -1242,8 +1242,8 @@ async def test_session_pool_tool_runs_after_walk_when_text_content_present(tmp_p
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.config.paths import Paths
-    from deerflow.mcp.tools import _make_session_pool_tool
+    from operix.config.paths import Paths
+    from operix.mcp.tools import _make_session_pool_tool
 
     class Args(BaseModel):
         url: str = Field(..., description="url")
@@ -1272,9 +1272,9 @@ async def test_session_pool_tool_runs_after_walk_when_text_content_present(tmp_p
     mock_runtime.config = {}
 
     with (
-        patch("deerflow.mcp.tools.get_paths", return_value=paths),
+        patch("operix.mcp.tools.get_paths", return_value=paths),
         patch("langchain_mcp_adapters.sessions.create_session", return_value=mock_cm),
-        patch("deerflow.mcp.tools._changed_workspace_files", return_value=[]) as changed_files,
+        patch("operix.mcp.tools._changed_workspace_files", return_value=[]) as changed_files,
     ):
         wrapped = _make_session_pool_tool(original_tool, "playwright", connection)
         await wrapped.coroutine(runtime=mock_runtime, url="https://example.com")
@@ -1291,7 +1291,7 @@ async def test_session_pool_tool_forwards_interceptor_headers():
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.mcp.tools import _make_session_pool_tool
+    from operix.mcp.tools import _make_session_pool_tool
 
     class Args(BaseModel):
         x: int = Field(..., description="x")
@@ -1331,7 +1331,7 @@ async def test_session_pool_interceptor_reads_request_scoped_secret():
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.mcp.tools import _make_session_pool_tool
+    from operix.mcp.tools import _make_session_pool_tool
 
     class Args(BaseModel):
         x: int = Field(..., description="x")
@@ -1386,7 +1386,7 @@ async def test_session_pool_tool_no_headers_omits_meta():
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.mcp.tools import _make_session_pool_tool
+    from operix.mcp.tools import _make_session_pool_tool
 
     class Args(BaseModel):
         x: int = Field(..., description="x")
@@ -1426,7 +1426,7 @@ async def test_session_pool_tool_ignores_unsupported_header_type(caplog):
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.mcp.tools import _make_session_pool_tool
+    from operix.mcp.tools import _make_session_pool_tool
 
     class Args(BaseModel):
         x: int = Field(..., description="x")
@@ -1471,7 +1471,7 @@ async def test_session_pool_tool_extracts_thread_id():
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.mcp.tools import _make_session_pool_tool
+    from operix.mcp.tools import _make_session_pool_tool
 
     class Args(BaseModel):
         x: int = Field(..., description="x")
@@ -1516,7 +1516,7 @@ async def test_session_pool_tool_default_scope():
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.mcp.tools import _make_session_pool_tool
+    from operix.mcp.tools import _make_session_pool_tool
 
     class Args(BaseModel):
         x: int = Field(..., description="x")
@@ -1551,7 +1551,7 @@ async def test_session_pool_tool_get_config_fallback():
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.mcp.tools import _make_session_pool_tool
+    from operix.mcp.tools import _make_session_pool_tool
 
     class Args(BaseModel):
         x: int = Field(..., description="x")
@@ -1574,7 +1574,7 @@ async def test_session_pool_tool_get_config_fallback():
 
     with (
         patch("langchain_mcp_adapters.sessions.create_session", return_value=mock_cm),
-        patch("deerflow.mcp.tools.get_config", return_value=fake_config),
+        patch("operix.mcp.tools.get_config", return_value=fake_config),
     ):
         wrapped = _make_session_pool_tool(original_tool, "server", {"transport": "stdio", "command": "x", "args": []})
 
@@ -1590,8 +1590,8 @@ def test_session_pool_tool_sync_wrapper_path_is_safe():
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.mcp.tools import _make_session_pool_tool
-    from deerflow.tools.sync import make_sync_tool_wrapper
+    from operix.mcp.tools import _make_session_pool_tool
+    from operix.tools.sync import make_sync_tool_wrapper
 
     class Args(BaseModel):
         url: str = Field(..., description="url")
@@ -1635,7 +1635,7 @@ async def test_http_transport_tools_not_pooled():
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.mcp.tools import get_mcp_tools
+    from operix.mcp.tools import get_mcp_tools
 
     class Args(BaseModel):
         query: str = Field(..., description="query")
@@ -1674,10 +1674,10 @@ async def test_http_transport_tools_not_pooled():
     }
 
     with (
-        patch("deerflow.mcp.tools.ExtensionsConfig.from_file", return_value=extensions_config),
-        patch("deerflow.mcp.tools.build_servers_config", return_value=servers_config),
-        patch("deerflow.mcp.tools.get_initial_oauth_headers", return_value={}),
-        patch("deerflow.mcp.tools.build_oauth_tool_interceptor", return_value=None),
+        patch("operix.mcp.tools.ExtensionsConfig.from_file", return_value=extensions_config),
+        patch("operix.mcp.tools.build_servers_config", return_value=servers_config),
+        patch("operix.mcp.tools.get_initial_oauth_headers", return_value={}),
+        patch("operix.mcp.tools.build_oauth_tool_interceptor", return_value=None),
         patch("langchain_mcp_adapters.client.MultiServerMCPClient") as MockClient,
         patch("langchain_mcp_adapters.sessions.create_session", return_value=mock_cm),
     ):
@@ -1715,8 +1715,8 @@ async def test_non_stdio_tool_call_timeout_warns_that_it_is_ignored(caplog):
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.config.extensions_config import McpServerConfig
-    from deerflow.mcp.tools import get_mcp_tools
+    from operix.config.extensions_config import McpServerConfig
+    from operix.mcp.tools import get_mcp_tools
 
     class Args(BaseModel):
         query: str = Field(..., description="query")
@@ -1744,12 +1744,12 @@ async def test_non_stdio_tool_call_timeout_warns_that_it_is_ignored(caplog):
     }
 
     with (
-        patch("deerflow.mcp.tools.ExtensionsConfig.from_file", return_value=extensions_config),
-        patch("deerflow.mcp.tools.build_servers_config", return_value=servers_config),
-        patch("deerflow.mcp.tools.get_initial_oauth_headers", return_value={}),
-        patch("deerflow.mcp.tools.build_oauth_tool_interceptor", return_value=None),
+        patch("operix.mcp.tools.ExtensionsConfig.from_file", return_value=extensions_config),
+        patch("operix.mcp.tools.build_servers_config", return_value=servers_config),
+        patch("operix.mcp.tools.get_initial_oauth_headers", return_value={}),
+        patch("operix.mcp.tools.build_oauth_tool_interceptor", return_value=None),
         patch("langchain_mcp_adapters.client.MultiServerMCPClient") as MockClient,
-        caplog.at_level(logging.WARNING, logger="deerflow.mcp.tools"),
+        caplog.at_level(logging.WARNING, logger="operix.mcp.tools"),
     ):
         mock_client_instance = MockClient.return_value
         mock_client_instance.get_tools = AsyncMock(return_value=[http_tool])
@@ -1777,8 +1777,8 @@ async def test_stdio_tool_call_timeout_does_not_raise_typeerror():
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.config.extensions_config import McpServerConfig
-    from deerflow.mcp.tools import get_mcp_tools
+    from operix.config.extensions_config import McpServerConfig
+    from operix.mcp.tools import get_mcp_tools
 
     class Args(BaseModel):
         query: str = Field(..., description="query")
@@ -1816,10 +1816,10 @@ async def test_stdio_tool_call_timeout_does_not_raise_typeerror():
     }
 
     with (
-        patch("deerflow.mcp.tools.ExtensionsConfig.from_file", return_value=extensions_config),
-        patch("deerflow.mcp.tools.build_servers_config", return_value=servers_config),
-        patch("deerflow.mcp.tools.get_initial_oauth_headers", return_value={}),
-        patch("deerflow.mcp.tools.build_oauth_tool_interceptor", return_value=None),
+        patch("operix.mcp.tools.ExtensionsConfig.from_file", return_value=extensions_config),
+        patch("operix.mcp.tools.build_servers_config", return_value=servers_config),
+        patch("operix.mcp.tools.get_initial_oauth_headers", return_value={}),
+        patch("operix.mcp.tools.build_oauth_tool_interceptor", return_value=None),
         patch("langchain_mcp_adapters.client.MultiServerMCPClient") as MockClient,
         patch("langchain_mcp_adapters.sessions.create_session", return_value=mock_cm),
     ):
@@ -2922,8 +2922,8 @@ def test_reset_mcp_tools_cache_from_running_loop_is_bounded():
     so neither side could make progress. This test drives the exact scenario
     on a daemon thread and asserts the call returns within a bounded time.
     """
-    from deerflow.mcp.cache import reset_mcp_tools_cache
-    from deerflow.mcp.session_pool import get_session_pool
+    from operix.mcp.cache import reset_mcp_tools_cache
+    from operix.mcp.session_pool import get_session_pool
 
     conn = {"transport": "stdio", "command": "x", "args": []}
     cm = _CloseTrackingCm()
@@ -2970,7 +2970,7 @@ async def test_mcp_tools_routed_to_source_server_with_prefix_overlap():
     from langchain_core.tools import StructuredTool
     from pydantic import BaseModel, Field
 
-    from deerflow.mcp.tools import get_mcp_tools
+    from operix.mcp.tools import get_mcp_tools
 
     class Args(BaseModel):
         query: str = Field(..., description="query")
@@ -3014,12 +3014,12 @@ async def test_mcp_tools_routed_to_source_server_with_prefix_overlap():
         raise AssertionError(f"unexpected server_name: {server_name}")
 
     with (
-        patch("deerflow.mcp.tools.ExtensionsConfig.from_file", return_value=extensions_config),
-        patch("deerflow.mcp.tools.build_servers_config", return_value=servers_config),
-        patch("deerflow.mcp.tools.get_initial_oauth_headers", return_value={}),
-        patch("deerflow.mcp.tools.build_oauth_tool_interceptor", return_value=None),
+        patch("operix.mcp.tools.ExtensionsConfig.from_file", return_value=extensions_config),
+        patch("operix.mcp.tools.build_servers_config", return_value=servers_config),
+        patch("operix.mcp.tools.get_initial_oauth_headers", return_value={}),
+        patch("operix.mcp.tools.build_oauth_tool_interceptor", return_value=None),
         patch("langchain_mcp_adapters.client.MultiServerMCPClient") as MockClient,
-        patch("deerflow.mcp.tools._make_session_pool_tool", side_effect=fake_wrap),
+        patch("operix.mcp.tools._make_session_pool_tool", side_effect=fake_wrap),
     ):
         MockClient.return_value.get_tools = AsyncMock(side_effect=get_tools_for_server)
         await get_mcp_tools()

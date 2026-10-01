@@ -14,14 +14,14 @@ from app.gateway import personal_mcp_access as gateway_access
 from app.gateway.auth.local_provider import LocalAuthProvider
 from app.gateway.auth.models import User
 from app.gateway.auth.repositories.sqlite import SQLiteUserRepository
-from deerflow.config.extensions_config import ExtensionsConfig, McpServerConfig, atomic_write_extensions_config
-from deerflow.config.paths import Paths
-from deerflow.mcp import personal_access
-from deerflow.mcp.task_tool_caller import McpTaskToolCaller
-from deerflow.mcp.user_config import load_user_mcp_config, user_mcp_config_path
-from deerflow.mcp.user_tools import _guard, _load
-from deerflow.persistence.user.model import UserRow
-from deerflow.runtime.user_context import reset_current_user, set_current_user
+from operix.config.extensions_config import ExtensionsConfig, McpServerConfig, atomic_write_extensions_config
+from operix.config.paths import Paths
+from operix.mcp import personal_access
+from operix.mcp.task_tool_caller import McpTaskToolCaller
+from operix.mcp.user_config import load_user_mcp_config, user_mcp_config_path
+from operix.mcp.user_tools import _guard, _load
+from operix.persistence.user.model import UserRow
+from operix.runtime.user_context import reset_current_user, set_current_user
 
 
 @pytest_asyncio.fixture
@@ -33,8 +33,8 @@ async def accounts(tmp_path, monkeypatch):
     repository = SQLiteUserRepository(sessions)
     user = await repository.create_user(User(email="admin@example.com", system_role="admin"))
     monkeypatch.setattr(gateway_access, "get_local_provider", lambda: LocalAuthProvider(repository))
-    monkeypatch.delenv("DEER_FLOW_AUTH_DISABLED", raising=False)
-    monkeypatch.setattr("deerflow.mcp.user_config.get_paths", lambda: Paths(base_dir=tmp_path))
+    monkeypatch.delenv("OPERIX_AUTH_DISABLED", raising=False)
+    monkeypatch.setattr("operix.mcp.user_config.get_paths", lambda: Paths(base_dir=tmp_path))
     monkeypatch.setattr(personal_access, "_admin_checker", None)
     try:
         yield repository, user, sessions
@@ -80,7 +80,7 @@ async def test_revocation_blocks_discovery_existing_tools_and_cached_durable_cal
 
     monkeypatch.setattr("langchain_mcp_adapters.client.MultiServerMCPClient", Client)
     oauth = AsyncMock(return_value={})
-    monkeypatch.setattr("deerflow.mcp.tools.get_initial_oauth_headers", oauth)
+    monkeypatch.setattr("operix.mcp.tools.get_initial_oauth_headers", oauth)
     invoke = AsyncMock(return_value="ok")
     monkeypatch.setattr(McpTaskToolCaller, "_call_configured_tool", invoke)
     caller = McpTaskToolCaller(ExtensionsConfig())
@@ -153,8 +153,8 @@ async def test_authority_lookup_stays_on_gateway_loop_during_sync_discovery(acco
 @pytest.mark.asyncio
 @pytest.mark.parametrize("production", [False, True])
 async def test_auth_disabled_authority_only_grants_the_default_local_user(accounts, monkeypatch, production):
-    monkeypatch.setenv("DEER_FLOW_AUTH_DISABLED", "1")
-    monkeypatch.setenv("DEER_FLOW_ENV", "production" if production else "development")
+    monkeypatch.setenv("OPERIX_AUTH_DISABLED", "1")
+    monkeypatch.setenv("OPERIX_ENV", "production" if production else "development")
     monkeypatch.delenv("ENVIRONMENT", raising=False)
     async with gateway_access.personal_mcp_authority():
         assert await personal_access._is_current_admin("default") is (not production)

@@ -3,7 +3,7 @@ import weakref
 
 import pytest
 
-from deerflow.runtime.events.store.db import DbRunEventStore
+from operix.runtime.events.store.db import DbRunEventStore
 
 
 class _PausedDeleteSession:

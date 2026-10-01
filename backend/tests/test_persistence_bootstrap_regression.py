@@ -25,11 +25,11 @@ from uuid import uuid4
 import pytest
 import sqlalchemy as sa
 
-import deerflow.persistence.models  # noqa: F401  -- registers ORM models
-from deerflow.persistence.base import Base
-from deerflow.persistence.bootstrap import _get_head_revision
-from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-from deerflow.persistence.run import RunRepository
+import operix.persistence.models  # noqa: F401  -- registers ORM models
+from operix.persistence.base import Base
+from operix.persistence.bootstrap import _get_head_revision
+from operix.persistence.engine import close_engine, get_session_factory, init_engine
+from operix.persistence.run import RunRepository
 
 pytestmark = pytest.mark.asyncio
 

@@ -4,8 +4,8 @@ from types import ModuleType, SimpleNamespace
 
 import pytest
 
-from deerflow.runtime.checkpointer import async_provider as checkpointer_provider
-from deerflow.runtime.store import async_provider as store_provider
+from operix.runtime.checkpointer import async_provider as checkpointer_provider
+from operix.runtime.store import async_provider as store_provider
 
 
 class _BlockingAsyncContext:

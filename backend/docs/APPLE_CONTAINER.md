@@ -1,10 +1,10 @@
 # Apple Container Support
 
-DeerFlow now supports Apple Container as the preferred container runtime on macOS, with automatic fallback to Docker.
+Operix now supports Apple Container as the preferred container runtime on macOS, with automatic fallback to Docker.
 
 ## Overview
 
-Starting with this version, DeerFlow automatically detects and uses Apple Container on macOS when available, falling back to Docker when:
+Starting with this version, Operix automatically detects and uses Apple Container on macOS when available, falling back to Docker when:
 - Apple Container is not installed
 - Running on non-macOS platforms
 - A restricted sandbox network mode is configured
@@ -83,7 +83,7 @@ docker stop <id>     # Auto-removes due to --rm
 
 ### Implementation Details
 
-The implementation is in `backend/packages/harness/deerflow/community/aio_sandbox/local_backend.py`:
+The implementation is in `backend/packages/harness/operix/community/aio_sandbox/local_backend.py`:
 
 - `_detect_runtime()`: Detects available runtime at startup
 - `_start_container()`: Uses detected runtime, skips Docker-specific options for Apple Container
@@ -96,14 +96,14 @@ No configuration changes are needed! The system works automatically.
 However, you can verify the runtime in use by checking the logs:
 
 ```
-INFO:deerflow.community.aio_sandbox.local_backend:Detected Apple Container: container version 0.1.0
-INFO:deerflow.community.aio_sandbox.local_backend:Starting container using container: ...
+INFO:operix.community.aio_sandbox.local_backend:Detected Apple Container: container version 0.1.0
+INFO:operix.community.aio_sandbox.local_backend:Starting container using container: ...
 ```
 
 Or for Docker:
 ```
-INFO:deerflow.community.aio_sandbox.local_backend:Apple Container not available, falling back to Docker
-INFO:deerflow.community.aio_sandbox.local_backend:Starting container using docker: ...
+INFO:operix.community.aio_sandbox.local_backend:Apple Container not available, falling back to Docker
+INFO:operix.community.aio_sandbox.local_backend:Starting container using docker: ...
 ```
 
 ## Container Images
@@ -112,7 +112,7 @@ Both runtimes use OCI-compatible images. The default image works with both:
 
 ```yaml
 sandbox:
-  use: deerflow.community.aio_sandbox:AioSandboxProvider
+  use: operix.community.aio_sandbox:AioSandboxProvider
   image: enterprise-public-cn-beijing.cr.volces.com/vefaas-public/all-in-one-sandbox:latest  # Default image
 ```
 
@@ -158,8 +158,8 @@ The project includes a unified cleanup script that handles both runtimes:
 
 **Usage:**
 ```bash
-# Clean up all DeerFlow sandbox containers
-./scripts/cleanup-containers.sh deer-flow-sandbox
+# Clean up all Operix sandbox containers
+./scripts/cleanup-containers.sh operix-sandbox
 
 # Custom prefix
 ./scripts/cleanup-containers.sh my-prefix
@@ -221,7 +221,7 @@ These tests mock the runtime commands and require neither Docker nor the Apple C
 
 2. Run cleanup script manually:
    ```bash
-   ./scripts/cleanup-containers.sh deer-flow-sandbox
+   ./scripts/cleanup-containers.sh operix-sandbox
    ```
 
 ### Performance issues

@@ -13,10 +13,10 @@ import pytest
 import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import create_async_engine
 
-import deerflow.persistence.models  # noqa: F401  -- registers ORM models
-from deerflow.persistence.base import Base
-from deerflow.persistence.bootstrap import bootstrap_schema
-from deerflow.persistence.engine import close_engine, init_engine
+import operix.persistence.models  # noqa: F401  -- registers ORM models
+from operix.persistence.base import Base
+from operix.persistence.bootstrap import bootstrap_schema
+from operix.persistence.engine import close_engine, init_engine
 
 pytestmark = pytest.mark.asyncio
 

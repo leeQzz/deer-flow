@@ -9,13 +9,13 @@ from __future__ import annotations
 
 from langchain_core.tools import BaseTool, StructuredTool
 
-from deerflow.authz.enforcement import filter_tools_by_authorization
-from deerflow.authz.provider import Principal
-from deerflow.authz.rbac import RbacAuthorizationProvider
-from deerflow.authz.tool_filter import apply_tool_authorization
-from deerflow.config.app_config import AppConfig
-from deerflow.config.authorization_config import AuthorizationConfig, AuthorizationProviderConfig
-from deerflow.config.sandbox_config import SandboxConfig
+from operix.authz.enforcement import filter_tools_by_authorization
+from operix.authz.provider import Principal
+from operix.authz.rbac import RbacAuthorizationProvider
+from operix.authz.tool_filter import apply_tool_authorization
+from operix.config.app_config import AppConfig
+from operix.config.authorization_config import AuthorizationConfig, AuthorizationProviderConfig
+from operix.config.sandbox_config import SandboxConfig
 
 # --- Helpers ---
 
@@ -180,7 +180,7 @@ class TestApplyToolAuthorization:
             AuthorizationConfig(
                 enabled=True,
                 provider=AuthorizationProviderConfig(
-                    use="deerflow.authz.rbac:RbacAuthorizationProvider",
+                    use="operix.authz.rbac:RbacAuthorizationProvider",
                     config={"roles": {"user": {"tools": {"allow": "*", "deny": ["bash"]}}}},
                 ),
             )

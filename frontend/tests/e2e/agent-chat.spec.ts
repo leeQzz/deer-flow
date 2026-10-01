@@ -35,17 +35,17 @@ test.describe("Agent chat", () => {
     await page.goto("/workspace/agents");
     await page.getByTitle("Agent settings", { exact: true }).click();
     const input = page.getByLabel("Display name", { exact: true });
-    await input.fill("🦌".repeat(101));
+    await input.fill("⚙".repeat(101));
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await expect(
       page.getByText("Display name must be at most 100 Unicode code points."),
     ).toBeVisible();
     expect(savedName).toBeUndefined();
     await expect(page.getByRole("dialog")).toBeVisible();
-    await input.fill("🦌".repeat(100));
-    await expect(input).toHaveValue("🦌".repeat(100));
+    await input.fill("⚙".repeat(100));
+    await expect(input).toHaveValue("⚙".repeat(100));
     await page.getByRole("button", { name: "Save", exact: true }).click();
-    await expect.poll(() => savedName).toBe("🦌".repeat(100));
+    await expect.poll(() => savedName).toBe("⚙".repeat(100));
     await expect(page.getByRole("dialog")).toBeHidden();
   });
 
@@ -164,7 +164,7 @@ test.describe("Agent chat", () => {
     const textarea = page.getByPlaceholder(/how can i assist you/i);
     await expect(textarea).toBeVisible({ timeout: 15_000 });
     await expect(
-      page.getByText("DeerFlow is AI and can make mistakes", { exact: true }),
+      page.getByText("Operix is AI and can make mistakes", { exact: true }),
     ).toBeVisible();
   });
 
@@ -624,7 +624,7 @@ test.describe("Agent chat", () => {
             content: {
               type: "ai",
               id: "msg-ai-1",
-              content: "Hello from DeerFlow!",
+              content: "Hello from Operix!",
             },
           },
         ];
@@ -676,6 +676,6 @@ test.describe("Agent chat", () => {
     });
     await expect(page.getByText("Edited agent question")).toBeVisible();
     await expect(page.getByText("Original agent question")).not.toBeVisible();
-    await expect(page.getByText("Hello from DeerFlow!")).toBeVisible();
+    await expect(page.getByText("Hello from Operix!")).toBeVisible();
   });
 });

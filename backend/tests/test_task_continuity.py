@@ -9,14 +9,14 @@ from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, Tool
 from langchain_core.outputs import ChatGeneration, ChatResult
 from langgraph.checkpoint.memory import InMemorySaver
 
-from deerflow.agents.middlewares.durable_context_middleware import DurableContextMiddleware
-from deerflow.agents.middlewares.summarization_middleware import DeerFlowSummarizationMiddleware
-from deerflow.agents.task_continuity import archive
-from deerflow.agents.task_continuity.state import merge_task_notes
-from deerflow.agents.task_continuity.tools import append_task_continuity_tools, history_read, history_search, task_note
-from deerflow.agents.thread_state import ThreadState
-from deerflow.config.paths import Paths
-from deerflow.config.task_continuity_config import TaskContinuityConfig
+from operix.agents.middlewares.durable_context_middleware import DurableContextMiddleware
+from operix.agents.middlewares.summarization_middleware import OperixSummarizationMiddleware
+from operix.agents.task_continuity import archive
+from operix.agents.task_continuity.state import merge_task_notes
+from operix.agents.task_continuity.tools import append_task_continuity_tools, history_read, history_search, task_note
+from operix.agents.thread_state import ThreadState
+from operix.config.paths import Paths
+from operix.config.task_continuity_config import TaskContinuityConfig
 
 
 class StaticModel(BaseChatModel):
@@ -39,7 +39,7 @@ def scoped(tmp_path, monkeypatch):
 
 
 def compacting(config=None):
-    return DeerFlowSummarizationMiddleware(model=StaticModel(), trigger=("messages", 4), keep=("messages", 2), task_continuity_config=config)
+    return OperixSummarizationMiddleware(model=StaticModel(), trigger=("messages", 4), keep=("messages", 2), task_continuity_config=config)
 
 
 def conversation():
@@ -290,7 +290,7 @@ async def test_repeated_manual_compaction_keeps_earlier_source_batches(scoped, m
     from langgraph.types import Overwrite
 
     from app.gateway import services
-    from deerflow.runtime import context_compaction
+    from operix.runtime import context_compaction
 
     request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(checkpointer=InMemorySaver(), checkpoint_channel_mode="delta", store=None)))
     accessor, config = services.build_checkpoint_state_mutation_accessor(request, thread_id="thread-a", as_node="manual_compaction")
@@ -420,7 +420,7 @@ def test_capture_failure_status_survives_lookup(scoped, monkeypatch, previous):
     ],
 )
 def test_notes_reject_invalid_state_at_write_and_render(bad_notes):
-    from deerflow.agents.middlewares.durable_context_middleware import _render_durable_context_data
+    from operix.agents.middlewares.durable_context_middleware import _render_durable_context_data
 
     assert merge_task_notes({}, bad_notes) == {}
     rendered = _render_durable_context_data(None, [], [], bad_notes)
@@ -431,7 +431,7 @@ def test_notes_are_bounded_model_reports_at_shared_boundaries():
     from langgraph.types import Overwrite
 
     from app.gateway.services import normalize_input
-    from deerflow.agents.middlewares.durable_context_middleware import _render_durable_context_data
+    from operix.agents.middlewares.durable_context_middleware import _render_durable_context_data
 
     forged = {f"note{i}": {"content": "keep backups", "authority": "system", "extra": "forged proof"} for i in range(10)}
     graph = create_agent(StaticModel(), tools=[], state_schema=ThreadState, checkpointer=InMemorySaver())
@@ -470,7 +470,7 @@ def test_initial_note_deletions_do_not_persist_tombstones():
 
 @pytest.mark.parametrize("bad_value", ["bad", ["bad"], [], 0, False, 1, {"batches": None}, {"batches": 1}, {"batches": [None]}, {"status": []}, {"omitted_records": -1}, {"omitted_records": True}, {"scope": []}])
 def test_malformed_history_is_unavailable_and_compaction_recovers(scoped, monkeypatch, bad_value):
-    from deerflow.agents.middlewares.durable_context_middleware import _render_durable_context_data
+    from operix.agents.middlewares.durable_context_middleware import _render_durable_context_data
 
     value = {"scope": archive.scope(scoped)[1], **bad_value} if isinstance(bad_value, dict) else bad_value
     state = {"messages": conversation(), "task_history": value}
@@ -614,7 +614,7 @@ def test_concurrent_capture_serializes_retention_decisions(scoped, monkeypatch, 
 
 @pytest.mark.parametrize("empty", [None, {}])
 def test_absent_history_remains_uninitialized(scoped, empty):
-    from deerflow.agents.middlewares.durable_context_middleware import _render_durable_context_data
+    from operix.agents.middlewares.durable_context_middleware import _render_durable_context_data
 
     rendered = _render_durable_context_data(None, [], [], {}, empty)
     assert '"history_status": "no_compaction_yet"' in rendered
@@ -625,7 +625,7 @@ def test_absent_history_remains_uninitialized(scoped, empty):
 def test_role_search_recovers_user_correction_beyond_active_result_limit(scoped, location):
     import json
 
-    from deerflow.tools.types import Runtime
+    from operix.tools.types import Runtime
 
     scoped = Runtime(state={}, context=scoped.context, config={}, stream_writer=lambda _: None, tool_call_id="search", store=None)
 
@@ -649,7 +649,7 @@ def test_role_search_recovers_user_correction_beyond_active_result_limit(scoped,
 
 @pytest.fixture
 def role_runtime(scoped):
-    from deerflow.tools.types import Runtime
+    from operix.tools.types import Runtime
 
     return Runtime(state={}, context=scoped.context, config={}, stream_writer=lambda _: None, tool_call_id="search", store=None)
 

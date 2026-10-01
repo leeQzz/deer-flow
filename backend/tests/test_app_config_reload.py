@@ -8,22 +8,22 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
-import deerflow.config.app_config as app_config_module
-from deerflow.config.acp_config import load_acp_config_from_dict
-from deerflow.config.agents_api_config import get_agents_api_config, load_agents_api_config_from_dict
-from deerflow.config.app_config import AppConfig, get_app_config, peek_loaded_app_config, reset_app_config
-from deerflow.config.checkpointer_config import get_checkpointer_config, load_checkpointer_config_from_dict
-from deerflow.config.database_config import DatabaseConfig
-from deerflow.config.guardrails_config import get_guardrails_config, load_guardrails_config_from_dict
-from deerflow.config.memory_config import get_memory_config, load_memory_config_from_dict
-from deerflow.config.stream_bridge_config import get_stream_bridge_config, load_stream_bridge_config_from_dict
-from deerflow.config.subagents_config import get_subagents_app_config, load_subagents_config_from_dict
-from deerflow.config.summarization_config import get_summarization_config, load_summarization_config_from_dict
-from deerflow.config.title_config import get_title_config, load_title_config_from_dict
-from deerflow.config.tool_search_config import get_tool_search_config, load_tool_search_config_from_dict
-from deerflow.runtime.checkpointer import get_checkpointer, reset_checkpointer
-from deerflow.runtime.store import get_store, reset_store
-from deerflow.storage import BlobNotConfiguredError, get_blob_store, get_blob_store_if_enabled, reset_blob_store
+import operix.config.app_config as app_config_module
+from operix.config.acp_config import load_acp_config_from_dict
+from operix.config.agents_api_config import get_agents_api_config, load_agents_api_config_from_dict
+from operix.config.app_config import AppConfig, get_app_config, peek_loaded_app_config, reset_app_config
+from operix.config.checkpointer_config import get_checkpointer_config, load_checkpointer_config_from_dict
+from operix.config.database_config import DatabaseConfig
+from operix.config.guardrails_config import get_guardrails_config, load_guardrails_config_from_dict
+from operix.config.memory_config import get_memory_config, load_memory_config_from_dict
+from operix.config.stream_bridge_config import get_stream_bridge_config, load_stream_bridge_config_from_dict
+from operix.config.subagents_config import get_subagents_app_config, load_subagents_config_from_dict
+from operix.config.summarization_config import get_summarization_config, load_summarization_config_from_dict
+from operix.config.title_config import get_title_config, load_title_config_from_dict
+from operix.config.tool_search_config import get_tool_search_config, load_tool_search_config_from_dict
+from operix.runtime.checkpointer import get_checkpointer, reset_checkpointer
+from operix.runtime.store import get_store, reset_store
+from operix.storage import BlobNotConfiguredError, get_blob_store, get_blob_store_if_enabled, reset_blob_store
 
 
 def _reset_config_singletons() -> None:
@@ -46,7 +46,7 @@ def _write_config(path: Path, *, model_name: str, supports_thinking: bool) -> No
     path.write_text(
         yaml.safe_dump(
             {
-                "sandbox": {"use": "deerflow.sandbox.local:LocalSandboxProvider"},
+                "sandbox": {"use": "operix.sandbox.local:LocalSandboxProvider"},
                 "models": [
                     {
                         "name": model_name,
@@ -69,7 +69,7 @@ def _write_config_with_agents_api(
     agents_api: dict | None = None,
 ) -> None:
     config = {
-        "sandbox": {"use": "deerflow.sandbox.local:LocalSandboxProvider"},
+        "sandbox": {"use": "operix.sandbox.local:LocalSandboxProvider"},
         "models": [
             {
                 "name": model_name,
@@ -87,7 +87,7 @@ def _write_config_with_agents_api(
 
 def _write_config_with_sections(path: Path, sections: dict | None = None) -> None:
     config = {
-        "sandbox": {"use": "deerflow.sandbox.local:LocalSandboxProvider"},
+        "sandbox": {"use": "operix.sandbox.local:LocalSandboxProvider"},
         "models": [
             {
                 "name": "first-model",
@@ -175,7 +175,7 @@ def test_resolve_checkpoint_graph_cache_max_tolerates_stub_configs() -> None:
     from types import SimpleNamespace
     from unittest.mock import MagicMock
 
-    from deerflow.config.database_config import resolve_checkpoint_graph_cache_max
+    from operix.config.database_config import resolve_checkpoint_graph_cache_max
 
     assert resolve_checkpoint_graph_cache_max(None, "accessor_graph_max", 64) == 64
     assert resolve_checkpoint_graph_cache_max(SimpleNamespace(), "accessor_graph_max", 64) == 64
@@ -198,12 +198,12 @@ def test_app_config_defaults_missing_database_to_sqlite(tmp_path, monkeypatch):
     _write_extensions_config(extensions_path)
     _write_config(config_path, model_name="first-model", supports_thinking=False)
 
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
 
     config = AppConfig.from_file(str(config_path))
 
     assert config.database.backend == "sqlite"
-    assert config.database.sqlite_dir == ".deer-flow/data"
+    assert config.database.sqlite_dir == ".operix/data"
 
 
 def test_app_config_preserves_config_yaml_extension_middlewares(tmp_path, monkeypatch):
@@ -221,7 +221,7 @@ def test_app_config_preserves_config_yaml_extension_middlewares(tmp_path, monkey
             }
         },
     )
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
 
     config = AppConfig.from_file(str(config_path))
 
@@ -256,7 +256,7 @@ def test_app_config_normalizes_config_yaml_extension_aliases_before_override(tmp
             }
         },
     )
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
 
     config = AppConfig.from_file(str(config_path))
 
@@ -272,7 +272,7 @@ def test_app_config_loads_extension_middlewares_from_extensions_config(tmp_path,
         encoding="utf-8",
     )
     _write_config_with_sections(config_path)
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
 
     config = AppConfig.from_file(str(config_path))
 
@@ -280,7 +280,7 @@ def test_app_config_loads_extension_middlewares_from_extensions_config(tmp_path,
 
 
 def test_app_config_loads_middleware_kwargs_from_config_yaml(tmp_path, monkeypatch):
-    from deerflow.config.extensions_config import ConfiguredMiddlewareSpec
+    from operix.config.extensions_config import ConfiguredMiddlewareSpec
 
     config_path = tmp_path / "config.yaml"
     extensions_path = tmp_path / "extensions_config.json"
@@ -299,7 +299,7 @@ def test_app_config_loads_middleware_kwargs_from_config_yaml(tmp_path, monkeypat
             }
         },
     )
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
 
     config = AppConfig.from_file(str(config_path))
 
@@ -318,18 +318,18 @@ def test_app_config_defaults_empty_database_to_sqlite(tmp_path, monkeypatch):
         yaml.safe_dump(
             {
                 "database": {},
-                "sandbox": {"use": "deerflow.sandbox.local:LocalSandboxProvider"},
+                "sandbox": {"use": "operix.sandbox.local:LocalSandboxProvider"},
             }
         ),
         encoding="utf-8",
     )
 
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
 
     config = AppConfig.from_file(str(config_path))
 
     assert config.database.backend == "sqlite"
-    assert config.database.sqlite_dir == ".deer-flow/data"
+    assert config.database.sqlite_dir == ".operix/data"
 
 
 def test_app_config_coerces_commented_out_list_sections(tmp_path, monkeypatch):
@@ -345,7 +345,7 @@ def test_app_config_coerces_commented_out_list_sections(tmp_path, monkeypatch):
     config_path.write_text(
         yaml.safe_dump(
             {
-                "sandbox": {"use": "deerflow.sandbox.local:LocalSandboxProvider"},
+                "sandbox": {"use": "operix.sandbox.local:LocalSandboxProvider"},
                 "models": None,
                 "tools": None,
                 "tool_groups": None,
@@ -353,7 +353,7 @@ def test_app_config_coerces_commented_out_list_sections(tmp_path, monkeypatch):
         ),
         encoding="utf-8",
     )
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
 
     config = AppConfig.from_file(str(config_path))
 
@@ -375,7 +375,7 @@ def test_app_config_coerces_commented_out_object_sections(tmp_path, monkeypatch)
     config_path.write_text(
         yaml.safe_dump(
             {
-                "sandbox": {"use": "deerflow.sandbox.local:LocalSandboxProvider"},
+                "sandbox": {"use": "operix.sandbox.local:LocalSandboxProvider"},
                 "memory": None,
                 "summarization": None,
                 "guardrails": None,
@@ -385,7 +385,7 @@ def test_app_config_coerces_commented_out_object_sections(tmp_path, monkeypatch)
         ),
         encoding="utf-8",
     )
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
 
     config = AppConfig.from_file(str(config_path))
 
@@ -409,7 +409,7 @@ def test_app_config_null_required_section_still_errors(tmp_path, monkeypatch):
     extensions_path = tmp_path / "extensions_config.json"
     _write_extensions_config(extensions_path)
     config_path.write_text(yaml.safe_dump({"sandbox": None}), encoding="utf-8")
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
 
     with pytest.raises(ValidationError):
         AppConfig.from_file(str(config_path))
@@ -422,15 +422,15 @@ def test_app_config_warns_when_no_models_configured(tmp_path, monkeypatch, caplo
     config_path.write_text(
         yaml.safe_dump(
             {
-                "sandbox": {"use": "deerflow.sandbox.local:LocalSandboxProvider"},
+                "sandbox": {"use": "operix.sandbox.local:LocalSandboxProvider"},
                 "models": None,
             }
         ),
         encoding="utf-8",
     )
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
 
-    with caplog.at_level("WARNING", logger="deerflow.config.app_config"):
+    with caplog.at_level("WARNING", logger="operix.config.app_config"):
         AppConfig.from_file(str(config_path))
 
     assert "No models are configured" in caplog.text
@@ -442,8 +442,8 @@ def test_get_app_config_reloads_when_file_changes(tmp_path, monkeypatch):
     _write_extensions_config(extensions_path)
     _write_config(config_path, model_name="first-model", supports_thinking=False)
 
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(config_path))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
     reset_app_config()
 
     try:
@@ -474,8 +474,8 @@ def test_peek_loaded_app_config_survives_a_missing_file(tmp_path, monkeypatch):
     _write_extensions_config(extensions_path)
     _write_config(config_path, model_name="model-a", supports_thinking=False)
 
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(config_path))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
     reset_app_config()
 
     try:
@@ -500,8 +500,8 @@ def test_get_app_config_reloads_when_content_digest_changes_without_metadata(tmp
     _write_extensions_config(extensions_path)
     _write_config(config_path, model_name="model-a", supports_thinking=False)
 
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(config_path))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
     _reset_config_singletons()
 
     try:
@@ -550,15 +550,15 @@ def test_get_app_config_reloads_when_config_path_changes(tmp_path, monkeypatch):
     _write_config(config_a, model_name="model-a", supports_thinking=False)
     _write_config(config_b, model_name="model-b", supports_thinking=True)
 
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(config_a))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(config_a))
     reset_app_config()
 
     try:
         first = get_app_config()
         assert first.models[0].name == "model-a"
 
-        monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(config_b))
+        monkeypatch.setenv("OPERIX_CONFIG_PATH", str(config_b))
         second = get_app_config()
         assert second.models[0].name == "model-b"
         assert second is not first
@@ -577,8 +577,8 @@ def test_get_app_config_resets_agents_api_config_when_section_removed(tmp_path, 
         agents_api={"enabled": True},
     )
 
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(config_path))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
     reset_app_config()
 
     try:
@@ -619,8 +619,8 @@ def test_get_app_config_resets_singleton_configs_when_sections_removed(tmp_path,
         },
     )
 
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(config_path))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
     reset_app_config()
 
     try:
@@ -657,8 +657,8 @@ def test_get_app_config_resets_persistence_runtime_singletons_when_checkpointer_
     _write_extensions_config(extensions_path)
     _write_config_with_sections(config_path, {"checkpointer": {"type": "memory"}})
 
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(config_path))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
     reset_checkpointer()
     reset_store()
     reset_app_config()
@@ -693,8 +693,8 @@ def test_get_app_config_keeps_persistence_runtime_singletons_when_checkpointer_u
         },
     )
 
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(config_path))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
     _reset_config_singletons()
 
     try:
@@ -735,8 +735,8 @@ def test_get_app_config_does_not_reset_persistence_singletons_when_database_chan
         {"database": {"backend": "postgres", "postgres_url": "postgresql://localhost/db", "postgres_schema": "schema_a"}},
     )
 
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(config_path))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
     _reset_config_singletons()
 
     reset_calls = {"checkpointer": 0, "store": 0}
@@ -747,8 +747,8 @@ def test_get_app_config_does_not_reset_persistence_singletons_when_database_chan
     def _reset_store() -> None:
         reset_calls["store"] += 1
 
-    monkeypatch.setattr("deerflow.runtime.checkpointer.reset_checkpointer", _reset_checkpointer)
-    monkeypatch.setattr("deerflow.runtime.store.reset_store", _reset_store)
+    monkeypatch.setattr("operix.runtime.checkpointer.reset_checkpointer", _reset_checkpointer)
+    monkeypatch.setattr("operix.runtime.store.reset_store", _reset_store)
 
     try:
         get_app_config()
@@ -783,8 +783,8 @@ def test_get_app_config_does_not_mutate_singletons_when_reload_validation_fails(
         },
     )
 
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(config_path))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
     _reset_config_singletons()
 
     try:
@@ -830,8 +830,8 @@ def test_get_memory_config_self_syncs_without_prior_get_app_config(tmp_path, mon
 
     _write_config_with_sections(config_path, {"memory": {"enabled": False}})
 
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(config_path))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
     reset_app_config()
 
     try:
@@ -856,8 +856,8 @@ def test_blob_store_follows_config_file_reload(tmp_path, monkeypatch):
     second_root = tmp_path / "second"
     _write_config_with_sections(config_path, {"blob_storage": {"enabled": True, "backend_config": {"root": str(first_root)}}})
 
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(config_path))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
     reset_app_config()
     reset_blob_store()
 
@@ -893,8 +893,8 @@ def test_get_memory_config_falls_back_on_broken_config(tmp_path, monkeypatch):
 
     _write_config_with_sections(config_path, {"memory": {"enabled": False}})
 
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(config_path))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
     reset_app_config()
 
     try:
@@ -914,7 +914,7 @@ def test_get_memory_config_falls_back_on_broken_config(tmp_path, monkeypatch):
 # config.example.yaml ships it and the way a rollback types it.
 _MODES_CONFIG = """\
 sandbox:
-  use: deerflow.sandbox.local:LocalSandboxProvider
+  use: operix.sandbox.local:LocalSandboxProvider
 models:
   - name: first-model
     use: langchain_openai:ChatOpenAI
@@ -922,10 +922,10 @@ models:
 memory:
   prescreen:
     mode: {prescreen}
-    use: deerflow.agents.memory.prescreen.typesafe:TypeSafeMemoryPrescreen
+    use: operix.agents.memory.prescreen.typesafe:TypeSafeMemoryPrescreen
   signal_classification:
     mode: {classification}
-    use: deerflow.agents.memory.signals.typesafe:TypeSafeSignalClassifier
+    use: operix.agents.memory.signals.typesafe:TypeSafeSignalClassifier
 """
 
 
@@ -940,7 +940,7 @@ def test_an_unquoted_off_mode_loads_and_rolls_back(tmp_path, monkeypatch):
     config_path = tmp_path / "config.yaml"
     extensions_path = tmp_path / "extensions_config.json"
     _write_extensions_config(extensions_path)
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(extensions_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(extensions_path))
 
     def write_modes(prescreen: str, classification: str) -> None:
         config_path.write_text(_MODES_CONFIG.format(prescreen=prescreen, classification=classification), encoding="utf-8")

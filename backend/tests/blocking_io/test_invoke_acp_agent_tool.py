@@ -10,14 +10,14 @@ from typing import Any
 import acp
 import pytest
 
-from deerflow.config.acp_config import ACPAgentConfig
-from deerflow.tools.builtins import invoke_acp_agent_tool as acp_tool
+from operix.config.acp_config import ACPAgentConfig
+from operix.tools.builtins import invoke_acp_agent_tool as acp_tool
 
 pytestmark = pytest.mark.asyncio
 
 
 async def test_invoke_acp_agent_setup_does_not_block_event_loop(monkeypatch, tmp_path) -> None:
-    from deerflow.config import paths as paths_module
+    from operix.config import paths as paths_module
 
     configured_paths = SimpleNamespace(
         base_dir=tmp_path,
@@ -30,7 +30,7 @@ async def test_invoke_acp_agent_setup_does_not_block_event_loop(monkeypatch, tmp
         '{"mcpServers": {"test-server": {"enabled": true, "type": "http", "url": "https://example.test/mcp"}}, "skills": {}}',
         encoding="utf-8",
     )
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(config_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(config_path))
 
     captured: dict[str, Any] = {}
 

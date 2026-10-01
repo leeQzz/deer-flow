@@ -30,10 +30,10 @@ from langgraph.graph import StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.types import Command, interrupt
 
-from deerflow.agents.thread_state import merge_message_writes
-from deerflow.runtime.checkpoint_cache.memory import MemoryCheckpointHistoryCache
-from deerflow.runtime.checkpoint_state import CheckpointStateAccessor
-from deerflow.runtime.checkpointer.cached_saver import CachedHistorySaver
+from operix.agents.thread_state import merge_message_writes
+from operix.runtime.checkpoint_cache.memory import MemoryCheckpointHistoryCache
+from operix.runtime.checkpoint_state import CheckpointStateAccessor
+from operix.runtime.checkpointer.cached_saver import CachedHistorySaver
 
 STEPS = 5
 SNAPSHOT_FREQUENCY = 2

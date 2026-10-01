@@ -9,10 +9,10 @@ import logging
 
 import pytest
 
-from deerflow.config.app_config import AppConfig
-from deerflow.config.projects_config import ProjectsConfig
+from operix.config.app_config import AppConfig
+from operix.config.projects_config import ProjectsConfig
 
-_MINIMAL_APP_CONFIG = {"sandbox": {"use": "deerflow.sandbox.local:LocalSandboxProvider"}}
+_MINIMAL_APP_CONFIG = {"sandbox": {"use": "operix.sandbox.local:LocalSandboxProvider"}}
 
 
 def test_defaults_when_section_absent():

@@ -28,9 +28,9 @@ def _reset_process_singletons(monkeypatch: pytest.MonkeyPatch) -> None:
 
     Same set the real-server e2e resets (see test_setup_agent_http_e2e_real_server).
     """
-    from deerflow.config import app_config as app_config_module
-    from deerflow.config import paths as paths_module
-    from deerflow.persistence import engine as engine_module
+    from operix.config import app_config as app_config_module
+    from operix.config import paths as paths_module
+    from operix.persistence import engine as engine_module
 
     for module, attr in (
         (app_config_module, "_app_config"),
@@ -52,16 +52,16 @@ def test_replay_write_read_file_ultra_matches_golden(tmp_path: Path, monkeypatch
 
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("DEER_FLOW_HOME", str(home))
+    monkeypatch.setenv("OPERIX_HOME", str(home))
     monkeypatch.setenv("DEERFLOW_REPLAY_FIXTURE", str(fixture_path))
 
     cfg_path = tmp_path / "config.yaml"
     cfg_path.write_text(build_config_yaml(model_block=REPLAY_MODEL_BLOCK, home=home), encoding="utf-8")
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(cfg_path))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(prepare_hermetic_extras(home)))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(cfg_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(prepare_hermetic_extras(home)))
 
     _reset_process_singletons(monkeypatch)
-    from deerflow.config import app_config as app_config_module
+    from operix.config import app_config as app_config_module
 
     cfg = app_config_module.get_app_config()
     cfg.database.sqlite_dir = str(home / "db")

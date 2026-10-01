@@ -8,19 +8,19 @@ from pydantic import ValidationError
 from sqlalchemy import create_engine
 
 from app.gateway.routers.agents import AgentCreateRequest, AgentUpdateRequest
-from deerflow.config.agents_config import AgentConfig
-from deerflow.persistence.agents.base import parse_agent_config
-from deerflow.persistence.agents.file import FileAgentStore
-from deerflow.persistence.agents.model import AgentRow
-from deerflow.persistence.agents.sql import SqlAgentStore
-from deerflow.persistence.base import Base
-from deerflow.tools.builtins.setup_agent_tool import setup_agent
+from operix.config.agents_config import AgentConfig
+from operix.persistence.agents.base import parse_agent_config
+from operix.persistence.agents.file import FileAgentStore
+from operix.persistence.agents.model import AgentRow
+from operix.persistence.agents.sql import SqlAgentStore
+from operix.persistence.base import Base
+from operix.tools.builtins.setup_agent_tool import setup_agent
 
 
 @pytest.mark.parametrize("backend", ["file", "sql"])
 @pytest.mark.parametrize("display_name", ["代码审查助手", None])
 def test_bootstrap_preserves_owner_display_name(tmp_path, monkeypatch, backend, display_name):
-    monkeypatch.setenv("DEER_FLOW_HOME", str(tmp_path))
+    monkeypatch.setenv("OPERIX_HOME", str(tmp_path))
     if backend == "file":
         store = FileAgentStore()
     else:
@@ -29,7 +29,7 @@ def test_bootstrap_preserves_owner_display_name(tmp_path, monkeypatch, backend, 
         Base.metadata.create_all(engine, tables=[AgentRow.__table__])
         engine.dispose()
         store = SqlAgentStore(url)
-    monkeypatch.setattr("deerflow.tools.builtins.setup_agent_tool.get_agent_store", lambda: store)
+    monkeypatch.setattr("operix.tools.builtins.setup_agent_tool.get_agent_store", lambda: store)
     owner = "test-user-autouse"
     store.create("reviewer", {"display_name": display_name}, "old soul", user_id=owner)
     store.create("reviewer", {"display_name": "Other owner"}, "other soul", user_id="other")
@@ -57,11 +57,11 @@ def test_display_name_rejects_controls(model, codepoint):
 
 
 @pytest.mark.parametrize("model", [AgentConfig, AgentCreateRequest, AgentUpdateRequest])
-@pytest.mark.parametrize("value", ["🦌" * 100, "代码审查助手", "مراجع الكود", "می\u200cروم", "👩‍💻", "e\u0301"])
+@pytest.mark.parametrize("value", ["⚙" * 100, "代码审查助手", "مراجع الكود", "می\u200cروم", "👩‍💻", "e\u0301"])
 def test_display_name_accepts_multilingual_text(model, value):
     assert model(name="reviewer", display_name=f"  {value}  ").display_name == value
     with pytest.raises(ValidationError):
-        model(name="reviewer", display_name="🦌" * 101)
+        model(name="reviewer", display_name="⚙" * 101)
 
 
 @pytest.mark.parametrize("value", ["\u200b" * 3, "\u200c\u200d", "\ufe0f", "\u0301"])
@@ -73,7 +73,7 @@ def test_invisible_only_labels_are_rejected(value):
 @pytest.mark.parametrize("backend", ["file", "sql"])
 @pytest.mark.parametrize("value", ["x" * 150, 123, "\u200b", "a\u200fb", ["invalid"]])
 def test_invalid_stored_label_does_not_hide_or_break_agent(tmp_path, monkeypatch, backend, value):
-    monkeypatch.setenv("DEER_FLOW_HOME", str(tmp_path))
+    monkeypatch.setenv("OPERIX_HOME", str(tmp_path))
     owner = "test-user-autouse"
     raw = {"display_name": value, "description": "healthy", "model": "gpt-x"}
     if backend == "file":
@@ -100,7 +100,7 @@ def test_invalid_stored_label_does_not_hide_or_break_agent(tmp_path, monkeypatch
     else:
         with store._Session() as session:
             assert session.query(AgentRow).one().config == raw
-    monkeypatch.setattr("deerflow.tools.builtins.setup_agent_tool.get_agent_store", lambda: store)
+    monkeypatch.setattr("operix.tools.builtins.setup_agent_tool.get_agent_store", lambda: store)
     result = setup_agent.func(soul="new soul", description="rebootstrapped", runtime=SimpleNamespace(context={"agent_name": "reviewer"}, tool_call_id="test"))
     assert result.update["created_agent_name"] == "reviewer"
     assert store.get_soul("reviewer", user_id=owner) == "new soul"

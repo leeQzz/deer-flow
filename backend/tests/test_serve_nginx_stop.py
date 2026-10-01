@@ -34,7 +34,7 @@ def _is_repo_nginx_pid(
     command: str,
     args: str,
     repo_root: Path | str,
-    deerflow_pid: bool = False,
+    operix_pid: bool = False,
 ) -> bool:
     bash = require_script_bash()
 
@@ -44,9 +44,9 @@ REPO_ROOT={shlex.quote(str(repo_root))}
 DEERFLOW_ROOTS={shlex.quote(str(repo_root))}
 FAKE_COMMAND={shlex.quote(command)}
 FAKE_ARGS={shlex.quote(args)}
-FAKE_DEERFLOW_PID={1 if deerflow_pid else 0}
+FAKE_DEERFLOW_PID={1 if operix_pid else 0}
 
-_is_deerflow_pid() {{
+_is_operix_pid() {{
     [ "$FAKE_DEERFLOW_PID" = "1" ]
 }}
 
@@ -71,7 +71,7 @@ def test_repo_nginx_pid_accepts_macos_rewritten_master_command(tmp_path):
     # runs this test, so build the fixture with forward slashes explicitly;
     # on Windows a Path would render with backslashes and never match the
     # "$root"/docker/nginx/... pattern the shell function greps for.
-    repo_root = (tmp_path / "deer-flow").as_posix()
+    repo_root = (tmp_path / "operix").as_posix()
     nginx_conf = f"{repo_root}/docker/nginx/nginx.local.conf"
 
     assert _is_repo_nginx_pid(
@@ -82,32 +82,32 @@ def test_repo_nginx_pid_accepts_macos_rewritten_master_command(tmp_path):
 
 
 def test_repo_nginx_pid_accepts_macos_rewritten_worker_after_repo_check(tmp_path):
-    repo_root = tmp_path / "deer-flow"
+    repo_root = tmp_path / "operix"
 
     assert _is_repo_nginx_pid(
         command="nginx: worker process",
         args="nginx: worker process",
         repo_root=repo_root,
-        deerflow_pid=True,
+        operix_pid=True,
     )
 
 
 @pytest.mark.parametrize(
-    ("command", "args", "deerflow_pid"),
+    ("command", "args", "operix_pid"),
     [
         ("nginx: worker process", "nginx: worker process", False),
-        ("python", "python -m nginx /tmp/deer-flow/docker/nginx/nginx.local.conf", True),
+        ("python", "python -m nginx /tmp/operix/docker/nginx/nginx.local.conf", True),
     ],
 )
 def test_repo_nginx_pid_rejects_unowned_or_non_nginx_processes(
     tmp_path,
     command: str,
     args: str,
-    deerflow_pid: bool,
+    operix_pid: bool,
 ):
     assert not _is_repo_nginx_pid(
         command=command,
         args=args,
-        repo_root=tmp_path / "deer-flow",
-        deerflow_pid=deerflow_pid,
+        repo_root=tmp_path / "operix",
+        operix_pid=operix_pid,
     )

@@ -25,10 +25,10 @@ from app.channels.message_bus import (
     ResolvedAttachment,
 )
 from app.channels.sandbox_files import sync_file_to_thread_sandbox
-from deerflow.config.paths import VIRTUAL_PATH_PREFIX, get_paths
-from deerflow.runtime.user_context import get_effective_user_id
-from deerflow.sandbox.sandbox_provider import get_sandbox_provider
-from deerflow.uploads.manager import (
+from operix.config.paths import VIRTUAL_PATH_PREFIX, get_paths
+from operix.runtime.user_context import get_effective_user_id
+from operix.sandbox.sandbox_provider import get_sandbox_provider
+from operix.uploads.manager import (
     apply_upload_sandbox_permits,
     claim_unique_filename,
     normalize_filename,
@@ -1063,7 +1063,7 @@ class FeishuChannel(Channel):
             },
             status="connected",
         )
-        await self._reply_card(message_id, "Feishu connected to DeerFlow.")
+        await self._reply_card(message_id, "Feishu connected to Operix.")
         return True
 
     def _on_message(self, event) -> None:

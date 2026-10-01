@@ -19,7 +19,7 @@ from dataclasses import replace
 from types import SimpleNamespace
 from typing import Any
 
-from deerflow_extension_api import PROVENANCE_KEYS
+from operix_extension_api import PROVENANCE_KEYS
 from fastapi import HTTPException, Request
 from langchain_core.messages import BaseMessage, ChatMessage, HumanMessage, SystemMessage
 from langchain_core.messages.utils import convert_to_messages
@@ -38,24 +38,24 @@ from app.gateway.knowledge_scope_admission import admit_message_knowledge_scope
 from app.gateway.run_models import RunCreateRequest
 from app.gateway.utils import sanitize_log_param
 from app.mcp_tasks.errors import PermanentNotificationError
-from deerflow.agents.human_input import read_human_input_response
-from deerflow.agents.middlewares.dynamic_context_middleware import _DYNAMIC_CONTEXT_REMINDER_KEY, _REMINDER_DATE_KEY
-from deerflow.agents.middlewares.input_sanitization_middleware import frame_untrusted_text
-from deerflow.agents.middlewares.message_utils import _SUMMARY_MESSAGE_NAME, is_genuine_user_message
-from deerflow.agents.middlewares.skill_usage import SKILL_USAGE_KEY, SKILL_USAGES_KEY
-from deerflow.agents.middlewares.tool_receipt import TOOL_RECEIPT_KEY, TOOL_RECEIPT_LEDGER_KEY
-from deerflow.agents.middlewares.tool_transform_meta import TOOL_TRANSFORMS_KEY
-from deerflow.agents.middlewares.view_image_middleware import _IMAGE_CONTEXT_MESSAGE_MARKER_KEY
-from deerflow.config.agents_config import load_agent_config
-from deerflow.config.app_config import get_app_config
-from deerflow.config.database_config import resolve_checkpoint_graph_cache_max
-from deerflow.knowledge_scope import KNOWLEDGE_SCOPE_KEY, KNOWLEDGE_SCOPE_RUNTIME_KEY
-from deerflow.mcp_scope import (
+from operix.agents.human_input import read_human_input_response
+from operix.agents.middlewares.dynamic_context_middleware import _DYNAMIC_CONTEXT_REMINDER_KEY, _REMINDER_DATE_KEY
+from operix.agents.middlewares.input_sanitization_middleware import frame_untrusted_text
+from operix.agents.middlewares.message_utils import _SUMMARY_MESSAGE_NAME, is_genuine_user_message
+from operix.agents.middlewares.skill_usage import SKILL_USAGE_KEY, SKILL_USAGES_KEY
+from operix.agents.middlewares.tool_receipt import TOOL_RECEIPT_KEY, TOOL_RECEIPT_LEDGER_KEY
+from operix.agents.middlewares.tool_transform_meta import TOOL_TRANSFORMS_KEY
+from operix.agents.middlewares.view_image_middleware import _IMAGE_CONTEXT_MESSAGE_MARKER_KEY
+from operix.config.agents_config import load_agent_config
+from operix.config.app_config import get_app_config
+from operix.config.database_config import resolve_checkpoint_graph_cache_max
+from operix.knowledge_scope import KNOWLEDGE_SCOPE_KEY, KNOWLEDGE_SCOPE_RUNTIME_KEY
+from operix.mcp_scope import (
     THREAD_INCARNATION_METADATA_GUARD_KEY,
     is_valid_thread_incarnation,
 )
-from deerflow.projects.context import PROJECT_CONTEXT_MESSAGE_MARKER, resolve_project_context
-from deerflow.runtime import (
+from operix.projects.context import PROJECT_CONTEXT_MESSAGE_MARKER, resolve_project_context
+from operix.runtime import (
     END_SENTINEL,
     HEARTBEAT_SENTINEL,
     ORPHAN_RECOVERY_STOP_REASON,
@@ -73,33 +73,33 @@ from deerflow.runtime import (
     build_state_mutation_graph,
     run_agent,
 )
-from deerflow.runtime.checkpoint_mode import (
+from operix.runtime.checkpoint_mode import (
     INTERNAL_CHECKPOINT_MODE_KEY,
     CheckpointModeMismatchError,
     checkpoint_tuple_uses_delta,
     inject_checkpoint_mode,
 )
-from deerflow.runtime.checkpoint_state import graph_state_schema
-from deerflow.runtime.context_keys import PROJECT_CONTEXT_KEY
-from deerflow.runtime.events.message_identity import MESSAGE_SEQ_KEY
-from deerflow.runtime.goal import goal_thread_lock
-from deerflow.runtime.journal import build_checkpoint_history_seed_events
-from deerflow.runtime.keyed_lock import KeyedLockTable
-from deerflow.runtime.runs.naming import resolve_root_run_name
-from deerflow.runtime.secret_context import (
+from operix.runtime.checkpoint_state import graph_state_schema
+from operix.runtime.context_keys import PROJECT_CONTEXT_KEY
+from operix.runtime.events.message_identity import MESSAGE_SEQ_KEY
+from operix.runtime.goal import goal_thread_lock
+from operix.runtime.journal import build_checkpoint_history_seed_events
+from operix.runtime.keyed_lock import KeyedLockTable
+from operix.runtime.runs.naming import resolve_root_run_name
+from operix.runtime.secret_context import (
     LegacyRunMetadataSecretError,
     redact_config_secrets,
     validate_run_metadata_secrets,
 )
-from deerflow.runtime.stream_modes import normalize_stream_modes
-from deerflow.runtime.user_context import reset_current_user, set_current_user
-from deerflow.sandbox.lease import SANDBOX_SERVER_OWNED_CONTEXT_KEYS
-from deerflow.subagents.status_contract import SUBAGENT_ACCEPTANCE_VERDICT_KEY, SUBAGENT_RECEIPT_VERDICT_KEY, SUBAGENT_TOOL_RECEIPTS_KEY
-from deerflow.trace_context import DEERFLOW_TRACE_METADATA_KEY, ensure_trace_context, ensure_trace_id
-from deerflow.utils.assembly_io import run_assembly
-from deerflow.utils.file_io import await_drained
-from deerflow.utils.messages import ORIGINAL_USER_CONTENT_KEY, UNTRUSTED_INPUT_KEY
-from deerflow.utils.thread_id import validate_thread_id
+from operix.runtime.stream_modes import normalize_stream_modes
+from operix.runtime.user_context import reset_current_user, set_current_user
+from operix.sandbox.lease import SANDBOX_SERVER_OWNED_CONTEXT_KEYS
+from operix.subagents.status_contract import SUBAGENT_ACCEPTANCE_VERDICT_KEY, SUBAGENT_RECEIPT_VERDICT_KEY, SUBAGENT_TOOL_RECEIPTS_KEY
+from operix.trace_context import DEERFLOW_TRACE_METADATA_KEY, ensure_trace_context, ensure_trace_id
+from operix.utils.assembly_io import run_assembly
+from operix.utils.file_io import await_drained
+from operix.utils.messages import ORIGINAL_USER_CONTENT_KEY, UNTRUSTED_INPUT_KEY
+from operix.utils.thread_id import validate_thread_id
 
 logger = logging.getLogger(__name__)
 
@@ -234,7 +234,7 @@ async def _ensure_thread_metadata(
     if existing is None:
         if require_existing_thread:
             raise LookupError(f"Thread {record.thread_id} was deleted during run admission")
-        from deerflow.persistence.thread_meta import THREAD_PROJECT_METADATA_KEY
+        from operix.persistence.thread_meta import THREAD_PROJECT_METADATA_KEY
 
         run_metadata = record.metadata or {}
         metadata = {
@@ -745,7 +745,7 @@ def merge_run_context_overrides(config: dict[str, Any], context: Mapping[str, An
 
 
 async def resolve_trusted_internal_owner_for_attribution(request: Request, owner_user_id: str | None) -> Any | None:
-    """Resolve the DeerFlow user used only for trusted internal attribution."""
+    """Resolve the Operix user used only for trusted internal attribution."""
 
     if not owner_user_id:
         return None
@@ -853,7 +853,7 @@ def resolve_agent_factory(assistant_id: str | None):
     consumer must unwrap ``.graph``. A third-party factory that still returns a
     bare graph keeps working: the unwrap sites are type-checked, not assumed.
     """
-    from deerflow.agents.lead_agent.agent import assemble_lead_agent
+    from operix.agents.lead_agent.agent import assemble_lead_agent
 
     return assemble_lead_agent
 
@@ -1164,7 +1164,7 @@ def _cache_state_accessor_graph(key: tuple[str | None, str, int | None], agent_f
 def _build_state_accessor_graph(agent_factory: Any, config: dict[str, Any]) -> Any:
     agent_result = agent_factory(config=config)
     try:
-        from deerflow.agents.lead_agent.agent import unwrap_agent_graph
+        from operix.agents.lead_agent.agent import unwrap_agent_graph
 
         return unwrap_agent_graph(agent_result)
     except Exception:
@@ -1758,7 +1758,7 @@ async def start_run(
     # via check_access; only a thread already owned by another user is rejected
     # with 404, matching thread_runs.py's anti-enumeration behaviour. Internal
     # channel runs act on behalf of the connection owner carried in
-    # X-DeerFlow-Owner-User-Id, so they are scoped to that owner instead of
+    # X-Operix-Owner-User-Id, so they are scoped to that owner instead of
     # bypassing the check -- a leaked internal token must not grant cross-user
     # thread access.
     user = getattr(request.state, "user", None)
@@ -1799,7 +1799,7 @@ async def start_run(
             graph_input = Command(resume=command["resume"])
         else:
             graph_input = normalized_input
-        # deerflow_trace_id is server-issued, so the caller's value is replaced
+        # operix_trace_id is server-issued, so the caller's value is replaced
         # here at the trust boundary. body.metadata forks two ways -- through
         # build_run_config into config["metadata"], which the run worker
         # restamps, and through create_or_reject into the run record, which the
@@ -1813,7 +1813,7 @@ async def start_run(
         config = build_run_config(thread_id, body.config, run_metadata, assistant_id=body.assistant_id)
         await apply_checkpoint_to_run_config(config, body=body, thread_id=thread_id, request=request)
 
-        # Merge DeerFlow-specific context overrides into both ``configurable`` and ``context``.
+        # Merge Operix-specific context overrides into both ``configurable`` and ``context``.
         # The ``context`` field is a custom extension for the langgraph-compat layer
         # that carries agent configuration (model_name, thinking_enabled, etc.).
         # Only agent-relevant keys are forwarded; unknown keys (e.g. thread_id) are ignored.
@@ -2220,7 +2220,7 @@ def _mcp_task_notification_prompt(event: dict[str, Any]) -> str:
         "Explain the update clearly and concisely. Do not expose or ask for a remote task ID. "
         "When status is input_required, show the question but explain that this MCP integration "
         "cannot resume the remote task with user input yet. When tracking_degraded is true, explain "
-        "that DeerFlow will continue retrying at a lower frequency."
+        "that Operix will continue retrying at a lower frequency."
     )
     return f"{instruction}\n\n{payload}"
 

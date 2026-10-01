@@ -18,8 +18,8 @@ import pytest
 from langchain.agents.middleware.types import ModelRequest
 from langchain_core.messages import AIMessage, HumanMessage
 
-from deerflow.sandbox.local.local_sandbox import LocalSandbox
-from deerflow.skills.types import SecretRequirement, Skill, SkillCategory
+from operix.sandbox.local.local_sandbox import LocalSandbox
+from operix.skills.types import SecretRequirement, Skill, SkillCategory
 
 _SLASH_SOURCE_OWNER_TOKEN = "test-slash-source-owner"
 
@@ -96,8 +96,8 @@ class TestLocalSandboxEnvInjection:
 class TestAioSandboxEnvInjection:
     @pytest.fixture
     def sandbox(self):
-        with patch("deerflow.community.aio_sandbox.aio_sandbox.AioSandboxClient"):
-            from deerflow.community.aio_sandbox.aio_sandbox import AioSandbox
+        with patch("operix.community.aio_sandbox.aio_sandbox.AioSandboxClient"):
+            from operix.community.aio_sandbox.aio_sandbox import AioSandbox
 
             return AioSandbox(id="test-sandbox", base_url="http://localhost:8080")
 
@@ -316,7 +316,7 @@ class TestAioSandboxEnvInjection:
         """The env path shares the legacy persistent-shell recovery contract: if
         the (unlikely, fresh-session) corruption marker appears, the call is
         retried rather than returned verbatim."""
-        from deerflow.community.aio_sandbox.aio_sandbox import _ERROR_OBSERVATION_SIGNATURE
+        from operix.community.aio_sandbox.aio_sandbox import _ERROR_OBSERVATION_SIGNATURE
 
         corrupted = SimpleNamespace(data=SimpleNamespace(stdout=_ERROR_OBSERVATION_SIGNATURE, stderr=None))
         clean = SimpleNamespace(data=SimpleNamespace(stdout="recovered", stderr=None))
@@ -387,7 +387,7 @@ class TestAioSandboxEnvInjection:
         expected_fragments,
         expected_suffix,
     ):
-        from deerflow.community.aio_sandbox.aio_sandbox import _ERROR_OBSERVATION_SIGNATURE
+        from operix.community.aio_sandbox.aio_sandbox import _ERROR_OBSERVATION_SIGNATURE
 
         corrupted = SimpleNamespace(
             data=SimpleNamespace(
@@ -470,7 +470,7 @@ class TestEnvPolicy:
         ],
     )
     def test_secret_like_names_are_blocked(self, name):
-        from deerflow.sandbox.env_policy import is_blocked_env_name
+        from operix.sandbox.env_policy import is_blocked_env_name
 
         assert is_blocked_env_name(name) is True
 
@@ -506,7 +506,7 @@ class TestEnvPolicy:
         it via ``required-secrets``. ``PWD``/``OLDPWD`` are the boundary this list
         does pin: they carry no ``PASS`` substring and must never be stripped.
         """
-        from deerflow.sandbox.env_policy import is_blocked_env_name
+        from operix.sandbox.env_policy import is_blocked_env_name
 
         assert is_blocked_env_name(name) is False
 
@@ -517,7 +517,7 @@ class TestEnvPolicy:
         password with no further configuration, so inheriting them hands a skill
         subprocess the credential the connection-string block already withholds.
         """
-        from deerflow.sandbox.env_policy import build_sandbox_env
+        from operix.sandbox.env_policy import build_sandbox_env
 
         monkeypatch.setenv("MYSQL_URL", "mysql://user:pw@host/db")
         monkeypatch.setenv("PWD", "/repo")  # POSIX hosts set PWD themselves; plant it so the survival check runs on Windows too
@@ -535,14 +535,14 @@ class TestEnvPolicy:
         The request-scoped value must also override the host's, which is the
         per-user-key-overrides-shared-key case from #3861.
         """
-        from deerflow.sandbox.env_policy import build_sandbox_env
+        from operix.sandbox.env_policy import build_sandbox_env
 
         monkeypatch.setenv("MYSQL_PWD", "host-value-must-not-leak")
         env = build_sandbox_env(injected={"MYSQL_PWD": "request-scoped-value"})
         assert env["MYSQL_PWD"] == "request-scoped-value"
 
     def test_build_sandbox_env_scrubs_inherited_and_layers_injected(self, monkeypatch):
-        from deerflow.sandbox.env_policy import build_sandbox_env
+        from operix.sandbox.env_policy import build_sandbox_env
 
         monkeypatch.setenv("OPENAI_API_KEY", "platform-key-should-vanish")
         monkeypatch.setenv("HARMLESS_PLAIN", "ok")
@@ -553,7 +553,7 @@ class TestEnvPolicy:
         assert env.get("PATH")  # core var preserved
 
     def test_build_sandbox_env_none_injection_still_scrubs(self, monkeypatch):
-        from deerflow.sandbox.env_policy import build_sandbox_env
+        from operix.sandbox.env_policy import build_sandbox_env
 
         monkeypatch.setenv("ANTHROPIC_API_KEY", "leak")
         env = build_sandbox_env()
@@ -571,8 +571,8 @@ class TestRequiredSecretsParsing:
         return skill_file
 
     def test_absent_field_defaults_to_empty(self, tmp_path):
-        from deerflow.skills.parser import parse_skill_file
-        from deerflow.skills.types import SkillCategory
+        from operix.skills.parser import parse_skill_file
+        from operix.skills.types import SkillCategory
 
         skill_file = self._write_skill(tmp_path, "name: erp-report\ndescription: Pull an ERP report")
         skill = parse_skill_file(skill_file, SkillCategory.CUSTOM)
@@ -580,8 +580,8 @@ class TestRequiredSecretsParsing:
         assert skill.required_secrets == ()
 
     def test_string_list_form(self, tmp_path):
-        from deerflow.skills.parser import parse_skill_file
-        from deerflow.skills.types import SkillCategory
+        from operix.skills.parser import parse_skill_file
+        from operix.skills.types import SkillCategory
 
         skill_file = self._write_skill(
             tmp_path,
@@ -592,8 +592,8 @@ class TestRequiredSecretsParsing:
         assert all(s.optional is False for s in skill.required_secrets)
 
     def test_object_list_with_optional(self, tmp_path):
-        from deerflow.skills.parser import parse_skill_file
-        from deerflow.skills.types import SkillCategory
+        from operix.skills.parser import parse_skill_file
+        from operix.skills.types import SkillCategory
 
         skill_file = self._write_skill(
             tmp_path,
@@ -607,7 +607,7 @@ class TestRequiredSecretsParsing:
 
     @pytest.mark.parametrize("value", ["false", "true", "no", 1, [], {}, None])
     def test_malformed_optional_fails_closed(self, value, caplog):
-        from deerflow.skills.parser import parse_required_secrets
+        from operix.skills.parser import parse_required_secrets
 
         requirements = parse_required_secrets(
             [{"name": "ERP_TOKEN", "optional": value}],
@@ -618,8 +618,8 @@ class TestRequiredSecretsParsing:
         assert "required-secrets entry 'ERP_TOKEN' as required" in caplog.text
 
     def test_invalid_env_name_entry_is_dropped(self, tmp_path):
-        from deerflow.skills.parser import parse_skill_file
-        from deerflow.skills.types import SkillCategory
+        from operix.skills.parser import parse_skill_file
+        from operix.skills.types import SkillCategory
 
         skill_file = self._write_skill(
             tmp_path,
@@ -644,7 +644,7 @@ class TestSecretCarrier:
         assert "secrets" not in config.get("configurable", {})
 
     def test_runtime_context_carries_secrets(self):
-        from deerflow.runtime.runs.worker import _build_runtime_context
+        from operix.runtime.runs.worker import _build_runtime_context
 
         ctx = _build_runtime_context("t", "r", {"secrets": {"ERP_TOKEN": "v"}})
         assert ctx["secrets"] == {"ERP_TOKEN": "v"}
@@ -677,19 +677,19 @@ class TestSecretCarrier:
         assert "__skill_tool_policy_decision" not in config["context"]
 
     def test_extract_request_secrets_filters_non_string_pairs(self):
-        from deerflow.runtime.secret_context import extract_request_secrets
+        from operix.runtime.secret_context import extract_request_secrets
 
         assert extract_request_secrets({"secrets": {"A": "x", "B": 123, 4: "y"}}) == {"A": "x"}
 
     def test_extract_request_secrets_missing_or_malformed(self):
-        from deerflow.runtime.secret_context import extract_request_secrets
+        from operix.runtime.secret_context import extract_request_secrets
 
         assert extract_request_secrets({}) == {}
         assert extract_request_secrets({"secrets": "not-a-dict"}) == {}
         assert extract_request_secrets(None) == {}
 
     def test_slash_skill_source_path_public_contract(self):
-        from deerflow.runtime.secret_context import read_slash_skill_source_path, write_slash_skill_source_path
+        from operix.runtime.secret_context import read_slash_skill_source_path, write_slash_skill_source_path
 
         context = {}
         write_slash_skill_source_path(
@@ -702,7 +702,7 @@ class TestSecretCarrier:
         assert read_slash_skill_source_path(context, owner_token="caller-forged") is None
 
     def test_slash_skill_source_path_rejects_malformed_shapes(self):
-        from deerflow.runtime.secret_context import read_slash_skill_source_path
+        from operix.runtime.secret_context import read_slash_skill_source_path
 
         malformed = [
             None,
@@ -749,8 +749,8 @@ class TestActivationBindsSecrets:
     """Binding point A: activation turn resolves declared secrets into the per-run injection set."""
 
     def _activate(self, tmp_path, monkeypatch, skill, context):
-        from deerflow.agents.middlewares import skill_activation_middleware as mw
-        from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+        from operix.agents.middlewares import skill_activation_middleware as mw
+        from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
 
         storage = SimpleNamespace(
             load_skills=lambda *, enabled_only: [skill],
@@ -768,7 +768,7 @@ class TestActivationBindsSecrets:
         middleware.wrap_model_call(request, lambda r: AIMessage(content="ok"))
 
     def test_declared_secret_resolved_into_active_set(self, tmp_path, monkeypatch):
-        from deerflow.runtime.secret_context import read_active_secrets
+        from operix.runtime.secret_context import read_active_secrets
 
         skill = _make_secret_skill(tmp_path, "erp-report", [SecretRequirement("ERP_TOKEN")])
         context = {"secrets": {"ERP_TOKEN": "tok-123", "UNUSED": "x"}}
@@ -777,7 +777,7 @@ class TestActivationBindsSecrets:
         assert read_active_secrets(context) == {"ERP_TOKEN": "tok-123"}
 
     def test_skill_without_declaration_gets_no_injection(self, tmp_path, monkeypatch):
-        from deerflow.runtime.secret_context import read_active_secrets
+        from operix.runtime.secret_context import read_active_secrets
 
         skill = _make_secret_skill(tmp_path, "plain", [])
         context = {"secrets": {"ERP_TOKEN": "tok-123"}}
@@ -785,7 +785,7 @@ class TestActivationBindsSecrets:
         assert read_active_secrets(context) == {}
 
     def test_missing_required_secret_not_injected(self, tmp_path, monkeypatch):
-        from deerflow.runtime.secret_context import read_active_secrets
+        from operix.runtime.secret_context import read_active_secrets
 
         skill = _make_secret_skill(tmp_path, "erp-report", [SecretRequirement("ERP_TOKEN")])
         context = {"secrets": {}}  # caller provided none
@@ -798,8 +798,8 @@ class TestActivationBindsSecrets:
         skill receives the CALLER's value (from context.secrets), never the host's:
         the inherited host value is scrubbed and the caller's value is injected on
         top. There is therefore no host-credential harvest to guard against."""
-        from deerflow.runtime.secret_context import read_active_secrets
-        from deerflow.sandbox.env_policy import build_sandbox_env
+        from operix.runtime.secret_context import read_active_secrets
+        from operix.sandbox.env_policy import build_sandbox_env
 
         monkeypatch.setenv("MEMOS_API_KEY", "host-shared-key-MUST-NOT-LEAK")
         skill = _make_secret_skill(tmp_path, "memos", [SecretRequirement("MEMOS_API_KEY")])
@@ -817,7 +817,7 @@ class TestActivationBindsSecrets:
     def test_undeclared_host_secret_is_scrubbed_not_harvested(self, tmp_path, monkeypatch):
         """If a skill does NOT declare a host credential, the inherited value is
         scrubbed — a skill can never read a platform credential it wasn't given."""
-        from deerflow.sandbox.env_policy import build_sandbox_env
+        from operix.sandbox.env_policy import build_sandbox_env
 
         monkeypatch.setenv("OPENAI_API_KEY", "host-key-do-not-harvest")
         env = build_sandbox_env(None)
@@ -829,11 +829,11 @@ class TestActivationBindsSecrets:
         sees it. Slash activation (and therefore secret resolution) must still fire — it
         relies on the original content being recoverable. Regression for the gateway
         path where no upload preserved it."""
-        from deerflow.agents.middlewares import skill_activation_middleware as mw
-        from deerflow.agents.middlewares.input_sanitization_middleware import InputSanitizationMiddleware
-        from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-        from deerflow.config.app_config import AppConfig, reset_app_config, set_app_config
-        from deerflow.runtime.secret_context import read_active_secrets
+        from operix.agents.middlewares import skill_activation_middleware as mw
+        from operix.agents.middlewares.input_sanitization_middleware import InputSanitizationMiddleware
+        from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+        from operix.config.app_config import AppConfig, reset_app_config, set_app_config
+        from operix.runtime.secret_context import read_active_secrets
 
         skill = _make_secret_skill(tmp_path, "erp-report", [SecretRequirement("ERP_TOKEN")])
         storage = SimpleNamespace(
@@ -852,7 +852,7 @@ class TestActivationBindsSecrets:
         )
         # The sanitizer loads enabled skills during wrap, so keep a stub app config
         # in place for the whole composed call.
-        set_app_config(AppConfig.model_validate({"sandbox": {"use": "deerflow.sandbox.local:LocalSandboxProvider"}}))
+        set_app_config(AppConfig.model_validate({"sandbox": {"use": "operix.sandbox.local:LocalSandboxProvider"}}))
         try:
             sanitizer = InputSanitizationMiddleware()
             skill_mw = SkillActivationMiddleware(slash_source_owner_token=_SLASH_SOURCE_OWNER_TOKEN)
@@ -872,9 +872,9 @@ class TestActivationBindsSecrets:
         Turn 1 activates /skill-a (declares A_TOKEN, caller supplies it) → injected.
         Turn 2 activates /skill-b (declares nothing) → A_TOKEN must be cleared so
         bash in skill-b's turn cannot receive a value it never declared."""
-        from deerflow.agents.middlewares import skill_activation_middleware as mw
-        from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-        from deerflow.runtime.secret_context import read_active_secrets
+        from operix.agents.middlewares import skill_activation_middleware as mw
+        from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+        from operix.runtime.secret_context import read_active_secrets
 
         skill_a = _make_secret_skill(tmp_path, "skill-a", [SecretRequirement("A_TOKEN")])
         skill_b = _make_secret_skill(tmp_path, "skill-b", [])
@@ -916,9 +916,9 @@ class TestActivationBindsSecrets:
         """Even when the next skill DOES declare a required secret, if the caller
         omits it the prior skill's value must not linger — the injection set ends
         up empty, not stale."""
-        from deerflow.agents.middlewares import skill_activation_middleware as mw
-        from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-        from deerflow.runtime.secret_context import read_active_secrets
+        from operix.agents.middlewares import skill_activation_middleware as mw
+        from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+        from operix.runtime.secret_context import read_active_secrets
 
         skill = _make_secret_skill(tmp_path, "erp", [SecretRequirement("ERP_TOKEN")])
         storage = SimpleNamespace(
@@ -975,8 +975,8 @@ class TestInContextBindsSecrets:
     """
 
     def _run_call(self, tmp_path, monkeypatch, skills, *, context, skill_context=None, message="continue the report", available_skills=None, middleware=None, container_root="/mnt/skills"):
-        from deerflow.agents.middlewares import skill_activation_middleware as mw
-        from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+        from operix.agents.middlewares import skill_activation_middleware as mw
+        from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
 
         storage = SimpleNamespace(
             load_skills=lambda *, enabled_only: list(skills),
@@ -997,7 +997,7 @@ class TestInContextBindsSecrets:
         return mw_inst
 
     def test_in_context_skill_binds_secrets_without_slash(self, tmp_path, monkeypatch):
-        from deerflow.runtime.secret_context import read_active_secrets
+        from operix.runtime.secret_context import read_active_secrets
 
         skill = _make_secret_skill(tmp_path, "erp-report", [SecretRequirement("ERP_TOKEN")])
         context = {"secrets": {"ERP_TOKEN": "tok-123", "UNRELATED": "x"}}
@@ -1008,7 +1008,7 @@ class TestInContextBindsSecrets:
     def test_binding_clears_when_skill_evicted_from_context(self, tmp_path, monkeypatch):
         """Long-lived binding follows skill_context membership exactly: once the
         entry is evicted (capacity) the injection disappears on the next call."""
-        from deerflow.runtime.secret_context import read_active_secrets
+        from operix.runtime.secret_context import read_active_secrets
 
         skill = _make_secret_skill(tmp_path, "erp-report", [SecretRequirement("ERP_TOKEN")])
         context = {"secrets": {"ERP_TOKEN": "tok-123"}}
@@ -1019,7 +1019,7 @@ class TestInContextBindsSecrets:
         assert read_active_secrets(context) == {}
 
     def test_disabled_skill_in_context_not_bound(self, tmp_path, monkeypatch):
-        from deerflow.runtime.secret_context import read_active_secrets
+        from operix.runtime.secret_context import read_active_secrets
 
         skill = _make_secret_skill(tmp_path, "erp-report", [SecretRequirement("ERP_TOKEN")], enabled=False)
         context = {"secrets": {"ERP_TOKEN": "tok-123"}}
@@ -1028,7 +1028,7 @@ class TestInContextBindsSecrets:
         assert read_active_secrets(context) == {}
 
     def test_skill_outside_agent_allowlist_not_bound(self, tmp_path, monkeypatch):
-        from deerflow.runtime.secret_context import read_active_secrets
+        from operix.runtime.secret_context import read_active_secrets
 
         skill = _make_secret_skill(tmp_path, "erp-report", [SecretRequirement("ERP_TOKEN")])
         context = {"secrets": {"ERP_TOKEN": "tok-123"}}
@@ -1046,7 +1046,7 @@ class TestInContextBindsSecrets:
     def test_secrets_autonomous_false_blocks_in_context_but_not_slash(self, tmp_path, monkeypatch):
         """The per-skill opt-out keeps explicit-activation ceremony available for
         high-sensitivity skills: in-context binding is refused, slash still works."""
-        from deerflow.runtime.secret_context import read_active_secrets
+        from operix.runtime.secret_context import read_active_secrets
 
         skill = _make_secret_skill(tmp_path, "erp-report", [SecretRequirement("ERP_TOKEN")], secrets_autonomous=False)
 
@@ -1059,7 +1059,7 @@ class TestInContextBindsSecrets:
         assert read_active_secrets(slash_context) == {"ERP_TOKEN": "tok-123"}
 
     def test_slash_and_in_context_sources_merge(self, tmp_path, monkeypatch):
-        from deerflow.runtime.secret_context import read_active_secrets
+        from operix.runtime.secret_context import read_active_secrets
 
         loaded = _make_secret_skill(tmp_path, "erp-report", [SecretRequirement("ERP_TOKEN")])
         slashed = _make_secret_skill(tmp_path, "crm-sync", [SecretRequirement("CRM_TOKEN")])
@@ -1080,7 +1080,7 @@ class TestInContextBindsSecrets:
         forge `__slash_skill_secret_source`. The slash source is re-validated
         against the live registry (enabled + allowlist), so a forged source naming
         a non-existent skill binds nothing — no gate bypass."""
-        from deerflow.runtime.secret_context import _SLASH_SECRET_SOURCE_KEY, read_active_secrets
+        from operix.runtime.secret_context import _SLASH_SECRET_SOURCE_KEY, read_active_secrets
 
         context = {
             "secrets": {"ADMIN_TOKEN": "stolen"},
@@ -1093,7 +1093,7 @@ class TestInContextBindsSecrets:
         """Even if a forged path resolves to a real skill, the caller's forged
         requirements are ignored (only the registry skill's own declared secrets
         bind) and the allowlist still applies."""
-        from deerflow.runtime.secret_context import _SLASH_SECRET_SOURCE_KEY, read_active_secrets
+        from operix.runtime.secret_context import _SLASH_SECRET_SOURCE_KEY, read_active_secrets
 
         skill = _make_secret_skill(tmp_path, "erp-report", [SecretRequirement("ERP_TOKEN")])
         context = {
@@ -1106,7 +1106,7 @@ class TestInContextBindsSecrets:
     def test_malformed_slash_source_does_not_crash(self, tmp_path, monkeypatch):
         """Robustness (#3938): a forged malformed slash source must fail closed
         (bind nothing), never raise and 500 the run."""
-        from deerflow.runtime.secret_context import _SLASH_SECRET_SOURCE_KEY, read_active_secrets
+        from operix.runtime.secret_context import _SLASH_SECRET_SOURCE_KEY, read_active_secrets
 
         skill = _make_secret_skill(tmp_path, "erp-report", [SecretRequirement("ERP_TOKEN")])
         for bad in ({"requirements": [["X"]]}, {"requirements": "abc"}, {"path": 123}, "not-a-dict", {"path": ["a"]}, {}):
@@ -1117,7 +1117,7 @@ class TestInContextBindsSecrets:
     def test_trailing_slash_container_root_still_binds(self, tmp_path, monkeypatch):
         """Latent bug (#3938): a non-canonical container_path (trailing slash) must
         not silently disable in-context binding — paths are normalized both sides."""
-        from deerflow.runtime.secret_context import read_active_secrets
+        from operix.runtime.secret_context import read_active_secrets
 
         skill = _make_secret_skill(tmp_path, "erp-report", [SecretRequirement("ERP_TOKEN")])
         context = {"secrets": {"ERP_TOKEN": "tok-123"}}
@@ -1130,7 +1130,7 @@ class TestInContextBindsSecrets:
         one (load_skills de-dupes by name, custom wins). A thread that read the
         PUBLIC foo (no declared secrets) must NOT bind the CUSTOM foo's declared
         secret — matching is by exact container path, never by name."""
-        from deerflow.runtime.secret_context import read_active_secrets
+        from operix.runtime.secret_context import read_active_secrets
 
         # Registry exposes only the custom foo (name de-dup, custom wins); the
         # model read the public foo, whose path differs.
@@ -1149,7 +1149,7 @@ class TestInContextBindsSecrets:
     def test_stale_path_does_not_fall_back_to_name(self, tmp_path, monkeypatch):
         """A skill_context path that no longer resolves must not degrade to a
         name match — it simply does not bind."""
-        from deerflow.runtime.secret_context import read_active_secrets
+        from operix.runtime.secret_context import read_active_secrets
 
         skill = _make_secret_skill(tmp_path, "erp-report", [SecretRequirement("ERP_TOKEN")])
         context = {"secrets": {"ERP_TOKEN": "tok-123"}}
@@ -1166,7 +1166,7 @@ class TestInContextBindsSecrets:
     def test_no_caller_secrets_means_no_binding(self, tmp_path, monkeypatch):
         """The supply gate: without caller-provided values on THIS request there
         is nothing to inject, no matter what is in skill_context."""
-        from deerflow.runtime.secret_context import read_active_secrets
+        from operix.runtime.secret_context import read_active_secrets
 
         skill = _make_secret_skill(tmp_path, "erp-report", [SecretRequirement("ERP_TOKEN")])
         context = {"secrets": {}}
@@ -1189,7 +1189,7 @@ class TestInContextBindsSecrets:
         assert "tok-secret-value" not in str(bind_calls[0])
 
     def test_binding_audit_failure_warns_without_breaking_binding(self, tmp_path, monkeypatch, caplog):
-        from deerflow.runtime.secret_context import read_active_secrets
+        from operix.runtime.secret_context import read_active_secrets
 
         skill = _make_secret_skill(tmp_path, "erp-report", [SecretRequirement("ERP_TOKEN")])
         journal = MagicMock()
@@ -1212,7 +1212,7 @@ class TestInContextBindsSecrets:
         """#3861 semantics preserved under per-call recompute: after the single
         activation call, the tool loop issues more model calls without a fresh
         slash — the binding must survive on the shared run context."""
-        from deerflow.runtime.secret_context import read_active_secrets
+        from operix.runtime.secret_context import read_active_secrets
 
         skill = _make_secret_skill(tmp_path, "erp-report", [SecretRequirement("ERP_TOKEN")])
         context = {"secrets": {"ERP_TOKEN": "tok-123"}}
@@ -1240,8 +1240,8 @@ class TestSecretsAutonomousParsing:
     """Frontmatter ``secrets-autonomous`` controls in-context (autonomous) binding."""
 
     def _parse(self, tmp_path, frontmatter_extra: str):
-        from deerflow.skills.parser import parse_skill_file
-        from deerflow.skills.types import SkillCategory
+        from operix.skills.parser import parse_skill_file
+        from operix.skills.types import SkillCategory
 
         skill_dir = tmp_path / "erp-report"
         skill_dir.mkdir()
@@ -1282,7 +1282,7 @@ class TestBashToolInjectsActiveSecrets:
     """The bash tool forwards the per-run injection set to execute_command(env=...)."""
 
     def _run_bash(self, context):
-        from deerflow.sandbox import tools as tools_mod
+        from operix.sandbox import tools as tools_mod
 
         captured = {}
 
@@ -1311,8 +1311,8 @@ class TestBashToolInjectsActiveSecrets:
         assert captured["env"] in (None, {})
 
     def test_local_bash_forwards_env_and_timeout(self, monkeypatch):
-        from deerflow.sandbox import tools as tools_mod
-        from deerflow.sandbox.tools import USER_ID_ENV
+        from operix.sandbox import tools as tools_mod
+        from operix.sandbox.tools import USER_ID_ENV
 
         captured = {}
 
@@ -1342,7 +1342,7 @@ class TestBashToolInjectsActiveSecrets:
             # the Windows local sandbox publishes the id through ``env`` rather
             # than the command string (#3919).
             patch.object(tools_mod, "_is_windows", return_value=False),
-            patch("deerflow.config.app_config.get_app_config", return_value=fake_cfg),
+            patch("operix.config.app_config.get_app_config", return_value=fake_cfg),
         ):
             out = tools_mod.bash_tool.func(runtime=runtime, command="echo hi", description="run local skill")
 
@@ -1355,8 +1355,8 @@ class TestBashToolInjectsActiveSecrets:
         """``export`` is invalid under the Windows local sandbox's
         PowerShell/cmd.exe shells, so the id moves to the ``env`` channel there
         instead of being dropped — the PR promises it on every bash command."""
-        from deerflow.sandbox import tools as tools_mod
-        from deerflow.sandbox.tools import USER_ID_ENV
+        from operix.sandbox import tools as tools_mod
+        from operix.sandbox.tools import USER_ID_ENV
 
         captured = {}
 
@@ -1382,7 +1382,7 @@ class TestBashToolInjectsActiveSecrets:
             patch.object(tools_mod, "replace_virtual_paths_in_command", side_effect=lambda command, td: command),
             patch.object(tools_mod, "_apply_cwd_prefix", side_effect=lambda command, td: command),
             patch.object(tools_mod, "_is_windows", return_value=True),
-            patch("deerflow.config.app_config.get_app_config", return_value=fake_cfg),
+            patch("operix.config.app_config.get_app_config", return_value=fake_cfg),
         ):
             out = tools_mod.bash_tool.func(runtime=runtime, command="echo hi", description="run local skill")
 
@@ -1391,7 +1391,7 @@ class TestBashToolInjectsActiveSecrets:
         assert captured["env"] == {"ERP_TOKEN": "tok-789", USER_ID_ENV: "u-win"}
 
     def test_remote_bash_does_not_forward_shared_timeout(self):
-        from deerflow.sandbox import tools as tools_mod
+        from operix.sandbox import tools as tools_mod
 
         captured = {}
 
@@ -1426,7 +1426,7 @@ class TestBashToolInjectsActiveSecrets:
                 return_value=None,
             ),
             patch(
-                "deerflow.config.app_config.get_app_config",
+                "operix.config.app_config.get_app_config",
                 return_value=fake_cfg,
             ),
         ):
@@ -1447,8 +1447,8 @@ class TestLeakSurfaces:
     """Assert the secret value is absent from all five leak surfaces (#3861)."""
 
     def _activate_with_secret(self, tmp_path, monkeypatch):
-        from deerflow.agents.middlewares import skill_activation_middleware as mw
-        from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+        from operix.agents.middlewares import skill_activation_middleware as mw
+        from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
 
         skill = _make_secret_skill(tmp_path, "erp-report", [SecretRequirement("ERP_TOKEN")])
         storage = SimpleNamespace(
@@ -1491,7 +1491,7 @@ class TestLeakSurfaces:
         assert _SECRET not in str(journal_records)
 
     def test_trace_metadata_has_no_secret(self, monkeypatch):
-        from deerflow.tracing import metadata as meta
+        from operix.tracing import metadata as meta
 
         monkeypatch.setattr(meta, "get_enabled_tracing_providers", lambda: {"langfuse"})
         config = {"context": {"secrets": {"ERP_TOKEN": _SECRET}}, "metadata": {}}
@@ -1501,7 +1501,7 @@ class TestLeakSurfaces:
         assert _SECRET not in str(config.get("configurable", {}))
 
     def test_redact_helper_strips_secret_keys(self):
-        from deerflow.runtime.secret_context import SKILL_TOOL_POLICY_DECISION_CONTEXT_KEY, redact_secret_context_keys
+        from operix.runtime.secret_context import SKILL_TOOL_POLICY_DECISION_CONTEXT_KEY, redact_secret_context_keys
 
         ctx = {
             "thread_id": "t",
@@ -1526,7 +1526,7 @@ class TestLeakSurfaces:
         # The run-record persistence + run API echo the raw request config; the
         # stored/echoed copy must not carry secrets (verifier blocker), while the
         # live config used to drive the run keeps them.
-        from deerflow.runtime.secret_context import SKILL_TOOL_POLICY_DECISION_CONTEXT_KEY, redact_config_secrets
+        from operix.runtime.secret_context import SKILL_TOOL_POLICY_DECISION_CONTEXT_KEY, redact_config_secrets
 
         config = {
             "context": {
@@ -1562,13 +1562,13 @@ class TestLeakSurfaces:
         }
 
     def test_redact_config_secrets_handles_none_and_no_context(self):
-        from deerflow.runtime.secret_context import redact_config_secrets
+        from operix.runtime.secret_context import redact_config_secrets
 
         assert redact_config_secrets(None) is None
         assert redact_config_secrets({"configurable": {"thread_id": "t"}}) == {"configurable": {"thread_id": "t"}}
 
     def test_stdout_surface_redacted(self):
-        from deerflow.sandbox.tools import mask_secret_values
+        from operix.sandbox.tools import mask_secret_values
 
         leaked = f"DEBUG: token is {_SECRET} done"
         masked = mask_secret_values(leaked, {"ERP_TOKEN": _SECRET})
@@ -1580,7 +1580,7 @@ class TestLeakSurfaces:
         value would shred unrelated bytes (exit codes, timestamps, sizes) of tool
         output. The secret is still injected into the subprocess; only the output
         mask skips it."""
-        from deerflow.sandbox.tools import mask_secret_values
+        from operix.sandbox.tools import mask_secret_values
 
         # A short value must not be replaced everywhere in the output.
         out = "exit code: 42\nrows: 42\n"
@@ -1602,10 +1602,10 @@ class TestEndToEndRealSubprocess:
     cannot see it."""
 
     def test_secret_reaches_real_subprocess_only_via_env_and_is_scoped(self, tmp_path, monkeypatch):
-        from deerflow.agents.middlewares import skill_activation_middleware as mw
-        from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-        from deerflow.runtime.secret_context import read_active_secrets
-        from deerflow.sandbox.tools import mask_secret_values
+        from operix.agents.middlewares import skill_activation_middleware as mw
+        from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+        from operix.runtime.secret_context import read_active_secrets
+        from operix.sandbox.tools import mask_secret_values
 
         # 1. Activate a skill that declares ERP_TOKEN; caller supplies it in context.secrets.
         skill = _make_secret_skill(tmp_path, "erp-report", [SecretRequirement("ERP_TOKEN")])

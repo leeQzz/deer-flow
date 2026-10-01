@@ -5,13 +5,13 @@ from dataclasses import replace
 from types import SimpleNamespace
 
 import pytest
-from deerflow_extension_api.plugins import ModelTool, PluginContribution
+from operix_extension_api.plugins import ModelTool, PluginContribution
 from langchain_core.messages import AIMessage
 from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode
 
-from deerflow.extensions.plugin_tools import build_plugin_tools
-from deerflow.extensions.registry import ExtensionRegistry
+from operix.extensions.plugin_tools import build_plugin_tools
+from operix.extensions.registry import ExtensionRegistry
 
 
 @pytest.fixture
@@ -86,7 +86,7 @@ def test_group_filter_and_name_collision_fail_closed(installed):
 
 def test_built_tools_carry_host_recorded_plugin_provenance(installed):
     """The tag is written at construction, from registry-validated values."""
-    from deerflow.tools.tool_provenance import get_plugin_source, is_plugin_tool, resolve_tool_provenance
+    from operix.tools.tool_provenance import get_plugin_source, is_plugin_tool, resolve_tool_provenance
 
     loaded, plugin, _ = installed
     (tool,) = build_plugin_tools(loaded)
@@ -107,9 +107,9 @@ def test_built_tools_carry_host_recorded_plugin_provenance(installed):
 def test_assembly_keeps_ordinary_and_unaffected_plugin_tools_on_collision(installed, monkeypatch, caplog, source):
     from langchain_core.tools import Tool
 
-    from deerflow.config.extensions_config import ExtensionsConfig
-    from deerflow.extensions.plugin_tools import plugin_tool_name
-    from deerflow.tools import tools as assembly
+    from operix.config.extensions_config import ExtensionsConfig
+    from operix.extensions.plugin_tools import plugin_tool_name
+    from operix.tools import tools as assembly
 
     loaded, plugin, _ = installed
     name = plugin_tool_name(plugin.namespace, "search")
@@ -129,8 +129,8 @@ def test_assembly_keeps_ordinary_and_unaffected_plugin_tools_on_collision(instal
     monkeypatch.setattr(assembly, "is_host_bash_allowed", lambda config: False)
     monkeypatch.setattr(assembly, "resolve_variable", lambda *args: ordinary)
     monkeypatch.setattr(ExtensionsConfig, "from_file", lambda: SimpleNamespace(get_enabled_mcp_servers=lambda: {"test": {}}))
-    monkeypatch.setattr("deerflow.mcp.cache.get_cached_mcp_tools", lambda: [ordinary])
-    monkeypatch.setattr("deerflow.tools.builtins.invoke_acp_agent_tool.build_invoke_acp_agent_tool", lambda agents: ordinary)
+    monkeypatch.setattr("operix.mcp.cache.get_cached_mcp_tools", lambda: [ordinary])
+    monkeypatch.setattr("operix.tools.builtins.invoke_acp_agent_tool.build_invoke_acp_agent_tool", lambda agents: ordinary)
 
     result = assembly.get_available_tools(app_config=config, extensions=registry.build(), include_mcp=source == "mcp", include_upload_tool=False)
     assert [tool.name for tool in result] == [name, plugin_tool_name(healthy.namespace, "search")]

@@ -17,15 +17,15 @@ from typing import Any
 
 import pytest
 
-from deerflow.workspace_changes import recorder
-from deerflow.workspace_changes.types import WorkspaceSnapshot
+from operix.workspace_changes import recorder
+from operix.workspace_changes.types import WorkspaceSnapshot
 
 pytestmark = pytest.mark.asyncio
 
 
 async def _reset_paths(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("DEER_FLOW_HOME", str(tmp_path))
-    import deerflow.config.paths as paths_mod
+    monkeypatch.setenv("OPERIX_HOME", str(tmp_path))
+    import operix.config.paths as paths_mod
 
     monkeypatch.setattr(paths_mod, "_paths", None)
 
@@ -115,6 +115,6 @@ async def test_text_scan_cancel_logs_drain_and_late_failure(tmp_path: Path, monk
     with pytest.raises(asyncio.CancelledError):
         await task
 
-    leftovers = await asyncio.to_thread(lambda: sorted(cache_root.glob("deerflow-workspace-changes-*")))
+    leftovers = await asyncio.to_thread(lambda: sorted(cache_root.glob("operix-workspace-changes-*")))
     assert leftovers == [], f"cancelled text scan leaked a cache dir: {leftovers}"
     assert any("Workspace scan failed after snapshot cancellation" in record.getMessage() for record in caplog.records), "a scan failure during cancellation drain must retain diagnostics"

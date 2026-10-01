@@ -1,6 +1,6 @@
 """Tests for bounded composer input history (pure)."""
 
-from deerflow.tui.input_history import InputHistory
+from operix.tui.input_history import InputHistory
 
 
 def test_add_ignores_empty_and_whitespace():

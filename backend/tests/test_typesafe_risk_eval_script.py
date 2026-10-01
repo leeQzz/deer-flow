@@ -23,12 +23,12 @@ from pathlib import Path
 
 import pytest
 
-from deerflow.guardrails.provider import GuardrailDecision, GuardrailReason
-from deerflow.guardrails.typesafe import TypeSafeGuardrailError
+from operix.guardrails.provider import GuardrailDecision, GuardrailReason
+from operix.guardrails.typesafe import TypeSafeGuardrailError
 
 SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "eval_typesafe_risk_gate.py"
 
-spec = importlib.util.spec_from_file_location("deerflow_eval_typesafe_risk_gate", SCRIPT_PATH)
+spec = importlib.util.spec_from_file_location("operix_eval_typesafe_risk_gate", SCRIPT_PATH)
 assert spec is not None and spec.loader is not None
 eval_script = importlib.util.module_from_spec(spec)
 # dataclasses resolve ``cls.__module__`` through sys.modules, so register first.

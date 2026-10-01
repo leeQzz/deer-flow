@@ -6,7 +6,7 @@ NOT a unit test. Run manually with DEEPSEEK_API_KEY in the environment:
 
 It:
   1. serves a tiny local HTML form,
-  2. builds an isolated DeerFlow config (DeepSeek model + browser tool group),
+  2. builds an isolated Operix config (DeepSeek model + browser tool group),
   3. runs a real agent turn that must navigate, type, submit, and read the result,
   4. asserts the agent-visible tool trace shows the browser loop actually ran.
 """
@@ -19,7 +19,7 @@ import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
-FORM_PAGE = """<!doctype html><html><head><title>DeerFlow Browser Test</title></head>
+FORM_PAGE = """<!doctype html><html><head><title>Operix Browser Test</title></head>
 <body>
 <h1>Sign-in demo</h1>
 <form method="GET" action="/welcome">
@@ -72,7 +72,7 @@ data_dir: {tmp / "data"}
 models:
   - name: deepseek-chat
     display_name: DeepSeek Chat
-    use: deerflow.models.patched_deepseek:PatchedChatDeepSeek
+    use: operix.models.patched_deepseek:PatchedChatDeepSeek
     model: deepseek-chat
     api_key: $DEEPSEEK_API_KEY
     timeout: 120.0
@@ -80,7 +80,7 @@ models:
     max_tokens: 4096
 
 sandbox:
-  use: deerflow.sandbox.local:LocalSandboxProvider
+  use: operix.sandbox.local:LocalSandboxProvider
 
 tool_groups:
   - name: browser
@@ -88,24 +88,24 @@ tool_groups:
 tools:
   - name: browser_navigate
     group: browser
-    use: deerflow.community.browser_automation.tools:browser_navigate_tool
+    use: operix.community.browser_automation.tools:browser_navigate_tool
     headless: true
     allow_private_addresses: true
   - name: browser_snapshot
     group: browser
-    use: deerflow.community.browser_automation.tools:browser_snapshot_tool
+    use: operix.community.browser_automation.tools:browser_snapshot_tool
   - name: browser_click
     group: browser
-    use: deerflow.community.browser_automation.tools:browser_click_tool
+    use: operix.community.browser_automation.tools:browser_click_tool
   - name: browser_type
     group: browser
-    use: deerflow.community.browser_automation.tools:browser_type_tool
+    use: operix.community.browser_automation.tools:browser_type_tool
   - name: browser_get_text
     group: browser
-    use: deerflow.community.browser_automation.tools:browser_get_text_tool
+    use: operix.community.browser_automation.tools:browser_get_text_tool
   - name: browser_close
     group: browser
-    use: deerflow.community.browser_automation.tools:browser_close_tool
+    use: operix.community.browser_automation.tools:browser_close_tool
 
 memory:
   enabled: false
@@ -125,16 +125,16 @@ def main() -> int:
 
     server, port = _start_server()
     base = f"http://127.0.0.1:{port}/"
-    tmpdir = Path(tempfile.mkdtemp(prefix="deerflow-browser-live-"))
+    tmpdir = Path(tempfile.mkdtemp(prefix="operix-browser-live-"))
     try:
-        from deerflow.client import DeerFlowClient
+        from operix.client import OperixClient
 
         config_path = _write_config(tmpdir)
         # Make config resolution deterministic: get_available_tools() re-resolves
         # via get_app_config(), which would otherwise pick up a project-root
-        # config.yaml. DEER_FLOW_CONFIG_PATH is resolution priority #2.
-        os.environ["DEER_FLOW_CONFIG_PATH"] = str(config_path)
-        client = DeerFlowClient(config_path=str(config_path))
+        # config.yaml. OPERIX_CONFIG_PATH is resolution priority #2.
+        os.environ["OPERIX_CONFIG_PATH"] = str(config_path)
+        client = OperixClient(config_path=str(config_path))
 
         prompt = (
             f"Use the browser tools to complete this task. "

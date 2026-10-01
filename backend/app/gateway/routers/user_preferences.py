@@ -7,8 +7,8 @@ from pydantic import BaseModel, ConfigDict, StringConstraints, ValidationError
 
 from app.gateway.auth_disabled import AUTH_SOURCE_SESSION
 from app.gateway.deps import get_current_user_from_request
-from deerflow.persistence.engine import get_session_factory
-from deerflow.persistence.user.preferences import UserPreferencesRepository
+from operix.persistence.engine import get_session_factory
+from operix.persistence.user.preferences import UserPreferencesRepository
 
 router = APIRouter(prefix="/api/v1/auth/preferences", tags=["auth"])
 

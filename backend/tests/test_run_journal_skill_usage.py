@@ -7,8 +7,8 @@ import pytest
 from langchain_core.messages import AIMessage, ToolMessage
 from langchain_core.outputs import ChatGeneration, LLMResult
 
-from deerflow.runtime.events.store.memory import MemoryRunEventStore
-from deerflow.runtime.journal import RunJournal
+from operix.runtime.events.store.memory import MemoryRunEventStore
+from operix.runtime.journal import RunJournal
 
 
 def snapshot(name="report", *, content="# Original instructions", activation="automatic"):

@@ -1,0 +1,15 @@
+apiVersion: v2
+name: operix
+description: Operix — LangGraph-based AI super-agent (gateway + frontend + nginx + sandbox provisioner) deployed to Kubernetes.
+type: application
+version: 2.2.0-dev
+appVersion: "2.2.0-dev"
+keywords:
+  - operix
+  - langgraph
+  - ai-agent
+  - llm
+home: https://github.com/bytedance/operix
+icon: https://raw.githubusercontent.com/bytedance/operix/main/frontend/public/images/deer.svg
+maintainers:
+  - name: Operix

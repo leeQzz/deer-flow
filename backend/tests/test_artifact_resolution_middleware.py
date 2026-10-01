@@ -1,9 +1,9 @@
 from langchain_core.messages import ToolMessage
 from langgraph.prebuilt.tool_node import ToolCallRequest
 
-from deerflow.agents.middlewares.artifact_resolution_middleware import ArtifactResolutionMiddleware
-from deerflow.config.tool_artifact_config import ToolArtifactConfig
-from deerflow.tools.artifact_registry import generate_handle
+from operix.agents.middlewares.artifact_resolution_middleware import ArtifactResolutionMiddleware
+from operix.config.tool_artifact_config import ToolArtifactConfig
+from operix.tools.artifact_registry import generate_handle
 
 
 class _FakeToolCallRequest:

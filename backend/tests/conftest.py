@@ -14,20 +14,20 @@ from unittest.mock import MagicMock
 
 import pytest
 
-# Make 'app' and 'deerflow' importable from any working directory
+# Make 'app' and 'operix' importable from any working directory
 sys.path.insert(0, str(Path(__file__).parent.parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
 
 # Break the circular import chain that exists in production code:
-#   deerflow.subagents.__init__
+#   operix.subagents.__init__
 #     -> .executor (SubagentExecutor, SubagentResult)
-#       -> deerflow.agents.thread_state
-#         -> deerflow.agents.__init__
+#       -> operix.agents.thread_state
+#         -> operix.agents.__init__
 #           -> lead_agent.agent
 #             -> subagent_limit_middleware
-#               -> deerflow.subagents.executor  <-- circular!
+#               -> operix.subagents.executor  <-- circular!
 #
-# By injecting a mock for deerflow.subagents.executor *before* any test module
+# By injecting a mock for operix.subagents.executor *before* any test module
 # triggers the import, __init__.py's "from .executor import ..." succeeds
 # immediately without running the real executor module.
 _executor_mock = MagicMock()
@@ -37,7 +37,7 @@ _executor_mock.SubagentStatus = MagicMock
 _executor_mock.MAX_CONCURRENT_SUBAGENTS = 3
 _executor_mock.get_background_task_result = MagicMock()
 
-sys.modules["deerflow.subagents.executor"] = _executor_mock
+sys.modules["operix.subagents.executor"] = _executor_mock
 
 
 @pytest.fixture()
@@ -71,7 +71,7 @@ def provisioner_module():
 # ---------------------------------------------------------------------------
 #
 # Repository methods read ``user_id`` from a contextvar by default
-# (see ``deerflow.runtime.user_context``). Without this fixture, every
+# (see ``operix.runtime.user_context``). Without this fixture, every
 # pre-existing persistence test would raise RuntimeError because the
 # contextvar is unset. The fixture sets a default test user on every
 # test; tests that explicitly want to verify behaviour *without* a user
@@ -82,7 +82,7 @@ def provisioner_module():
 def _reset_skill_storage_singleton():
     """Reset the SkillStorage singleton between tests to prevent cross-test contamination."""
     try:
-        from deerflow.skills.storage import reset_skill_storage
+        from operix.skills.storage import reset_skill_storage
     except ImportError:
         yield
         return
@@ -104,7 +104,7 @@ def _reset_frozen_checkpoint_channel_mode(monkeypatch):
     not leak across tests. Mirrors the per-test ``monkeypatch.setattr``
     resets already used in test_client.py / test_lead_agent_model_resolution.py.
     """
-    from deerflow.runtime import checkpoint_mode
+    from operix.runtime import checkpoint_mode
 
     monkeypatch.setattr(checkpoint_mode, "_frozen_checkpoint_channel_mode", None)
     monkeypatch.setattr(checkpoint_mode, "_frozen_checkpoint_snapshot_frequency", None)
@@ -125,7 +125,7 @@ def _restore_title_config_singleton():
     independent regardless of order.
     """
     try:
-        from deerflow.config.title_config import reset_title_config
+        from operix.config.title_config import reset_title_config
     except ImportError:
         yield
         return
@@ -146,7 +146,7 @@ def _isolate_trace_context():
     test's trace would leak into the next and quietly satisfy assertions
     about ids the test under exercise never bound.
     """
-    from deerflow.trace_context import bind_trace_id, reset_trace_id
+    from operix.trace_context import bind_trace_id, reset_trace_id
 
     token = bind_trace_id(None)
     try:
@@ -168,7 +168,7 @@ def _auto_user_context(request):
         return
 
     try:
-        from deerflow.runtime.user_context import (
+        from operix.runtime.user_context import (
             reset_current_user,
             set_current_user,
         )

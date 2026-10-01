@@ -11,20 +11,20 @@ import pytest
 import app.mcp_tasks.service as service_module
 from app.mcp_tasks.errors import PermanentNotificationError
 from app.mcp_tasks.service import McpTaskService
-from deerflow.mcp.tasks import (
+from operix.mcp.tasks import (
     McpTaskDriverRegistry,
     TaskSnapshot,
     TaskStatus,
     TaskSubmission,
     TaskSubmitRequest,
 )
-from deerflow.mcp.tasks.ordinary import McpTaskProtocolError
-from deerflow.persistence.mcp_tasks import (
+from operix.mcp.tasks.ordinary import McpTaskProtocolError
+from operix.persistence.mcp_tasks import (
     DuplicateMcpRemoteTaskError,
     McpTaskThreadMismatchError,
 )
-from deerflow.runtime.runs.manager import ConflictError
-from deerflow.runtime.runs.schemas import RunStatus
+from operix.runtime.runs.manager import ConflictError
+from operix.runtime.runs.schemas import RunStatus
 
 
 class _MutableDateTime(datetime):
@@ -4146,7 +4146,7 @@ def test_failing_release_does_not_leak_unretrieved_shield_exception(tmp_path):
         import asyncio, gc
         from datetime import UTC, datetime
         from app.mcp_tasks.service import McpTaskService
-        from deerflow.mcp.tasks import McpTaskDriverRegistry
+        from operix.mcp.tasks import McpTaskDriverRegistry
 
         class Repo:
             def __init__(self):

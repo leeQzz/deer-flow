@@ -8,12 +8,12 @@ from pydantic import BaseModel, Field, field_validator
 
 from app.gateway.authz import require_permission
 from app.gateway.internal_auth import get_trusted_internal_owner_user_id
-from deerflow.agents.memory import MemoryConflictError, MemoryCorruptionError, MemoryManager, get_memory_manager
-from deerflow.config.agents_config import AGENT_NAME_PATTERN
-from deerflow.config.memory_config import get_memory_config
-from deerflow.config.paths import make_safe_user_id
-from deerflow.runtime.user_context import get_effective_user_id
-from deerflow.utils.file_io import await_drained
+from operix.agents.memory import MemoryConflictError, MemoryCorruptionError, MemoryManager, get_memory_manager
+from operix.config.agents_config import AGENT_NAME_PATTERN
+from operix.config.memory_config import get_memory_config
+from operix.config.paths import make_safe_user_id
+from operix.runtime.user_context import get_effective_user_id
+from operix.utils.file_io import await_drained
 
 router = APIRouter(prefix="/api", tags=["memory"])
 
@@ -277,7 +277,7 @@ async def get_memory(request: Request, agent_name: str | None = None) -> MemoryR
             "version": "1.0",
             "lastUpdated": "2024-01-15T10:30:00Z",
             "user": {
-                "workContext": {"summary": "Working on DeerFlow project", "updatedAt": "..."},
+                "workContext": {"summary": "Working on Operix project", "updatedAt": "..."},
                 "personalContext": {"summary": "Prefers concise responses", "updatedAt": "..."},
                 "topOfMind": {"summary": "Building memory API", "updatedAt": "..."}
             },
@@ -572,7 +572,7 @@ async def get_memory_config_endpoint(request: Request) -> MemoryConfigResponse:
             "mode": "middleware",
             "manager_class": "deermem",
             "backend_config": {
-                "storage_path": "/.../.deer-flow",
+                "storage_path": "/.../.operix",
                 "debounce_seconds": 30,
                 "max_facts": 100,
                 "fact_confidence_threshold": 0.7,

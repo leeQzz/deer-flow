@@ -29,7 +29,7 @@ import asyncio
 
 import pytest
 
-from deerflow.persistence import bootstrap as bootstrap_mod
+from operix.persistence import bootstrap as bootstrap_mod
 
 
 class _FakeAsyncConn:

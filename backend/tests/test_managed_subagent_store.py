@@ -8,15 +8,15 @@ from types import SimpleNamespace
 import pytest
 from sqlalchemy import create_engine, select
 
-from deerflow.persistence.base import Base
-from deerflow.persistence.managed_subagents import (
+from operix.persistence.base import Base
+from operix.persistence.managed_subagents import (
     ManagedSubagentDefinition,
     ManagedSubagentExistsError,
     make_managed_subagent_store,
 )
-from deerflow.persistence.managed_subagents.file import FileManagedSubagentStore
-from deerflow.persistence.managed_subagents.model import ManagedSubagentRow
-from deerflow.persistence.managed_subagents.sql import SqlManagedSubagentStore
+from operix.persistence.managed_subagents.file import FileManagedSubagentStore
+from operix.persistence.managed_subagents.model import ManagedSubagentRow
+from operix.persistence.managed_subagents.sql import SqlManagedSubagentStore
 
 
 def _definition(name: str = "researcher", **changes) -> ManagedSubagentDefinition:
@@ -30,8 +30,8 @@ def _definition(name: str = "researcher", **changes) -> ManagedSubagentDefinitio
 
 @pytest.fixture()
 def file_store(tmp_path, monkeypatch):
-    monkeypatch.setenv("DEER_FLOW_HOME", str(tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
+    monkeypatch.setenv("OPERIX_HOME", str(tmp_path))
+    monkeypatch.setattr("operix.config.paths._paths", None)
     return FileManagedSubagentStore()
 
 

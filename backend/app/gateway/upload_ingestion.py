@@ -40,9 +40,9 @@ from typing import TYPE_CHECKING, Any
 
 from fastapi import HTTPException
 
-from deerflow.config.app_config import AppConfig
-from deerflow.uploads.companions import register_companion, unregister_companion
-from deerflow.utils.file_io import await_drained, run_file_io
+from operix.config.app_config import AppConfig
+from operix.uploads.companions import register_companion, unregister_companion
+from operix.utils.file_io import await_drained, run_file_io
 
 if TYPE_CHECKING:
     from fastapi import Request
@@ -341,7 +341,7 @@ class ThreadUploadIngestionService:
             # the unlinked staged bytes until the process exits.
             private_dir: Path | None = None
             try:
-                private_dir = Path(await run_file_io(tempfile.mkdtemp, "-deerflow-convert"))
+                private_dir = Path(await run_file_io(tempfile.mkdtemp, "-operix-convert"))
                 conversion_source = private_dir / safe_filename
                 # Hand the descriptor over before the call: the copy closes it
                 # even when it fails, so this scope must not close it again and

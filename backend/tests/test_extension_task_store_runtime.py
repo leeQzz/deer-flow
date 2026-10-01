@@ -7,20 +7,20 @@ from types import ModuleType, SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from deerflow_extension_api import EXTENSION_TASK_STORE_KEY, ExtensionData
+from operix_extension_api import EXTENSION_TASK_STORE_KEY, ExtensionData
 from langchain_core.messages import AIMessage
 from langgraph.checkpoint.memory import InMemorySaver
 
-from deerflow.extensions import (
+from operix.extensions import (
     EXTENSION_SNAPSHOT_CONTEXT_KEY,
     get_agent_build_extensions,
     reset_loaded_extensions,
     resolve_run_extensions,
     set_loaded_extensions,
 )
-from deerflow.extensions.registry import ExtensionRegistry
-from deerflow.runtime.runs.manager import RunManager
-from deerflow.runtime.runs.worker import RunContext, _build_runtime_context, run_agent
+from operix.extensions.registry import ExtensionRegistry
+from operix.runtime.runs.manager import RunManager
+from operix.runtime.runs.worker import RunContext, _build_runtime_context, run_agent
 
 
 def test_build_runtime_context_installs_the_extension_store():
@@ -127,15 +127,15 @@ def _bridge():
 
 
 _MOCKED_SUBAGENT_MODULES = (
-    "deerflow.agents",
-    "deerflow.agents.thread_state",
-    "deerflow.agents.middlewares",
-    "deerflow.agents.middlewares.thread_data_middleware",
-    "deerflow.sandbox",
-    "deerflow.sandbox.middleware",
-    "deerflow.sandbox.security",
-    "deerflow.models",
-    "deerflow.skills.storage",
+    "operix.agents",
+    "operix.agents.thread_state",
+    "operix.agents.middlewares",
+    "operix.agents.middlewares.thread_data_middleware",
+    "operix.sandbox",
+    "operix.sandbox.middleware",
+    "operix.sandbox.security",
+    "operix.models",
+    "operix.skills.storage",
 )
 
 
@@ -146,30 +146,30 @@ def _subagent_env():
     # mock; otherwise isolated execution depends on earlier test collection.
     import importlib
 
-    importlib.import_module("deerflow.agents.middlewares.audit_context")
-    importlib.import_module("deerflow.authz.principal")
+    importlib.import_module("operix.agents.middlewares.audit_context")
+    importlib.import_module("operix.authz.principal")
     original_modules = {name: sys.modules.get(name) for name in _MOCKED_SUBAGENT_MODULES}
-    original_executor = sys.modules.get("deerflow.subagents.executor")
+    original_executor = sys.modules.get("operix.subagents.executor")
     missing = object()
-    subagents_pkg = sys.modules.get("deerflow.subagents")
+    subagents_pkg = sys.modules.get("operix.subagents")
     original_executor_attr = getattr(subagents_pkg, "executor", missing) if subagents_pkg is not None else missing
 
-    sys.modules.pop("deerflow.subagents.executor", None)
+    sys.modules.pop("operix.subagents.executor", None)
     if subagents_pkg is not None and hasattr(subagents_pkg, "executor"):
         delattr(subagents_pkg, "executor")
 
     try:
         for name in _MOCKED_SUBAGENT_MODULES:
             sys.modules[name] = MagicMock()
-        storage_module = ModuleType("deerflow.skills.storage")
+        storage_module = ModuleType("operix.skills.storage")
         storage_module.get_or_new_skill_storage = lambda **kwargs: SimpleNamespace(load_skills=lambda *, enabled_only: [])
         storage_module.get_or_new_user_skill_storage = lambda user_id, **kwargs: SimpleNamespace(load_skills=lambda *, enabled_only: [])
-        sys.modules["deerflow.skills.storage"] = storage_module
+        sys.modules["operix.skills.storage"] = storage_module
 
-        from deerflow.subagents.config import SubagentConfig
-        from deerflow.subagents.executor import SubagentExecutor, SubagentResult, SubagentStatus
+        from operix.subagents.config import SubagentConfig
+        from operix.subagents.executor import SubagentExecutor, SubagentResult, SubagentStatus
 
-        executor_module = sys.modules["deerflow.subagents.executor"]
+        executor_module = sys.modules["operix.subagents.executor"]
         executor_module.get_app_config = lambda: SimpleNamespace(
             tool_search=SimpleNamespace(enabled=False),
             authorization=SimpleNamespace(enabled=False),
@@ -187,10 +187,10 @@ def _subagent_env():
             else:
                 sys.modules[name] = original
         if original_executor is None:
-            sys.modules.pop("deerflow.subagents.executor", None)
+            sys.modules.pop("operix.subagents.executor", None)
         else:
-            sys.modules["deerflow.subagents.executor"] = original_executor
-        subagents_pkg = sys.modules.get("deerflow.subagents")
+            sys.modules["operix.subagents.executor"] = original_executor
+        subagents_pkg = sys.modules.get("operix.subagents")
         if subagents_pkg is not None:
             if original_executor_attr is missing:
                 if hasattr(subagents_pkg, "executor"):

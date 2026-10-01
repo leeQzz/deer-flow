@@ -13,18 +13,18 @@ from langgraph.prebuilt.tool_node import ToolCallRequest
 from langgraph.runtime import Runtime
 from langgraph.types import Command, Overwrite
 
-from deerflow.agents.thread_state import ThreadState
-from deerflow.sandbox.exceptions import SandboxAuthorizationError, SandboxRuntimeError
-from deerflow.sandbox.lease import (
+from operix.agents.thread_state import ThreadState
+from operix.sandbox.exceptions import SandboxAuthorizationError, SandboxRuntimeError
+from operix.sandbox.lease import (
     get_sandbox_lease_manager,
     release_sandbox_execution_lease,
     release_sandbox_execution_lease_async,
 )
-from deerflow.sandbox.middleware import SandboxMiddleware, SandboxMiddlewareState
-from deerflow.sandbox.sandbox import Sandbox
-from deerflow.sandbox.sandbox_provider import SandboxProvider, reset_sandbox_provider, set_sandbox_provider
-from deerflow.sandbox.search import GrepMatch
-from deerflow.sandbox.tools import ensure_sandbox_initialized, ls_tool
+from operix.sandbox.middleware import SandboxMiddleware, SandboxMiddlewareState
+from operix.sandbox.sandbox import Sandbox
+from operix.sandbox.sandbox_provider import SandboxProvider, reset_sandbox_provider, set_sandbox_provider
+from operix.sandbox.search import GrepMatch
+from operix.sandbox.tools import ensure_sandbox_initialized, ls_tool
 
 
 class _SyncProvider(SandboxProvider):
@@ -312,7 +312,7 @@ def test_explicit_skill_policy_does_not_reuse_checkpointed_sandbox_after_auth_de
         lambda *_args, **_kwargs: object(),
     )
     monkeypatch.setattr(
-        "deerflow.sandbox.middleware.authorize_sandbox_execution",
+        "operix.sandbox.middleware.authorize_sandbox_execution",
         lambda **_kwargs: (_ for _ in ()).throw(SandboxAuthorizationError("denied")),
     )
     set_sandbox_provider(provider)

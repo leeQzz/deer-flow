@@ -2,8 +2,8 @@
 
 from unittest.mock import MagicMock, patch
 
-from deerflow.agents.memory.backends.deermem.deermem.config import DeerMemConfig
-from deerflow.agents.memory.backends.deermem.deermem.core.queue import ConversationContext, MemoryUpdateQueue
+from operix.agents.memory.backends.deermem.deermem.config import DeerMemConfig
+from operix.agents.memory.backends.deermem.deermem.core.queue import ConversationContext, MemoryUpdateQueue
 
 
 def _queue(updater: MagicMock | None = None) -> MemoryUpdateQueue:

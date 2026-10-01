@@ -21,10 +21,10 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.gateway.authz import AuthContext, Permissions
 from app.gateway.deps import get_config
 from app.gateway.routers import project_documents, projects
-from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-from deerflow.persistence.projects import ProjectDocumentRepository, ProjectRepository
-from deerflow.persistence.thread_meta import ThreadMetaRepository
-from deerflow.runtime.user_context import reset_current_user, set_current_user
+from operix.persistence.engine import close_engine, get_session_factory, init_engine
+from operix.persistence.projects import ProjectDocumentRepository, ProjectRepository
+from operix.persistence.thread_meta import ThreadMetaRepository
+from operix.runtime.user_context import reset_current_user, set_current_user
 
 _STUB_PERMISSIONS: list[str] = [
     Permissions.PROJECTS_READ,
@@ -76,9 +76,9 @@ def _as_user(user_id: str) -> dict[str, str]:
 
 @pytest.fixture(autouse=True)
 def _isolate(tmp_path, monkeypatch):
-    import deerflow.config.paths as paths_mod
+    import operix.config.paths as paths_mod
 
-    monkeypatch.setenv("DEER_FLOW_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("OPERIX_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(paths_mod, "_paths", None)
     yield
     anyio.run(close_engine)
@@ -176,8 +176,8 @@ class TestListContentMissing:
     ``content_missing: true``; a missing derived companion alone is fine."""
 
     def test_missing_or_truncated_original_flags_content_missing(self, tmp_path):
-        from deerflow.config.paths import get_paths
-        from deerflow.projects.documents import original_file_path
+        from operix.config.paths import get_paths
+        from operix.projects.documents import original_file_path
 
         app = _build_app(tmp_path)
         with TestClient(app) as client:
@@ -254,7 +254,7 @@ class TestUploadValidation:
             assert client.get(f"/api/projects/{pid}/documents", params={"limit": 1, "offset": 0}).status_code == 200
 
     def test_content_missing_is_an_explicit_error(self, tmp_path):
-        from deerflow.projects.documents import original_file_path
+        from operix.projects.documents import original_file_path
 
         app = _build_app(tmp_path)
         with TestClient(app) as client:
@@ -265,7 +265,7 @@ class TestUploadValidation:
                 token = set_current_user(SimpleNamespace(id="user-a"))
                 try:
                     row = await app.state.project_document_repo.get(doc["id"])
-                    original_file_path(__import__("deerflow.config.paths", fromlist=["get_paths"]).get_paths(), user_id="user-a", row=row).unlink()
+                    original_file_path(__import__("operix.config.paths", fromlist=["get_paths"]).get_paths(), user_id="user-a", row=row).unlink()
                 finally:
                     reset_current_user(token)
 
@@ -409,8 +409,8 @@ class TestActiveContentForcedToDownload:
             assert "attachment" in download.headers["content-disposition"]
 
     def test_converted_markdown_companion_stays_inline(self, tmp_path):
-        from deerflow.config.paths import get_paths
-        from deerflow.projects.documents import converted_markdown_path
+        from operix.config.paths import get_paths
+        from operix.projects.documents import converted_markdown_path
 
         app = _build_app(tmp_path)
         with TestClient(app) as client:
@@ -463,8 +463,8 @@ class TestContentEndpointOriginalIntegrity:
     preview."""
 
     def test_cached_derived_with_truncated_original_is_content_missing(self, tmp_path):
-        from deerflow.config.paths import get_paths
-        from deerflow.projects.documents import converted_markdown_path, original_file_path
+        from operix.config.paths import get_paths
+        from operix.projects.documents import converted_markdown_path, original_file_path
 
         app = _build_app(tmp_path)
         with TestClient(app) as client:
@@ -486,8 +486,8 @@ class TestContentEndpointOriginalIntegrity:
             assert "content_missing" in response.json()["detail"]
 
     def test_cached_derived_with_valid_original_is_served(self, tmp_path):
-        from deerflow.config.paths import get_paths
-        from deerflow.projects.documents import converted_markdown_path
+        from operix.config.paths import get_paths
+        from operix.projects.documents import converted_markdown_path
 
         app = _build_app(tmp_path)
         with TestClient(app) as client:
@@ -514,8 +514,8 @@ class TestDownloadServesOriginal:
     so a prior agent read never changes the download's format."""
 
     def test_download_true_serves_original_bytes_not_the_conversion(self, tmp_path):
-        from deerflow.config.paths import get_paths
-        from deerflow.projects.documents import converted_markdown_path
+        from operix.config.paths import get_paths
+        from operix.projects.documents import converted_markdown_path
 
         app = _build_app(tmp_path)
         with TestClient(app) as client:
@@ -539,8 +539,8 @@ class TestDownloadServesOriginal:
             assert "report.pdf.md" not in disposition
 
     def test_download_false_on_convertible_serves_converted_markdown_inline(self, tmp_path):
-        from deerflow.config.paths import get_paths
-        from deerflow.projects.documents import converted_markdown_path
+        from operix.config.paths import get_paths
+        from operix.projects.documents import converted_markdown_path
 
         app = _build_app(tmp_path)
         with TestClient(app) as client:

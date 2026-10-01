@@ -6,11 +6,11 @@ from types import SimpleNamespace
 
 import pytest
 
-import deerflow.community.ragflow.tools as ragflow_tools
-from deerflow.community.ragflow.client import RAGFlowAPIError, RAGFlowConnectionError
-from deerflow.community.ragflow.formatting import format_retrieval_result
-from deerflow.config.tool_config import ToolConfig
-from deerflow.tools.tools import get_available_tools
+import operix.community.ragflow.tools as ragflow_tools
+from operix.community.ragflow.client import RAGFlowAPIError, RAGFlowConnectionError
+from operix.community.ragflow.formatting import format_retrieval_result
+from operix.config.tool_config import ToolConfig
+from operix.tools.tools import get_available_tools
 
 DATASET_ID_1 = "0123456789abcdef0123456789abcdef"
 DATASET_ID_2 = "fedcba9876543210fedcba9876543210"
@@ -127,7 +127,7 @@ def _config(
     search_config = ToolConfig(
         name="knowledge_search",
         group="knowledge",
-        use="deerflow.community.ragflow.tools:knowledge_search_tool",
+        use="operix.community.ragflow.tools:knowledge_search_tool",
         **extra,
     )
     return SimpleNamespace(
@@ -211,7 +211,7 @@ async def test_missing_bound_dataset_returns_indexed_operator_guidance(
     )
     _install(monkeypatch, fake, config=_config(datasets=[DATASET_ID_1, MISSING_DATASET_ID]))
 
-    with caplog.at_level(logging.WARNING, logger="deerflow.community.ragflow.tools"):
+    with caplog.at_level(logging.WARNING, logger="operix.community.ragflow.tools"):
         result = await ragflow_tools.knowledge_search("leave")
 
     assert result == "Error: The 2nd entry of knowledge_search.datasets was not found or is inaccessible; check config.yaml."
@@ -245,7 +245,7 @@ async def test_bound_dataset_api_error_uses_normal_redacted_error_handler(
     )
     _install(monkeypatch, fake, config=_config(datasets=[DATASET_ID_1]))
 
-    with caplog.at_level(logging.WARNING, logger="deerflow.community.ragflow.tools"):
+    with caplog.at_level(logging.WARNING, logger="operix.community.ragflow.tools"):
         result = await ragflow_tools.knowledge_search("leave")
 
     assert result == "Error: invalid credential [REDACTED]"
@@ -373,7 +373,7 @@ async def test_all_dataset_scope_skips_empty_dataset_without_embedding_model_and
     )
     _install(monkeypatch, fake, config=_config(datasets=None))
 
-    with caplog.at_level(logging.WARNING, logger="deerflow.community.ragflow.tools"):
+    with caplog.at_level(logging.WARNING, logger="operix.community.ragflow.tools"):
         result = await ragflow_tools.knowledge_search("searchable")
 
     assert [call[1]["dataset_ids"] for call in fake.retrieve_calls] == [[DATASET_ID_2]]
@@ -730,7 +730,7 @@ async def test_missing_api_key_returns_english_guidance_and_warns_only_once(
     fake = FakeRAGFlowClient()
     _install(monkeypatch, fake, config=_config(api_key=None, datasets=[DATASET_ID_1]))
 
-    with caplog.at_level(logging.WARNING, logger="deerflow.community.ragflow.tools"):
+    with caplog.at_level(logging.WARNING, logger="operix.community.ragflow.tools"):
         first = await ragflow_tools.knowledge_search("leave")
         second = await ragflow_tools.knowledge_search("benefits")
 
@@ -834,7 +834,7 @@ async def test_connection_error_is_english_and_does_not_leak_key(
     fake = FakeRAGFlowClient(error=RAGFlowConnectionError("ConnectError: refused ragflow-secret"))
     _install(monkeypatch, fake)
 
-    with caplog.at_level(logging.WARNING, logger="deerflow.community.ragflow.tools"):
+    with caplog.at_level(logging.WARNING, logger="operix.community.ragflow.tools"):
         result = await ragflow_tools.knowledge_search("leave")
 
     assert result == "Error: Unable to connect to RAGFlow (http://ragflow.test): ConnectError: refused [REDACTED]"
@@ -859,7 +859,7 @@ async def test_base_url_with_plain_or_encoded_userinfo_is_rejected_without_leaki
     fake = FakeRAGFlowClient()
     _install(monkeypatch, fake, config=_config(base_url=base_url, datasets=[DATASET_ID_1]))
 
-    with caplog.at_level(logging.WARNING, logger="deerflow.community.ragflow.tools"):
+    with caplog.at_level(logging.WARNING, logger="operix.community.ragflow.tools"):
         result = await ragflow_tools.knowledge_search("leave")
 
     assert result == "Error: Invalid RAGFlow settings for knowledge_search; check config.yaml."
@@ -1012,7 +1012,7 @@ def test_tool_assembly_hides_bound_dataset_ids_without_network_io(monkeypatch: p
     tool_config = ToolConfig(
         name="knowledge_search",
         group="knowledge",
-        use="deerflow.community.ragflow.tools:knowledge_search_tool",
+        use="operix.community.ragflow.tools:knowledge_search_tool",
         base_url="http://ragflow.test",
         api_key="ragflow-secret",
         datasets=[DATASET_ID_1, DATASET_ID_2],
@@ -1042,7 +1042,7 @@ def test_tool_assembly_hides_configured_knowledge_provider_when_capability_is_di
     tool_config = ToolConfig(
         name="knowledge_search",
         group="knowledge",
-        use="deerflow.community.ragflow.tools:knowledge_search_tool",
+        use="operix.community.ragflow.tools:knowledge_search_tool",
         base_url="http://ragflow.test",
         api_key="ragflow-secret",
     )
@@ -1131,7 +1131,7 @@ async def test_citation_artifact_survives_native_tool_node_and_message_serializa
 
 
 def test_subagent_forwards_only_cited_captured_sources() -> None:
-    from deerflow.community.ragflow.sources import cited_source_artifact
+    from operix.community.ragflow.sources import cited_source_artifact
 
     sources = [{"id": "a", "text": "first"}, {"id": "b", "text": "second"}]
     messages = [{"type": "tool", "name": "knowledge_search", "artifact": {"knowledge_sources": {"version": 1, "sources": sources}}}]
@@ -1141,7 +1141,7 @@ def test_subagent_forwards_only_cited_captured_sources() -> None:
 
 
 def test_citation_budget_never_emits_partial_links_or_unseen_artifact_text() -> None:
-    from deerflow.community.ragflow.formatting import format_retrieval_sources
+    from operix.community.ragflow.formatting import format_retrieval_sources
 
     chunks = [{"id": f"chunk-{i}", "dataset_id": DATASET_ID_1, "document_id": "doc", "content": "X" * 1000} for i in range(4)]
     content, artifact = format_retrieval_sources({"chunks": chunks}, dataset_names_by_id={DATASET_ID_1: "Knowledge"}, max_total_chars=200, max_chars_per_chunk=100)
@@ -1154,7 +1154,7 @@ def test_citation_budget_never_emits_partial_links_or_unseen_artifact_text() -> 
 
 
 def test_task_command_preserves_child_source_artifact() -> None:
-    from deerflow.tools.builtins.task_tool import _task_result_command
+    from operix.tools.builtins.task_tool import _task_result_command
 
     source = {"id": "abc", "text": "evidence"}
     message = {"type": "tool", "name": "knowledge_search", "artifact": {"knowledge_sources": {"version": 1, "sources": [source]}}}

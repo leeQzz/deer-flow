@@ -2,8 +2,8 @@ import asyncio
 
 import pytest
 
-from deerflow.config.subagent_runtime_config import SubagentRuntimeConfig
-from deerflow.subagents.capacity import (
+from operix.config.subagent_runtime_config import SubagentRuntimeConfig
+from operix.subagents.capacity import (
     SubagentCapacityRejected,
     SubagentCapacityTimeout,
     configure_subagent_execution_capacity,

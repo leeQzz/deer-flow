@@ -8,7 +8,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
-from deerflow_extension_api import (
+from operix_extension_api import (
     EXTENSION_TASK_STORE_KEY,
     ExtensionData,
     TaskInfo,
@@ -16,17 +16,17 @@ from deerflow_extension_api import (
 )
 from langgraph.checkpoint.memory import InMemorySaver
 
-from deerflow.extensions.notify import (
+from operix.extensions.notify import (
     lead_task_id,
     lead_task_outcome,
     notify_task_start,
     notify_task_stop,
     subagent_task_outcome,
 )
-from deerflow.extensions.registry import ExtensionRegistry
-from deerflow.runtime.runs.manager import RunManager
-from deerflow.runtime.runs.schemas import RunStatus
-from deerflow.runtime.runs.worker import RunContext, run_agent
+from operix.extensions.registry import ExtensionRegistry
+from operix.runtime.runs.manager import RunManager
+from operix.runtime.runs.schemas import RunStatus
+from operix.runtime.runs.worker import RunContext, run_agent
 
 
 class _Recorder:
@@ -127,7 +127,7 @@ async def test_budget_exhaustion_mid_hook_logs_a_warning_not_a_traceback(caplog)
         async def on_task_stop(self, app_store, task_store, info, outcome):
             await asyncio.sleep(10)
 
-    with caplog.at_level(logging.WARNING, logger="deerflow.extensions.notify"):
+    with caplog.at_level(logging.WARNING, logger="operix.extensions.notify"):
         await notify_task_stop(
             _extensions(_Hang()),
             ExtensionData("task-1"),
@@ -136,7 +136,7 @@ async def test_budget_exhaustion_mid_hook_logs_a_warning_not_a_traceback(caplog)
             timeout=0.02,
         )
 
-    records = [record for record in caplog.records if record.name == "deerflow.extensions.notify"]
+    records = [record for record in caplog.records if record.name == "operix.extensions.notify"]
     assert [record.levelno for record in records] == [logging.WARNING]
     assert "timed out" in records[0].getMessage()
     assert "task-1" in records[0].getMessage()
@@ -151,7 +151,7 @@ async def test_contributor_timeout_error_before_budget_is_a_hook_failure(caplog)
         async def on_task_stop(self, app_store, task_store, info, outcome):
             raise TimeoutError("the contributor's own downstream call timed out")
 
-    with caplog.at_level(logging.WARNING, logger="deerflow.extensions.notify"):
+    with caplog.at_level(logging.WARNING, logger="operix.extensions.notify"):
         await notify_task_stop(
             _extensions(_TimedOut()),
             ExtensionData("task-1"),
@@ -167,7 +167,7 @@ async def test_contributor_timeout_error_before_budget_is_a_hook_failure(caplog)
             TaskOutcome.COMPLETED,
         )
 
-    records = [record for record in caplog.records if record.name == "deerflow.extensions.notify"]
+    records = [record for record in caplog.records if record.name == "operix.extensions.notify"]
     assert [record.levelno for record in records] == [logging.ERROR, logging.ERROR]
     assert all("failed" in record.getMessage() for record in records)
 

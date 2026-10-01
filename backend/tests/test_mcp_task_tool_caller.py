@@ -12,12 +12,12 @@ import pytest
 from mcp.shared.exceptions import McpError
 from mcp.types import CONNECTION_CLOSED, ErrorData
 
-from deerflow.config.extensions_config import ExtensionsConfig, McpUserScopedAuthConfig
-from deerflow.config.paths import Paths
-from deerflow.mcp.session_pool import MCPSessionPool
-from deerflow.mcp.task_tool_caller import McpTaskToolCaller
-from deerflow.mcp_scope import mcp_session_scope_key
-from deerflow.runtime.user_context import get_current_user, reset_current_user, set_current_user
+from operix.config.extensions_config import ExtensionsConfig, McpUserScopedAuthConfig
+from operix.config.paths import Paths
+from operix.mcp.session_pool import MCPSessionPool
+from operix.mcp.task_tool_caller import McpTaskToolCaller
+from operix.mcp_scope import mcp_session_scope_key
+from operix.runtime.user_context import get_current_user, reset_current_user, set_current_user
 
 
 def _config() -> ExtensionsConfig:
@@ -119,9 +119,9 @@ async def test_stdio_task_call_reuses_exact_scope_and_raw_tool_name() -> None:
     caller = McpTaskToolCaller(_config())
 
     with (
-        patch("deerflow.mcp.task_tool_caller.get_session_pool", return_value=pool),
+        patch("operix.mcp.task_tool_caller.get_session_pool", return_value=pool),
         patch(
-            "deerflow.mcp.task_tool_caller._prepare_stdio_connection",
+            "operix.mcp.task_tool_caller._prepare_stdio_connection",
             return_value={"transport": "stdio", "command": "report-mcp"},
         ),
     ):
@@ -170,8 +170,8 @@ async def test_task_without_applicable_user_auth_preserves_interceptor_context(t
     user_token = set_current_user(ambient_user) if ambient_user is not None else None
     try:
         with (
-            patch("deerflow.mcp.task_tool_caller.get_session_pool", return_value=pool),
-            patch("deerflow.mcp.task_tool_caller._prepare_stdio_connection", side_effect=lambda connection, **_kwargs: connection),
+            patch("operix.mcp.task_tool_caller.get_session_pool", return_value=pool),
+            patch("operix.mcp.task_tool_caller._prepare_stdio_connection", side_effect=lambda connection, **_kwargs: connection),
             patch("langchain_mcp_adapters.sessions.create_session", return_value=_SessionContext(session)),
         ):
             result = await caller.call_tool(
@@ -208,9 +208,9 @@ async def test_broken_stdio_task_session_is_evicted_for_next_poll_reconnect(disc
     caller = McpTaskToolCaller(_config())
 
     with (
-        patch("deerflow.mcp.task_tool_caller.get_session_pool", return_value=pool),
+        patch("operix.mcp.task_tool_caller.get_session_pool", return_value=pool),
         patch(
-            "deerflow.mcp.task_tool_caller._prepare_stdio_connection",
+            "operix.mcp.task_tool_caller._prepare_stdio_connection",
             return_value={"transport": "stdio", "command": "report-mcp"},
         ),
         pytest.raises(type(disconnect_error)),
@@ -243,9 +243,9 @@ async def test_stdio_task_timeout_keeps_healthy_stateful_session() -> None:
     caller = McpTaskToolCaller(_config())
 
     with (
-        patch("deerflow.mcp.task_tool_caller.get_session_pool", return_value=pool),
+        patch("operix.mcp.task_tool_caller.get_session_pool", return_value=pool),
         patch(
-            "deerflow.mcp.task_tool_caller._prepare_stdio_connection",
+            "operix.mcp.task_tool_caller._prepare_stdio_connection",
             return_value={"transport": "stdio", "command": "report-mcp"},
         ),
         pytest.raises(McpError, match="request timed out"),
@@ -278,9 +278,9 @@ async def test_stdio_task_interceptor_failure_keeps_healthy_session() -> None:
     caller._interceptors = [reject_call]
 
     with (
-        patch("deerflow.mcp.task_tool_caller.get_session_pool", return_value=pool),
+        patch("operix.mcp.task_tool_caller.get_session_pool", return_value=pool),
         patch(
-            "deerflow.mcp.task_tool_caller._prepare_stdio_connection",
+            "operix.mcp.task_tool_caller._prepare_stdio_connection",
             return_value={"transport": "stdio", "command": "report-mcp"},
         ),
         pytest.raises(RuntimeError, match="interceptor rejected call"),
@@ -344,8 +344,8 @@ mcp.run(transport="stdio")
 
     try:
         with (
-            patch("deerflow.mcp.task_tool_caller.get_paths", return_value=Paths(tmp_path)),
-            patch("deerflow.mcp.task_tool_caller.get_session_pool", return_value=pool),
+            patch("operix.mcp.task_tool_caller.get_paths", return_value=Paths(tmp_path)),
+            patch("operix.mcp.task_tool_caller.get_session_pool", return_value=pool),
         ):
             submitted = await caller.call_tool(
                 server_name="reports",
@@ -403,9 +403,9 @@ async def test_stdio_task_session_initialization_respects_configured_timeout() -
     caller = McpTaskToolCaller(config)
 
     with (
-        patch("deerflow.mcp.task_tool_caller.get_session_pool", return_value=pool),
+        patch("operix.mcp.task_tool_caller.get_session_pool", return_value=pool),
         patch(
-            "deerflow.mcp.task_tool_caller._prepare_stdio_connection",
+            "operix.mcp.task_tool_caller._prepare_stdio_connection",
             return_value={"transport": "stdio", "command": "report-mcp"},
         ),
         pytest.raises(TimeoutError),
@@ -474,7 +474,7 @@ async def test_http_task_call_authenticates_session_initialization() -> None:
 @pytest.mark.parametrize("transport", ["http", "sse"])
 @pytest.mark.parametrize("operation", ["get_status", "cancel"])
 async def test_remote_task_uses_persisted_user_for_user_scoped_auth(transport: str, operation: str) -> None:
-    from deerflow.mcp.tasks import OrdinaryMcpTaskDriver, TaskReference, TaskStatus
+    from operix.mcp.tasks import OrdinaryMcpTaskDriver, TaskReference, TaskStatus
 
     config = _remote_config(transport)
     config.mcp_servers["reports"].user_auth = McpUserScopedAuthConfig(users={"user-1": "Bearer user-token"})

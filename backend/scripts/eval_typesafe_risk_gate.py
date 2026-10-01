@@ -66,8 +66,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
-from deerflow.guardrails.provider import GuardrailRequest
-from deerflow.guardrails.typesafe import DEFAULT_API_KEY_ENV, DEFAULT_BASE_URL, TypeSafeGuardrailError, TypeSafeGuardrailProvider
+from operix.guardrails.provider import GuardrailRequest
+from operix.guardrails.typesafe import DEFAULT_API_KEY_ENV, DEFAULT_BASE_URL, TypeSafeGuardrailError, TypeSafeGuardrailProvider
 
 NETWORK = "network"
 CACHE_HIT = "cache_hit"

@@ -9,8 +9,8 @@ import pytest
 from langchain_core.messages import ToolMessage
 from langgraph.prebuilt.tool_node import ToolCallRequest
 
-from deerflow.agents.middlewares.read_before_write_middleware import ReadBeforeWriteMiddleware, _await_off_thread
-from deerflow.sandbox.exceptions import SandboxAuthorizationError
+from operix.agents.middlewares.read_before_write_middleware import ReadBeforeWriteMiddleware, _await_off_thread
+from operix.sandbox.exceptions import SandboxAuthorizationError
 
 _PATH = "/mnt/user-data/outputs/report.md"
 

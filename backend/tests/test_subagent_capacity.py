@@ -5,8 +5,8 @@ from collections import deque
 
 import pytest
 
-from deerflow.config.subagent_runtime_config import SubagentRuntimeConfig
-from deerflow.subagents.capacity import SubagentExecutionCapacity
+from operix.config.subagent_runtime_config import SubagentRuntimeConfig
+from operix.subagents.capacity import SubagentExecutionCapacity
 
 
 class _NoIterationDeque(deque):

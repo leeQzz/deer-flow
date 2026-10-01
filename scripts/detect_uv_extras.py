@@ -17,8 +17,8 @@ Order of resolution:
    - channels.buzz.enabled == true       -> buzz
    - models[].use == langchain_ollama:*  -> ollama
 3. Runtime environment toggles that enable optional backends:
-   - DEER_FLOW_STREAM_BRIDGE_REDIS_URL   -> redis
-   - DEER_FLOW_SANDBOX_OWNERSHIP_REDIS_URL -> redis
+   - OPERIX_STREAM_BRIDGE_REDIS_URL   -> redis
+   - OPERIX_SANDBOX_OWNERSHIP_REDIS_URL -> redis
 
 Each extra name is validated against ``^[A-Za-z][A-Za-z0-9_-]*$`` (the same
 shape uv enforces for `[project.optional-dependencies]` keys). Anything else
@@ -66,7 +66,7 @@ def parse_env_extras(value: str) -> list[str]:
 
 def find_config_file() -> Path | None:
     """Locate config.yaml using the same precedence as serve.sh."""
-    explicit = os.environ.get("DEER_FLOW_CONFIG_PATH")
+    explicit = os.environ.get("OPERIX_CONFIG_PATH")
     if explicit:
         candidate = Path(explicit)
         if candidate.is_file():
@@ -127,7 +127,7 @@ def _unquote(value: str) -> str:
 def section_value(lines: list[str], section: str, key: str) -> str | None:
     """Return the value of `section.key` from a flat-ish YAML, or None.
 
-    Only handles the shallow shape DeerFlow uses for these settings:
+    Only handles the shallow shape Operix uses for these settings:
         database:
           backend: postgres
     Nested mappings deeper than the immediate child level are ignored on
@@ -374,9 +374,9 @@ def detect_from_config(path: Path) -> list[str]:
 
 def detect_from_runtime_env() -> list[str]:
     extras: set[str] = set()
-    if os.environ.get("DEER_FLOW_STREAM_BRIDGE_REDIS_URL", "").strip():
+    if os.environ.get("OPERIX_STREAM_BRIDGE_REDIS_URL", "").strip():
         extras.add("redis")
-    if os.environ.get("DEER_FLOW_SANDBOX_OWNERSHIP_REDIS_URL", "").strip():
+    if os.environ.get("OPERIX_SANDBOX_OWNERSHIP_REDIS_URL", "").strip():
         extras.add("redis")
     return sorted(extras)
 

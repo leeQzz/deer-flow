@@ -1,6 +1,6 @@
 """Regression tests for graceful run-task drain on Gateway shutdown.
 
-Guards bytedance/deer-flow issue #3373:
+Guards bytedance/operix issue #3373:
 
     psycopg_pool.PoolClosed: the pool 'pool-1' is already closed
 
@@ -30,7 +30,7 @@ from typing import Annotated, TypedDict
 import pytest
 from langgraph.checkpoint.memory import InMemorySaver
 
-from deerflow.runtime import RunManager, RunStatus
+from operix.runtime import RunManager, RunStatus
 
 
 # Module-level so langgraph's get_type_hints (which resolves annotations against
@@ -158,7 +158,7 @@ async def test_langgraph_runtime_drains_runs_before_closing_checkpointer(monkeyp
     from fastapi import FastAPI
 
     from app.gateway.deps import langgraph_runtime
-    from deerflow.extensions.registry import ExtensionRegistry
+    from operix.extensions.registry import ExtensionRegistry
 
     events: list[str] = []
 
@@ -203,17 +203,17 @@ async def test_langgraph_runtime_drains_runs_before_closing_checkpointer(monkeyp
     def spy_reset_extension_notify_loop():
         events.append("extension_loop_reset")
 
-    monkeypatch.setattr("deerflow.runtime.checkpointer.async_provider.make_checkpointer", probe_checkpointer)
-    monkeypatch.setattr("deerflow.runtime.make_stream_bridge", fake_stream_bridge)
-    monkeypatch.setattr("deerflow.runtime.make_store", fake_store)
-    monkeypatch.setattr("deerflow.persistence.engine.init_engine_from_config", fake_init_engine)
-    monkeypatch.setattr("deerflow.persistence.engine.close_engine", fake_close_engine)
-    monkeypatch.setattr("deerflow.persistence.engine.get_session_factory", fake_session_factory)
-    monkeypatch.setattr("deerflow.runtime.events.store.make_run_event_store", lambda _cfg: object())
-    monkeypatch.setattr("deerflow.persistence.thread_meta.make_thread_store", lambda _sf, _store: object())
+    monkeypatch.setattr("operix.runtime.checkpointer.async_provider.make_checkpointer", probe_checkpointer)
+    monkeypatch.setattr("operix.runtime.make_stream_bridge", fake_stream_bridge)
+    monkeypatch.setattr("operix.runtime.make_store", fake_store)
+    monkeypatch.setattr("operix.persistence.engine.init_engine_from_config", fake_init_engine)
+    monkeypatch.setattr("operix.persistence.engine.close_engine", fake_close_engine)
+    monkeypatch.setattr("operix.persistence.engine.get_session_factory", fake_session_factory)
+    monkeypatch.setattr("operix.runtime.events.store.make_run_event_store", lambda _cfg: object())
+    monkeypatch.setattr("operix.persistence.thread_meta.make_thread_store", lambda _sf, _store: object())
     monkeypatch.setattr(RunManager, "shutdown", spy_shutdown, raising=False)
-    monkeypatch.setattr("deerflow.extensions.notify.set_extension_notify_loop", spy_set_extension_notify_loop)
-    monkeypatch.setattr("deerflow.extensions.notify.reset_extension_notify_loop", spy_reset_extension_notify_loop)
+    monkeypatch.setattr("operix.extensions.notify.set_extension_notify_loop", spy_set_extension_notify_loop)
+    monkeypatch.setattr("operix.extensions.notify.reset_extension_notify_loop", spy_reset_extension_notify_loop)
 
     app = FastAPI()
     registry = ExtensionRegistry()
@@ -270,9 +270,9 @@ async def test_langgraph_runtime_resets_extension_loop_when_startup_exits_early(
     def spy_reset_extension_notify_loop():
         events.append("extension_loop_reset")
 
-    monkeypatch.setattr("deerflow.runtime.make_stream_bridge", failing_stream_bridge)
-    monkeypatch.setattr("deerflow.extensions.notify.set_extension_notify_loop", spy_set_extension_notify_loop)
-    monkeypatch.setattr("deerflow.extensions.notify.reset_extension_notify_loop", spy_reset_extension_notify_loop)
+    monkeypatch.setattr("operix.runtime.make_stream_bridge", failing_stream_bridge)
+    monkeypatch.setattr("operix.extensions.notify.set_extension_notify_loop", spy_set_extension_notify_loop)
+    monkeypatch.setattr("operix.extensions.notify.reset_extension_notify_loop", spy_reset_extension_notify_loop)
 
     app = FastAPI()
     startup_config = SimpleNamespace(
@@ -368,7 +368,7 @@ async def test_shutdown_preserves_status_of_run_completed_during_drain():
     """A run that finishes (e.g. success) during the drain window must keep its
     real terminal status — shutdown must not blanket-overwrite it to
     ``interrupted`` in memory or in the store (Copilot review on PR #3381)."""
-    from deerflow.runtime.runs.store.memory import MemoryRunStore
+    from operix.runtime.runs.store.memory import MemoryRunStore
 
     store = MemoryRunStore()
     rm = RunManager(store=store)
@@ -408,7 +408,7 @@ async def test_shutdown_surfaces_failed_interrupted_persist(caplog):
     PR #3381)."""
     import logging
 
-    from deerflow.runtime.runs.store.memory import MemoryRunStore
+    from operix.runtime.runs.store.memory import MemoryRunStore
 
     class _FailingStore(MemoryRunStore):
         async def update_status(self, *args, **kwargs):
@@ -427,7 +427,7 @@ async def test_shutdown_surfaces_failed_interrupted_persist(caplog):
     record.task = asyncio.create_task(worker())
     try:
         await asyncio.wait_for(started.wait(), timeout=1.0)
-        with caplog.at_level(logging.WARNING, logger="deerflow.runtime.runs.manager"):
+        with caplog.at_level(logging.WARNING, logger="operix.runtime.runs.manager"):
             await rm.shutdown(timeout=5.0)
         assert "Could not persist interrupted status for run" in caplog.text, caplog.text
     finally:

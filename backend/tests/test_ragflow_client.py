@@ -3,7 +3,7 @@ import json
 import httpx
 import pytest
 
-from deerflow.community.ragflow.client import (
+from operix.community.ragflow.client import (
     RAGFlowAPIError,
     RAGFlowClient,
     RAGFlowConnectionError,

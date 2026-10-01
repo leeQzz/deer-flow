@@ -14,11 +14,11 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.prebuilt.tool_node import ToolCallRequest, ToolRuntime
 from langgraph.types import Command
 
-from deerflow.agents.middlewares.artifact_resolution_middleware import ArtifactResolutionMiddleware
-from deerflow.agents.task_continuity.state import RESOLVED_TOOL_CALL_ARGS_KEY
-from deerflow.agents.task_continuity.tools import task_note
-from deerflow.agents.thread_state import ThreadState, get_thread_state_schema
-from deerflow.config.tool_artifact_config import ToolArtifactConfig
+from operix.agents.middlewares.artifact_resolution_middleware import ArtifactResolutionMiddleware
+from operix.agents.task_continuity.state import RESOLVED_TOOL_CALL_ARGS_KEY
+from operix.agents.task_continuity.tools import task_note
+from operix.agents.thread_state import ThreadState, get_thread_state_schema
+from operix.config.tool_artifact_config import ToolArtifactConfig
 
 
 class NoteModel(BaseChatModel):

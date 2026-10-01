@@ -1,9 +1,9 @@
 """Prompt-contract tests for benefit-based subagent routing."""
 
-from deerflow.agents.lead_agent import prompt as prompt_module
-from deerflow.subagents.builtins.bash_agent import BASH_AGENT_CONFIG
-from deerflow.subagents.builtins.general_purpose import GENERAL_PURPOSE_CONFIG
-from deerflow.tools.builtins.task_tool import task_tool
+from operix.agents.lead_agent import prompt as prompt_module
+from operix.subagents.builtins.bash_agent import BASH_AGENT_CONFIG
+from operix.subagents.builtins.general_purpose import GENERAL_PURPOSE_CONFIG
+from operix.tools.builtins.task_tool import task_tool
 
 
 def _build_section(monkeypatch, names: list[str] | None = None, max_concurrent: int = 3) -> str:

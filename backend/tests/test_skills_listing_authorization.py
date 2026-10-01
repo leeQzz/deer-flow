@@ -20,13 +20,13 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.gateway.routers import skills as skills_router
-from deerflow.authz.provider import AuthzDecision, AuthzReason
-from deerflow.authz.rbac import RbacAuthorizationProvider
-from deerflow.config.app_config import AppConfig
-from deerflow.config.authorization_config import AuthorizationConfig
-from deerflow.config.sandbox_config import SandboxConfig
-from deerflow.skills import Skill
-from deerflow.skills.types import SkillCategory
+from operix.authz.provider import AuthzDecision, AuthzReason
+from operix.authz.rbac import RbacAuthorizationProvider
+from operix.config.app_config import AppConfig
+from operix.config.authorization_config import AuthorizationConfig
+from operix.config.sandbox_config import SandboxConfig
+from operix.skills import Skill
+from operix.skills.types import SkillCategory
 
 # ── Helpers ────────────────────────────────────────────────────────────
 
@@ -70,7 +70,7 @@ class _FakeStorage:
 
 def _make_app_config() -> AppConfig:
     return AppConfig(
-        sandbox=SandboxConfig(use="deerflow.sandbox.local:LocalSandboxProvider"),
+        sandbox=SandboxConfig(use="operix.sandbox.local:LocalSandboxProvider"),
         authorization=AuthorizationConfig(),
     )
 

@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from deerflow.runtime.events.store.memory import MemoryRunEventStore
+from operix.runtime.events.store.memory import MemoryRunEventStore
 
 
 @pytest.fixture
@@ -241,7 +241,7 @@ class TestFindLatestAiMessageRunIds:
 
     @pytest.mark.anyio
     async def test_memory_stops_after_all_targets_are_found(self, store):
-        from deerflow.runtime.events.store import base as event_store_base
+        from operix.runtime.events.store import base as event_store_base
 
         await store.put(
             thread_id="t1",
@@ -316,7 +316,7 @@ class TestFindLatestAiMessageRunIds:
     @pytest.mark.anyio
     @pytest.mark.parametrize("malformed_page", ["missing-seq", "non-progressing-seq"])
     async def test_default_lookup_raises_instead_of_looping_on_unsafe_cursor(self, store, malformed_page):
-        from deerflow.runtime.events.store.base import RunEventStore
+        from operix.runtime.events.store.base import RunEventStore
 
         calls = 0
 
@@ -523,7 +523,7 @@ class TestDbRunEventStore:
     async def test_postgres_max_seq_uses_advisory_lock_without_for_update(self):
         from sqlalchemy.dialects import postgresql
 
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.runtime.events.store.db import DbRunEventStore
 
         class FakeSession:
             def __init__(self):
@@ -557,7 +557,7 @@ class TestDbRunEventStore:
         """Deletion must enter the same cross-process fence as writers (#5530)."""
         from sqlalchemy.dialects import postgresql
 
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.runtime.events.store.db import DbRunEventStore
 
         class FakeSession:
             def __init__(self):
@@ -599,7 +599,7 @@ class TestDbRunEventStore:
         """delete_by_run shares the cross-process fence as well (#5530)."""
         from sqlalchemy.dialects import postgresql
 
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.runtime.events.store.db import DbRunEventStore
 
         class FakeSession:
             def __init__(self):
@@ -638,8 +638,8 @@ class TestDbRunEventStore:
 
     @pytest.mark.anyio
     async def test_basic_crud(self, tmp_path):
-        from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.persistence.engine import close_engine, get_session_factory, init_engine
+        from operix.runtime.events.store.db import DbRunEventStore
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -662,9 +662,9 @@ class TestDbRunEventStore:
     async def test_find_latest_ai_message_run_ids_contract_and_owner_filter(self, tmp_path):
         from types import SimpleNamespace
 
-        from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-        from deerflow.runtime.events.store.db import DbRunEventStore
-        from deerflow.runtime.user_context import reset_current_user, set_current_user
+        from operix.persistence.engine import close_engine, get_session_factory, init_engine
+        from operix.runtime.events.store.db import DbRunEventStore
+        from operix.runtime.user_context import reset_current_user, set_current_user
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -702,8 +702,8 @@ class TestDbRunEventStore:
 
     @pytest.mark.anyio
     async def test_find_latest_ai_message_run_ids_handles_large_target_sets_and_special_ids(self, tmp_path):
-        from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.persistence.engine import close_engine, get_session_factory, init_engine
+        from operix.runtime.events.store.db import DbRunEventStore
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -750,9 +750,9 @@ class TestDbRunEventStore:
     async def test_find_latest_ai_message_run_ids_pages_db_with_owner_scoped_high_watermark(self, tmp_path):
         from types import SimpleNamespace
 
-        from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-        from deerflow.runtime.events.store.db import DbRunEventStore
-        from deerflow.runtime.user_context import reset_current_user, set_current_user
+        from operix.persistence.engine import close_engine, get_session_factory, init_engine
+        from operix.runtime.events.store.db import DbRunEventStore
+        from operix.runtime.user_context import reset_current_user, set_current_user
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -808,8 +808,8 @@ class TestDbRunEventStore:
 
     @pytest.mark.anyio
     async def test_put_if_absent_is_idempotent(self, tmp_path):
-        from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.persistence.engine import close_engine, get_session_factory, init_engine
+        from operix.runtime.events.store.db import DbRunEventStore
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -826,8 +826,8 @@ class TestDbRunEventStore:
 
     @pytest.mark.anyio
     async def test_trace_content_truncation(self, tmp_path):
-        from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.persistence.engine import close_engine, get_session_factory, init_engine
+        from operix.runtime.events.store.db import DbRunEventStore
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -846,8 +846,8 @@ class TestDbRunEventStore:
 
     @pytest.mark.anyio
     async def test_structured_content_round_trips(self, tmp_path):
-        from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.persistence.engine import close_engine, get_session_factory, init_engine
+        from operix.runtime.events.store.db import DbRunEventStore
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -868,8 +868,8 @@ class TestDbRunEventStore:
 
     @pytest.mark.anyio
     async def test_pagination(self, tmp_path):
-        from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.persistence.engine import close_engine, get_session_factory, init_engine
+        from operix.runtime.events.store.db import DbRunEventStore
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -894,8 +894,8 @@ class TestDbRunEventStore:
 
     @pytest.mark.anyio
     async def test_delete(self, tmp_path):
-        from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.persistence.engine import close_engine, get_session_factory, init_engine
+        from operix.runtime.events.store.db import DbRunEventStore
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -916,8 +916,8 @@ class TestDbRunEventStore:
     @pytest.mark.anyio
     async def test_put_batch_seq_continuity(self, tmp_path):
         """Batch write produces continuous seq values with no gaps."""
-        from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.persistence.engine import close_engine, get_session_factory, init_engine
+        from operix.runtime.events.store.db import DbRunEventStore
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -931,8 +931,8 @@ class TestDbRunEventStore:
 
     @pytest.mark.anyio
     async def test_put_batch_accepts_structured_content(self, tmp_path):
-        from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.persistence.engine import close_engine, get_session_factory, init_engine
+        from operix.runtime.events.store.db import DbRunEventStore
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -962,8 +962,8 @@ class TestDbRunEventStore:
 
     @pytest.mark.anyio
     async def test_dict_content_keeps_legacy_metadata_flag(self, tmp_path):
-        from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.persistence.engine import close_engine, get_session_factory, init_engine
+        from operix.runtime.events.store.db import DbRunEventStore
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -991,7 +991,7 @@ class TestDbRunEventStoreWriteLock:
         import asyncio
         from unittest.mock import MagicMock
 
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.runtime.events.store.db import DbRunEventStore
 
         # The lock accessor does not touch the session factory, so a stub is fine.
         store = DbRunEventStore(MagicMock())
@@ -1003,7 +1003,7 @@ class TestDbRunEventStoreWriteLock:
     def test_get_write_lock_distinct_threads_get_distinct_locks(self):
         from unittest.mock import MagicMock
 
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.runtime.events.store.db import DbRunEventStore
 
         store = DbRunEventStore(MagicMock())
 
@@ -1013,8 +1013,8 @@ class TestDbRunEventStoreWriteLock:
     async def test_concurrent_put_batch_same_thread_has_no_seq_collision(self, tmp_path):
         import asyncio
 
-        from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.persistence.engine import close_engine, get_session_factory, init_engine
+        from operix.runtime.events.store.db import DbRunEventStore
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -1036,8 +1036,8 @@ class TestDbRunEventStoreWriteLock:
 
     @pytest.mark.anyio
     async def test_delete_by_thread_evicts_orphaned_write_lock(self, tmp_path):
-        from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.persistence.engine import close_engine, get_session_factory, init_engine
+        from operix.runtime.events.store.db import DbRunEventStore
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -1063,8 +1063,8 @@ class TestDbRunEventStoreWriteLock:
     async def test_delete_by_thread_keeps_lock_held_by_inflight_writer(self, tmp_path):
         import asyncio
 
-        from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.persistence.engine import close_engine, get_session_factory, init_engine
+        from operix.runtime.events.store.db import DbRunEventStore
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -1103,7 +1103,7 @@ class TestMakeRunEventStore:
 
     @pytest.mark.anyio
     async def test_memory_backend_default(self):
-        from deerflow.runtime.events.store import make_run_event_store
+        from operix.runtime.events.store import make_run_event_store
 
         store = make_run_event_store(None)
         assert type(store).__name__ == "MemoryRunEventStore"
@@ -1112,7 +1112,7 @@ class TestMakeRunEventStore:
     async def test_memory_backend_explicit(self):
         from unittest.mock import MagicMock
 
-        from deerflow.runtime.events.store import make_run_event_store
+        from operix.runtime.events.store import make_run_event_store
 
         config = MagicMock()
         config.backend = "memory"
@@ -1123,8 +1123,8 @@ class TestMakeRunEventStore:
     async def test_db_backend_with_engine(self, tmp_path):
         from unittest.mock import MagicMock
 
-        from deerflow.persistence.engine import close_engine, init_engine
-        from deerflow.runtime.events.store import make_run_event_store
+        from operix.persistence.engine import close_engine, init_engine
+        from operix.runtime.events.store import make_run_event_store
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -1141,8 +1141,8 @@ class TestMakeRunEventStore:
         """db backend without engine falls back to memory."""
         from unittest.mock import MagicMock
 
-        from deerflow.persistence.engine import close_engine, init_engine
-        from deerflow.runtime.events.store import make_run_event_store
+        from operix.persistence.engine import close_engine, init_engine
+        from operix.runtime.events.store import make_run_event_store
 
         await init_engine("memory")  # no engine created
 
@@ -1156,7 +1156,7 @@ class TestMakeRunEventStore:
     async def test_jsonl_backend(self):
         from unittest.mock import MagicMock
 
-        from deerflow.runtime.events.store import make_run_event_store
+        from operix.runtime.events.store import make_run_event_store
 
         config = MagicMock()
         config.backend = "jsonl"
@@ -1167,7 +1167,7 @@ class TestMakeRunEventStore:
     async def test_unknown_backend_raises(self):
         from unittest.mock import MagicMock
 
-        from deerflow.runtime.events.store import make_run_event_store
+        from operix.runtime.events.store import make_run_event_store
 
         config = MagicMock()
         config.backend = "redis"
@@ -1182,7 +1182,7 @@ class TestJsonlRunEventStore:
     @pytest.mark.anyio
     @pytest.mark.parametrize("thread_id", ["", "thread.with.dot", "../escape", "x" * 65])
     async def test_rejects_noncanonical_thread_ids(self, tmp_path, thread_id):
-        from deerflow.runtime.events.store.jsonl import JsonlRunEventStore
+        from operix.runtime.events.store.jsonl import JsonlRunEventStore
 
         store = JsonlRunEventStore(base_dir=tmp_path / "jsonl")
         with pytest.raises(ValueError, match="Invalid thread_id"):
@@ -1195,7 +1195,7 @@ class TestJsonlRunEventStore:
 
     @pytest.mark.anyio
     async def test_basic_crud(self, tmp_path):
-        from deerflow.runtime.events.store.jsonl import JsonlRunEventStore
+        from operix.runtime.events.store.jsonl import JsonlRunEventStore
 
         s = JsonlRunEventStore(base_dir=tmp_path / "jsonl")
         r = await s.put(thread_id="t1", run_id="r1", event_type="human_message", category="message", content="hi")
@@ -1205,14 +1205,14 @@ class TestJsonlRunEventStore:
 
     @pytest.mark.anyio
     async def test_find_latest_ai_message_run_ids_contract(self, tmp_path):
-        from deerflow.runtime.events.store.jsonl import JsonlRunEventStore
+        from operix.runtime.events.store.jsonl import JsonlRunEventStore
 
         store = JsonlRunEventStore(base_dir=tmp_path / "jsonl")
         await _assert_find_latest_ai_message_run_ids_contract(store, allow_empty_run_id=False)
 
     @pytest.mark.anyio
     async def test_find_latest_ai_message_run_ids_reads_thread_once_and_ignores_empty_run(self, tmp_path):
-        from deerflow.runtime.events.store.jsonl import JsonlRunEventStore
+        from operix.runtime.events.store.jsonl import JsonlRunEventStore
 
         store = JsonlRunEventStore(base_dir=tmp_path / "jsonl")
         events = [
@@ -1243,7 +1243,7 @@ class TestJsonlRunEventStore:
 
     @pytest.mark.anyio
     async def test_put_if_absent_is_idempotent(self, tmp_path):
-        from deerflow.runtime.events.store.jsonl import JsonlRunEventStore
+        from operix.runtime.events.store.jsonl import JsonlRunEventStore
 
         s = JsonlRunEventStore(base_dir=tmp_path / "jsonl")
         first, created = await s.put_if_absent(thread_id="t1", run_id="r1", event_type="run.delivery", category="outputs", content={"presented": 2})
@@ -1256,7 +1256,7 @@ class TestJsonlRunEventStore:
 
     @pytest.mark.anyio
     async def test_file_at_correct_path(self, tmp_path):
-        from deerflow.runtime.events.store.jsonl import JsonlRunEventStore
+        from operix.runtime.events.store.jsonl import JsonlRunEventStore
 
         s = JsonlRunEventStore(base_dir=tmp_path / "jsonl")
         await s.put(thread_id="t1", run_id="r1", event_type="human_message", category="message")
@@ -1264,7 +1264,7 @@ class TestJsonlRunEventStore:
 
     @pytest.mark.anyio
     async def test_cross_run_messages(self, tmp_path):
-        from deerflow.runtime.events.store.jsonl import JsonlRunEventStore
+        from operix.runtime.events.store.jsonl import JsonlRunEventStore
 
         s = JsonlRunEventStore(base_dir=tmp_path / "jsonl")
         await s.put(thread_id="t1", run_id="r1", event_type="human_message", category="message")
@@ -1275,7 +1275,7 @@ class TestJsonlRunEventStore:
 
     @pytest.mark.anyio
     async def test_delete_by_run(self, tmp_path):
-        from deerflow.runtime.events.store.jsonl import JsonlRunEventStore
+        from operix.runtime.events.store.jsonl import JsonlRunEventStore
 
         s = JsonlRunEventStore(base_dir=tmp_path / "jsonl")
         await s.put(thread_id="t1", run_id="r1", event_type="human_message", category="message")
@@ -1293,7 +1293,7 @@ class TestJsonlRunEventStore:
         Run-scoped routes pass the URL's ``run_id`` straight through, so raising
         here surfaced as a 500 instead of the empty result the other backends give.
         """
-        from deerflow.runtime.events.store.jsonl import JsonlRunEventStore
+        from operix.runtime.events.store.jsonl import JsonlRunEventStore
 
         s = JsonlRunEventStore(base_dir=tmp_path / "jsonl")
         await s.put(thread_id="t1", run_id="r1", event_type="ai_message", category="message")
@@ -1310,7 +1310,7 @@ class TestJsonlRunEventStore:
 
     @pytest.mark.anyio
     async def test_unsafe_run_id_is_still_rejected_on_write(self, tmp_path):
-        from deerflow.runtime.events.store.jsonl import JsonlRunEventStore
+        from operix.runtime.events.store.jsonl import JsonlRunEventStore
 
         s = JsonlRunEventStore(base_dir=tmp_path / "jsonl")
         event = {"thread_id": "t1", "run_id": "run.1", "event_type": "ai_message", "category": "message"}
@@ -1461,7 +1461,7 @@ class TestGetMessageSeqs:
 
     @pytest.mark.anyio
     async def test_jsonl_store_resolves_identities(self, tmp_path):
-        from deerflow.runtime.events.store.jsonl import JsonlRunEventStore
+        from operix.runtime.events.store.jsonl import JsonlRunEventStore
 
         s = JsonlRunEventStore(base_dir=tmp_path / "jsonl")
         await s.put(
@@ -1486,8 +1486,8 @@ class TestGetMessageSeqs:
 
     @pytest.mark.anyio
     async def test_db_store_resolves_identities(self, tmp_path):
-        from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.persistence.engine import close_engine, get_session_factory, init_engine
+        from operix.runtime.events.store.db import DbRunEventStore
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'seqs.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -1536,9 +1536,9 @@ class TestGetMessageSeqs:
         import json as real_json
         from types import SimpleNamespace
 
-        from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-        from deerflow.runtime.events.store import db as db_module
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.persistence.engine import close_engine, get_session_factory, init_engine
+        from operix.runtime.events.store import db as db_module
+        from operix.runtime.events.store.db import DbRunEventStore
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'seqs.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -1580,8 +1580,8 @@ class TestGetMessageSeqs:
         """An id carrying LIKE wildcards or JSON-escaped characters cannot be
         matched as a raw substring of the stored JSON — the lookup must fall
         back to the full scan for the whole wanted set, not silently miss."""
-        from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-        from deerflow.runtime.events.store.db import DbRunEventStore
+        from operix.persistence.engine import close_engine, get_session_factory, init_engine
+        from operix.runtime.events.store.db import DbRunEventStore
 
         url = f"sqlite+aiosqlite:///{tmp_path / 'seqs.db'}"
         await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -1606,21 +1606,21 @@ class TestAttachMessageSeq:
     two counterparts cannot silently diverge."""
 
     def test_attaches_the_seq_under_the_server_owned_key(self):
-        from deerflow.runtime.events.message_identity import attach_message_seq
+        from operix.runtime.events.message_identity import attach_message_seq
 
         stamped = attach_message_seq({"type": "human", "id": "u1"}, 7)
 
-        assert stamped["additional_kwargs"] == {"deerflow_seq": 7}
+        assert stamped["additional_kwargs"] == {"operix_seq": 7}
 
     def test_existing_additional_kwargs_are_preserved(self):
-        from deerflow.runtime.events.message_identity import attach_message_seq
+        from operix.runtime.events.message_identity import attach_message_seq
 
         stamped = attach_message_seq({"type": "ai", "id": "a1", "additional_kwargs": {"run_id": "r1"}}, 3)
 
-        assert stamped["additional_kwargs"] == {"run_id": "r1", "deerflow_seq": 3}
+        assert stamped["additional_kwargs"] == {"run_id": "r1", "operix_seq": 3}
 
     def test_the_input_message_is_not_mutated(self):
-        from deerflow.runtime.events.message_identity import attach_message_seq
+        from operix.runtime.events.message_identity import attach_message_seq
 
         message = {"type": "human", "id": "u1", "additional_kwargs": {"run_id": "r1"}}
 
@@ -1641,7 +1641,7 @@ class TestStampMessagesWithSeq:
 
     @pytest.mark.anyio
     async def test_stamps_a_persisted_message(self, store):
-        from deerflow.runtime.events.message_seq import stamp_messages_with_seq
+        from operix.runtime.events.message_seq import stamp_messages_with_seq
 
         await store.put(
             thread_id="t1",
@@ -1653,21 +1653,21 @@ class TestStampMessagesWithSeq:
 
         stamped = await stamp_messages_with_seq(store, "t1", [{"type": "human", "id": "u1__user", "content": "MARK-FIRST"}])
 
-        assert stamped[0]["additional_kwargs"]["deerflow_seq"] == 1
+        assert stamped[0]["additional_kwargs"]["operix_seq"] == 1
 
     @pytest.mark.anyio
     async def test_a_message_absent_from_the_feed_is_left_alone(self, store):
-        from deerflow.runtime.events.message_seq import stamp_messages_with_seq
+        from operix.runtime.events.message_seq import stamp_messages_with_seq
 
         messages = [{"type": "ai", "id": "not-persisted", "content": "…"}]
 
         stamped = await stamp_messages_with_seq(store, "t1", messages)
 
-        assert "deerflow_seq" not in (stamped[0].get("additional_kwargs") or {})
+        assert "operix_seq" not in (stamped[0].get("additional_kwargs") or {})
 
     @pytest.mark.anyio
     async def test_the_input_list_is_not_mutated(self, store):
-        from deerflow.runtime.events.message_seq import stamp_messages_with_seq
+        from operix.runtime.events.message_seq import stamp_messages_with_seq
 
         await store.put(
             thread_id="t1",
@@ -1684,7 +1684,7 @@ class TestStampMessagesWithSeq:
 
     @pytest.mark.anyio
     async def test_a_missing_store_returns_the_messages_unchanged(self):
-        from deerflow.runtime.events.message_seq import stamp_messages_with_seq
+        from operix.runtime.events.message_seq import stamp_messages_with_seq
 
         messages = [{"type": "human", "id": "u1", "content": "hi"}]
 
@@ -1693,7 +1693,7 @@ class TestStampMessagesWithSeq:
     @pytest.mark.anyio
     async def test_a_failing_store_degrades_instead_of_raising(self, store):
         """Placement is an enhancement; a broken lookup must not fail the read."""
-        from deerflow.runtime.events.message_seq import stamp_messages_with_seq
+        from operix.runtime.events.message_seq import stamp_messages_with_seq
 
         class _Broken:
             async def get_message_seqs(self, *_args, **_kwargs):

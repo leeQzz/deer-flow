@@ -2,8 +2,8 @@
 
 import pytest
 
-from deerflow.config.model_config import RequestAdmissionConfig
-from deerflow.models import request_admission as admission
+from operix.config.model_config import RequestAdmissionConfig
+from operix.models import request_admission as admission
 
 
 @pytest.fixture

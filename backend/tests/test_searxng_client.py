@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from deerflow.community.searxng import tools
-from deerflow.community.searxng.searxng_client import SearxngClient
+from operix.community.searxng import tools
+from operix.community.searxng.searxng_client import SearxngClient
 
 
 class AsyncMock(MagicMock):
@@ -24,7 +24,7 @@ def _searxng_pages(pages: dict[int, list[dict]]):
     A page that was not given answers with an empty result set, which is what a
     real instance does once the query is exhausted.
     """
-    with patch("deerflow.community.searxng.searxng_client.httpx.AsyncClient") as mock_cls:
+    with patch("operix.community.searxng.searxng_client.httpx.AsyncClient") as mock_cls:
         mock_ctx = MagicMock()
         mock_cls.return_value.__aenter__.return_value = mock_ctx
 
@@ -52,7 +52,7 @@ class TestSearxngClient:
             ]
         }
 
-        with patch("deerflow.community.searxng.searxng_client.httpx.AsyncClient") as mock_cls:
+        with patch("operix.community.searxng.searxng_client.httpx.AsyncClient") as mock_cls:
             mock_ctx = MagicMock()
             mock_cls.return_value.__aenter__.return_value = mock_ctx
 
@@ -71,7 +71,7 @@ class TestSearxngClient:
 
     async def test_search_empty_results(self):
         """Search returns empty list when no results."""
-        with patch("deerflow.community.searxng.searxng_client.httpx.AsyncClient") as mock_cls:
+        with patch("operix.community.searxng.searxng_client.httpx.AsyncClient") as mock_cls:
             mock_ctx = MagicMock()
             mock_cls.return_value.__aenter__.return_value = mock_ctx
 
@@ -87,7 +87,7 @@ class TestSearxngClient:
 
     async def test_search_http_error(self):
         """Search raises on HTTP error."""
-        with patch("deerflow.community.searxng.searxng_client.httpx.AsyncClient") as mock_cls:
+        with patch("operix.community.searxng.searxng_client.httpx.AsyncClient") as mock_cls:
             mock_ctx = MagicMock()
             mock_cls.return_value.__aenter__.return_value = mock_ctx
 
@@ -103,7 +103,7 @@ class TestSearxngClient:
 
     async def test_search_request_error(self):
         """Search raises on request error."""
-        with patch("deerflow.community.searxng.searxng_client.httpx.AsyncClient") as mock_cls:
+        with patch("operix.community.searxng.searxng_client.httpx.AsyncClient") as mock_cls:
             mock_ctx = MagicMock()
             mock_cls.return_value.__aenter__.return_value = mock_ctx
 
@@ -117,7 +117,7 @@ class TestSearxngClient:
 
     async def test_search_with_categories(self):
         """Search passes categories parameter."""
-        with patch("deerflow.community.searxng.searxng_client.httpx.AsyncClient") as mock_cls:
+        with patch("operix.community.searxng.searxng_client.httpx.AsyncClient") as mock_cls:
             mock_ctx = MagicMock()
             mock_cls.return_value.__aenter__.return_value = mock_ctx
 
@@ -135,7 +135,7 @@ class TestSearxngClient:
 
     async def test_search_with_time_range(self):
         """Search passes a native relative time range."""
-        with patch("deerflow.community.searxng.searxng_client.httpx.AsyncClient") as mock_cls:
+        with patch("operix.community.searxng.searxng_client.httpx.AsyncClient") as mock_cls:
             mock_ctx = MagicMock()
             mock_cls.return_value.__aenter__.return_value = mock_ctx
 
@@ -152,7 +152,7 @@ class TestSearxngClient:
 
     async def test_search_without_time_range_omits_parameter(self):
         """The default request shape remains unchanged."""
-        with patch("deerflow.community.searxng.searxng_client.httpx.AsyncClient") as mock_cls:
+        with patch("operix.community.searxng.searxng_client.httpx.AsyncClient") as mock_cls:
             mock_ctx = MagicMock()
             mock_cls.return_value.__aenter__.return_value = mock_ctx
 
@@ -222,7 +222,7 @@ class TestSearxngClient:
 class TestSearxngTools:
     """Tests for the SearXNG tool functions."""
 
-    @patch("deerflow.community.searxng.tools._get_searxng_client")
+    @patch("operix.community.searxng.tools._get_searxng_client")
     async def test_web_search_tool_success(self, mock_get_client):
         """web_search_tool returns JSON results."""
         mock_client = MagicMock()
@@ -233,27 +233,27 @@ class TestSearxngTools:
         )
         mock_get_client.return_value = mock_client
 
-        with patch("deerflow.community.searxng.tools._get_tool_config", return_value=None):
+        with patch("operix.community.searxng.tools._get_tool_config", return_value=None):
             result = await tools.web_search_tool.ainvoke("test query")
 
         data = json.loads(result)
         assert len(data) == 1
         assert data[0]["title"] == "Result 1"
 
-    @patch("deerflow.community.searxng.tools._get_searxng_client")
+    @patch("operix.community.searxng.tools._get_searxng_client")
     async def test_web_search_tool_error(self, mock_get_client):
         """web_search_tool handles errors gracefully."""
         mock_client = MagicMock()
         mock_client.search = AsyncMock(side_effect=Exception("API error"))
         mock_get_client.return_value = mock_client
 
-        with patch("deerflow.community.searxng.tools._get_tool_config", return_value=None):
+        with patch("operix.community.searxng.tools._get_tool_config", return_value=None):
             result = await tools.web_search_tool.ainvoke("test query")
 
         data = json.loads(result)
         assert "error" in data
 
-    @patch("deerflow.community.searxng.tools._get_searxng_client")
+    @patch("operix.community.searxng.tools._get_searxng_client")
     async def test_web_search_tool_with_max_results(self, mock_get_client):
         """web_search_tool respects max_results config."""
         mock_client = MagicMock()
@@ -261,7 +261,7 @@ class TestSearxngTools:
         mock_client.search = AsyncMock(return_value=[{"title": f"Result {i}", "url": f"https://example.com/{i}", "content": f"Desc {i}"} for i in range(10)])
         mock_get_client.return_value = mock_client
 
-        with patch("deerflow.community.searxng.tools._get_tool_config", return_value={"max_results": "3"}):
+        with patch("operix.community.searxng.tools._get_tool_config", return_value={"max_results": "3"}):
             await tools.web_search_tool.ainvoke("test query")
 
         # Verify that search was called with max_results=3 (coerced from string)
@@ -269,7 +269,7 @@ class TestSearxngTools:
         call_kwargs = mock_client.search.call_args.kwargs
         assert call_kwargs["max_results"] == 3
 
-    @patch("deerflow.community.searxng.tools._get_searxng_client")
+    @patch("operix.community.searxng.tools._get_searxng_client")
     async def test_web_search_tool_unparseable_max_results_uses_default(self, mock_get_client):
         """A max_results the config cannot give as a number falls back to the default."""
         mock_client = MagicMock()
@@ -280,26 +280,26 @@ class TestSearxngTools:
         # typo an operator can just as easily make. Neither is a reason to stop
         # searching -- every sibling provider falls back to the default.
         for raw in (None, "many"):
-            with patch("deerflow.community.searxng.tools._get_tool_config", return_value={"max_results": raw}):
+            with patch("operix.community.searxng.tools._get_tool_config", return_value={"max_results": raw}):
                 result = await tools.web_search_tool.ainvoke("test query")
 
             assert "error" not in json.loads(result), f"max_results={raw!r} failed the whole call"
             mock_client.search.assert_called_once_with("test query", max_results=5)
             mock_client.search.reset_mock()
 
-    @patch("deerflow.community.searxng.tools._get_searxng_client")
+    @patch("operix.community.searxng.tools._get_searxng_client")
     async def test_web_search_tool_forwards_time_range(self, mock_get_client):
         """web_search_tool forwards the requested relative time range."""
         mock_client = MagicMock()
         mock_client.search = AsyncMock(return_value=[])
         mock_get_client.return_value = mock_client
 
-        with patch("deerflow.community.searxng.tools._get_tool_config", return_value=None):
+        with patch("operix.community.searxng.tools._get_tool_config", return_value=None):
             await tools.web_search_tool.ainvoke({"query": "latest release", "time_range": "week"})
 
         mock_client.search.assert_called_once_with("latest release", max_results=5, time_range="week")
 
-    @patch("deerflow.community.searxng.tools._get_searxng_client")
+    @patch("operix.community.searxng.tools._get_searxng_client")
     async def test_web_search_tool_inf_max_results_falls_back_to_default(self, mock_get_client):
         """A YAML `.inf` max_results must fall back to the default, not error out."""
         mock_client = MagicMock()
@@ -311,7 +311,7 @@ class TestSearxngTools:
         mock_get_client.return_value = mock_client
 
         with patch(
-            "deerflow.community.searxng.tools._get_tool_config",
+            "operix.community.searxng.tools._get_tool_config",
             return_value={"max_results": float("inf")},
         ):
             result = await tools.web_search_tool.ainvoke("test query")

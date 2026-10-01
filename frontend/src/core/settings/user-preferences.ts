@@ -9,7 +9,7 @@ import {
 } from "./preferences-sync";
 import { activatePreferences } from "./store";
 
-const PREFIX = "deerflow.preferences.";
+const PREFIX = "operix.preferences.";
 
 function readJSON(read: () => string | null): Preferences {
   try {

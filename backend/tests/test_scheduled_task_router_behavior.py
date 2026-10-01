@@ -8,10 +8,10 @@ from _router_auth_helpers import call_unwrapped
 from fastapi import HTTPException
 
 from app.gateway.routers import scheduled_tasks
-from deerflow.config.database_config import DatabaseConfig
-from deerflow.persistence.engine import close_engine, get_session_factory, init_engine_from_config
-from deerflow.persistence.scheduled_task_runs import ScheduledTaskRunRepository
-from deerflow.persistence.scheduled_tasks import ScheduledTaskRepository
+from operix.config.database_config import DatabaseConfig
+from operix.persistence.engine import close_engine, get_session_factory, init_engine_from_config
+from operix.persistence.scheduled_task_runs import ScheduledTaskRunRepository
+from operix.persistence.scheduled_tasks import ScheduledTaskRepository
 
 
 @pytest.mark.parametrize(

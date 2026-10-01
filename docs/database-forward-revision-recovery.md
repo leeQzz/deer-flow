@@ -47,7 +47,7 @@ are not required before their migration runs.
    from alembic import command
    from sqlalchemy.ext.asyncio import create_async_engine
 
-   from deerflow.persistence.bootstrap import _get_alembic_config
+   from operix.persistence.bootstrap import _get_alembic_config
 
    engine = create_async_engine(os.environ["DEERFLOW_RECOVERY_DATABASE_URL"])
    cfg = _get_alembic_config(

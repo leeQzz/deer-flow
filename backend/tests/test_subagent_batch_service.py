@@ -5,13 +5,13 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from deerflow.config.subagent_batches_config import SubagentBatchesConfig
-from deerflow.config.subagent_runtime_config import SubagentRuntimeConfig
-from deerflow.mcp_scope import THREAD_INCARNATION_CONTEXT_KEY
-from deerflow.subagents import batch_service as service_module
-from deerflow.subagents.batch_runtime import BatchSubmitRequest
-from deerflow.subagents.batch_service import SubagentBatchService
-from deerflow.subagents.capacity import SubagentExecutionCapacity
+from operix.config.subagent_batches_config import SubagentBatchesConfig
+from operix.config.subagent_runtime_config import SubagentRuntimeConfig
+from operix.mcp_scope import THREAD_INCARNATION_CONTEXT_KEY
+from operix.subagents import batch_service as service_module
+from operix.subagents.batch_runtime import BatchSubmitRequest
+from operix.subagents.batch_service import SubagentBatchService
+from operix.subagents.capacity import SubagentExecutionCapacity
 
 _MISSING = object()
 
@@ -196,7 +196,7 @@ async def test_execute_item_marks_real_running_then_persists_terminal_result(
     monkeypatch.setattr(service_module, "SubagentStatus", FakeStatus)
     monkeypatch.setattr(service_module, "get_background_task_result", lambda _execution_id: result)
     monkeypatch.setattr(service_module, "cleanup_background_task", lambda _execution_id: None)
-    monkeypatch.setattr("deerflow.tools.get_available_tools", lambda **_kwargs: [])
+    monkeypatch.setattr("operix.tools.get_available_tools", lambda **_kwargs: [])
     service = SubagentBatchService(
         repository=repository,
         config=SubagentBatchesConfig(),
@@ -289,7 +289,7 @@ async def test_execute_item_polls_completion_without_waiting_for_lease_renewal(m
     monkeypatch.setattr(service_module, "SubagentStatus", FakeStatus)
     monkeypatch.setattr(service_module, "get_background_task_result", read_result)
     monkeypatch.setattr(service_module, "cleanup_background_task", lambda _execution_id: None)
-    monkeypatch.setattr("deerflow.tools.get_available_tools", lambda **_kwargs: [])
+    monkeypatch.setattr("operix.tools.get_available_tools", lambda **_kwargs: [])
     service = SubagentBatchService(
         repository=repository,
         config=SubagentBatchesConfig(poll_interval_seconds=0.1, lease_seconds=120),
@@ -365,7 +365,7 @@ async def test_executor_admission_failure_requeues_instead_of_finalizing(monkeyp
     monkeypatch.setattr(service_module, "SubagentStatus", FakeStatus)
     monkeypatch.setattr(service_module, "get_background_task_result", lambda _execution_id: result)
     monkeypatch.setattr(service_module, "cleanup_background_task", lambda _execution_id: None)
-    monkeypatch.setattr("deerflow.tools.get_available_tools", lambda **_kwargs: [])
+    monkeypatch.setattr("operix.tools.get_available_tools", lambda **_kwargs: [])
     service = SubagentBatchService(
         repository=repository,
         config=SubagentBatchesConfig(),
@@ -393,9 +393,9 @@ async def test_cancel_during_tool_assembly_skips_launch(monkeypatch, tmp_path) -
     import threading
     from datetime import UTC, datetime
 
-    from deerflow.config.database_config import DatabaseConfig
-    from deerflow.persistence.engine import close_engine, get_session_factory, init_engine_from_config
-    from deerflow.persistence.subagent_batches import SubagentBatchRepository
+    from operix.config.database_config import DatabaseConfig
+    from operix.persistence.engine import close_engine, get_session_factory, init_engine_from_config
+    from operix.persistence.subagent_batches import SubagentBatchRepository
 
     await init_engine_from_config(DatabaseConfig(backend="sqlite", sqlite_dir=str(tmp_path)))
     try:
@@ -447,7 +447,7 @@ async def test_cancel_during_tool_assembly_skips_launch(monkeypatch, tmp_path) -
             assembly_release.wait(timeout=15)
             return []
 
-        monkeypatch.setattr("deerflow.tools.get_available_tools", _blocking_assembly)
+        monkeypatch.setattr("operix.tools.get_available_tools", _blocking_assembly)
         monkeypatch.setattr(service_module, "SubagentStatus", FakeStatus)
         monkeypatch.setattr(service_module, "resolve_subagent_model_name", lambda *_a, **_k: "test-model")
         monkeypatch.setattr(service_module, "request_cancel_background_task", lambda _execution_id: None)

@@ -9,9 +9,9 @@ from pydantic import BaseModel, ConfigDict
 
 from app.gateway.deps import require_admin_user
 from app.gateway.persistent_writes import run_drained_write
-from deerflow.config.app_config import get_app_config
-from deerflow.config.managed_models import ManagedModel, ManagedModelStore
-from deerflow.reflection import resolve_class
+from operix.config.app_config import get_app_config
+from operix.config.managed_models import ManagedModel, ManagedModelStore
+from operix.reflection import resolve_class
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/managed-models", tags=["models"])

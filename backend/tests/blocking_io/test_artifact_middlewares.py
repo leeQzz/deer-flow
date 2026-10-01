@@ -11,10 +11,10 @@ from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.tools import tool
 from langgraph.prebuilt.tool_node import ToolCallRequest
 
-from deerflow.agents.middlewares.artifact_capture_middleware import ArtifactCaptureMiddleware
-from deerflow.agents.middlewares.artifact_resolution_middleware import ArtifactResolutionMiddleware
-from deerflow.agents.middlewares.durable_context_middleware import DurableContextMiddleware
-from deerflow.agents.thread_state import ThreadState
+from operix.agents.middlewares.artifact_capture_middleware import ArtifactCaptureMiddleware
+from operix.agents.middlewares.artifact_resolution_middleware import ArtifactResolutionMiddleware
+from operix.agents.middlewares.durable_context_middleware import DurableContextMiddleware
+from operix.agents.thread_state import ThreadState
 
 pytestmark = pytest.mark.asyncio
 
@@ -65,7 +65,7 @@ async def test_async_unknown_handle_returns_error_without_io_or_execution():
 
 
 async def test_async_oversized_structured_payload_is_rejected_before_serialization(monkeypatch):
-    import deerflow.tools.artifact_registry as registry
+    import operix.tools.artifact_registry as registry
 
     def never_encode(*args, **kwargs):
         raise AssertionError("Do not serialize oversized MCP payloads on the loop")

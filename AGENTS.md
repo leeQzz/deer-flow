@@ -12,9 +12,9 @@ guide rather than expecting full detail here:
 - **[frontend/AGENTS.md](frontend/AGENTS.md)** — frontend depth: Next.js App Router layout,
   thread/streaming data flow, code style, commands.
 
-## What is DeerFlow
+## What is Operix
 
-DeerFlow is a LangGraph-based AI super-agent system with a full-stack architecture. The
+Operix is a LangGraph-based AI super-agent system with a full-stack architecture. The
 backend runs a "super agent" with sandboxed execution, persistent memory, subagent
 delegation, and extensible tools (built-in, MCP, community), all per-thread isolated. The
 frontend is a Next.js chat UI. External IM platforms (Feishu, Slack, Telegram, Discord,
@@ -50,23 +50,23 @@ both compose files.
 ## Repository Map
 
 ```
-deer-flow/
+operix/
 ├── Makefile                        # Root orchestration: drives the full stack (dev/start/stop, docker, setup)
 ├── config.example.yaml             # Template → copy to config.yaml (gitignored) at repo root
 ├── extensions_config.example.json  # Template → copy to extensions_config.json (gitignored): MCP servers + skills
 ├── backend/                        # Python backend — see backend/AGENTS.md
 │   ├── Makefile                    # Per-module backend commands (dev, gateway, test, lint, migrate-rev)
 │   ├── extensions/sources/         # Deployable snapshots of locally installed Python extensions
-│   ├── packages/extension-api/     # deerflow-extension-api package (import: deerflow_extension_api.*) — public extension contract
-│   ├── packages/harness/           # deerflow-harness package (import: deerflow.*) — agent framework
+│   ├── packages/extension-api/     # operix-extension-api package (import: operix_extension_api.*) — public extension contract
+│   ├── packages/harness/           # operix-harness package (import: operix.*) — agent framework
 │   └── app/                        # FastAPI Gateway + IM channels (import: app.*)
 ├── frontend/                       # Next.js frontend (pnpm) — see frontend/AGENTS.md
 ├── docker/                         # docker-compose files, nginx config, provisioner
 ├── skills/                         # Agent skills: public/ (committed), custom/ (gitignored)
-│                                    # Managed integration skill packs are global at .deer-flow/integrations/skills/{provider}/
+│                                    # Managed integration skill packs are global at .operix/integrations/skills/{provider}/
 │                                    # Integration credentials and enabled state remain per-user
 ├── contracts/                      # Cross-component JSON contracts (e.g. subagent status, skill review)
-├── examples/                       # Extension examples: deerflow-extension-{example,bookmarks}
+├── examples/                       # Extension examples: operix-extension-{example,bookmarks}
 ├── scripts/                        # Root orchestration scripts invoked by the Makefile (check, configure, doctor, support_bundle, serve, nginx, docker, deploy, setup_wizard)
 ├── tests/                          # Root-level tests (currently tests/skills/ — public skill tests)
 └── docs/                           # Cross-cutting docs, plans, and design notes
@@ -76,12 +76,12 @@ Third-party extensions are loaded from a top-level `plugins:` list in `config.ya
 (operator-controlled on purpose — that list causes code to be imported, so it is deliberately
 kept out of the API-writable `extensions_config.json`). Packaged extensions can contribute
 middleware, lifecycle observers, Gateway services, FastAPI HTTP routers, and experimental
-full-stack plugins. Manage them with `deerflow extensions install/upgrade/list/enable/disable/remove` or the root
+full-stack plugins. Manage them with `operix extensions install/upgrade/list/enable/disable/remove` or the root
 `make extension-*` wrappers. Every mutation requires a Gateway restart, and both build
 hooks and extension code execute with Gateway privileges, so only trusted operator sources
 belong in this path. The manager transaction, accepted source forms, lock discipline, and
 contribution contract live in
-[the extensions guide](backend/packages/harness/deerflow/extensions/AGENTS.md); the user manual
+[the extensions guide](backend/packages/harness/operix/extensions/AGENTS.md); the user manual
 is `frontend/src/content/{en,zh}/harness/extensions/`.
 
 Runtime config lives at the **repo root**: copy `config.example.yaml` → `config.yaml`
@@ -143,7 +143,7 @@ for that probe before printing its success banner. A readiness failure must
 surface Compose status and recent Gateway logs instead of claiming the stack is
 running.
 
-Docker log and restart commands resolve `DEER_FLOW_ROOT` from the current
+Docker log and restart commands resolve `OPERIX_ROOT` from the current
 checkout before invoking Compose, matching the start and stop commands.
 
 Run `make help` for the full list.
@@ -159,7 +159,7 @@ cd backend && make lint       # ruff check
 cd backend && make format     # ruff format
 
 # Frontend (see frontend/AGENTS.md for the full set)
-cd frontend && pnpm dev       # Dev server: Webpack by default (override with DEER_FLOW_DEV_BUNDLER=turbo)
+cd frontend && pnpm dev       # Dev server: Webpack by default (override with OPERIX_DEV_BUNDLER=turbo)
 cd frontend && pnpm check     # Lint + type check (run before committing)
 cd frontend && pnpm test      # Unit tests
 ```
@@ -230,7 +230,7 @@ These apply repo-wide; module guides own the module-specific detail.
   Python utilities that read or write them must pass `encoding="utf-8"` rather than
   relying on the platform locale.
 - **Version sources must stay in lockstep** — a release version must match identically in
-  `backend/pyproject.toml`, `frontend/package.json`, and `deploy/helm/deer-flow/Chart.yaml`
+  `backend/pyproject.toml`, `frontend/package.json`, and `deploy/helm/operix/Chart.yaml`
   (`version` + `appVersion`), and `backend/uv.lock` must record the same version for the root
   package (uv stores its PEP 440 form, e.g. `2.1.0rc0`). Pushing a `v*` git tag triggers CI
   that runs `scripts/verify_versions.sh` and **blocks all publishing** if any source drifts.

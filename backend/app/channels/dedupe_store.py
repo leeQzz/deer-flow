@@ -110,7 +110,7 @@ class PostgresInboundDedupeStore:
     def _resolve_session_factory(self) -> Any:
         if self._session_factory is not None:
             return self._session_factory
-        from deerflow.persistence.engine import get_session_factory
+        from operix.persistence.engine import get_session_factory
 
         sf = get_session_factory()
         if sf is None:

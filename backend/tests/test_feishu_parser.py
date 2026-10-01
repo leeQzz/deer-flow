@@ -20,7 +20,7 @@ from app.channels.message_bus import (
     OutboundMessage,
 )
 from app.channels.store import ChannelStore
-from deerflow.uploads.manager import PathTraversalError
+from operix.uploads.manager import PathTraversalError
 
 
 def _pending(
@@ -81,7 +81,7 @@ def _feishu_file_channel(*responses):
 @pytest.mark.parametrize("failure", [None, "sync", "release"])
 def test_feishu_receive_single_file_releases_sandbox_after_sync(tmp_path, monkeypatch, failure):
     async def go():
-        from deerflow.config.paths import Paths
+        from operix.config.paths import Paths
 
         channel = _feishu_file_channel(_feishu_file_response("note.txt", b"hello uploads"))
         provider = MagicMock()
@@ -107,7 +107,7 @@ def test_feishu_receive_single_file_releases_sandbox_after_sync(tmp_path, monkey
 
 def test_feishu_receive_single_file_skips_release_for_mounted_sandbox(tmp_path, monkeypatch):
     async def go():
-        from deerflow.config.paths import Paths
+        from operix.config.paths import Paths
 
         channel = _feishu_file_channel(_feishu_file_response("note.txt", b"hello uploads"))
         provider = MagicMock()
@@ -263,7 +263,7 @@ def test_feishu_receive_file_replaces_placeholders_in_order():
 
 def test_feishu_receive_file_syncs_sandbox_with_explicit_user_id(tmp_path, monkeypatch):
     async def go():
-        from deerflow.config.paths import Paths
+        from operix.config.paths import Paths
 
         channel = _feishu_file_channel(_feishu_file_response("report.md", b"file-bytes"))
 
@@ -290,7 +290,7 @@ def test_feishu_receive_file_syncs_sandbox_with_explicit_user_id(tmp_path, monke
 
 def test_feishu_receive_file_preserves_duplicate_filenames(tmp_path, monkeypatch):
     async def go():
-        from deerflow.config.paths import Paths
+        from operix.config.paths import Paths
 
         channel = _feishu_file_channel(
             _feishu_file_response("report.txt", b"FIRST"),
@@ -315,7 +315,7 @@ def test_feishu_receive_file_preserves_duplicate_filenames(tmp_path, monkeypatch
 
 def test_feishu_receive_file_does_not_follow_planted_symlink(tmp_path, monkeypatch):
     async def go():
-        from deerflow.config.paths import Paths
+        from operix.config.paths import Paths
 
         paths = Paths(base_dir=tmp_path)
         paths.ensure_thread_dirs("thread-1", user_id="ou-user")
@@ -341,7 +341,7 @@ def test_feishu_receive_file_does_not_follow_planted_symlink(tmp_path, monkeypat
 
 def test_feishu_receive_file_reserves_dangling_symlink_name(tmp_path, monkeypatch):
     async def go():
-        from deerflow.config.paths import Paths
+        from operix.config.paths import Paths
 
         paths = Paths(base_dir=tmp_path)
         paths.ensure_thread_dirs("thread-1", user_id="ou-user")
@@ -366,7 +366,7 @@ def test_feishu_receive_file_reserves_dangling_symlink_name(tmp_path, monkeypatc
 
 def test_feishu_receive_file_syncs_unique_path_to_remote_sandbox(tmp_path, monkeypatch):
     async def go():
-        from deerflow.config.paths import Paths
+        from operix.config.paths import Paths
 
         paths = Paths(base_dir=tmp_path)
         paths.ensure_thread_dirs("thread-1", user_id="ou-user")
@@ -395,7 +395,7 @@ def test_feishu_receive_file_syncs_unique_path_to_remote_sandbox(tmp_path, monke
 
 def test_feishu_receive_file_path_traversal_failure_is_per_attachment(tmp_path, monkeypatch):
     async def go():
-        from deerflow.config.paths import Paths
+        from operix.config.paths import Paths
 
         paths = Paths(base_dir=tmp_path)
         channel = _feishu_file_channel(
@@ -438,7 +438,7 @@ def test_feishu_receive_file_path_traversal_failure_is_per_attachment(tmp_path, 
 
 def test_feishu_receive_file_runtime_resolve_failure_is_per_attachment(tmp_path, monkeypatch):
     async def go():
-        from deerflow.config.paths import Paths
+        from operix.config.paths import Paths
 
         real_paths = Paths(base_dir=tmp_path)
 
@@ -491,7 +491,7 @@ def test_feishu_receive_file_runtime_resolve_failure_is_per_attachment(tmp_path,
 
 def test_feishu_receive_file_rejects_oversized_resource(tmp_path, monkeypatch):
     async def go():
-        from deerflow.config.paths import Paths
+        from operix.config.paths import Paths
 
         class TrackingStream:
             def __init__(self):

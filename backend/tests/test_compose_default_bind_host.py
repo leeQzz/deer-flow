@@ -1,6 +1,6 @@
 """Regression test for the Docker Compose default published bind address.
 
-``README.md`` documents DeerFlow as being deployed by default "in a local
+``README.md`` documents Operix as being deployed by default "in a local
 trusted environment (accessible only via the 127.0.0.1 loopback interface)",
 but the shipped compose files published the nginx entry as
 ``"${PORT:-2026}:2026"``, which Docker binds to ``0.0.0.0`` (and ``[::]``). The
@@ -85,7 +85,7 @@ def test_dev_frontend_allows_default_loopback_origins():
     compose = yaml.safe_load(COMPOSE_PATHS["dev"].read_text(encoding="utf-8"))
     environment = compose["services"]["frontend"]["environment"]
 
-    assert "DEER_FLOW_DEV_ALLOWED_ORIGINS=${DEER_FLOW_DEV_ALLOWED_ORIGINS:-127.0.0.1,::1}" in environment
+    assert "OPERIX_DEV_ALLOWED_ORIGINS=${OPERIX_DEV_ALLOWED_ORIGINS:-127.0.0.1,::1}" in environment
 
 
 def _bind_address(mapping: str) -> str | None:

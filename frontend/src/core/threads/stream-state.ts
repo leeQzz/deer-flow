@@ -94,7 +94,7 @@ function mergeToolArtifacts(
  * Fold a LangGraph `updates` frame into the state fields rendered by the chat
  * UI. Updates are grouped by node name and carry reducer inputs, not complete
  * state snapshots, so these fields must mirror the reducers in
- * `deerflow.agents.thread_state` rather than being shallowly assigned.
+ * `operix.agents.thread_state` rather than being shallowly assigned.
  *
  * `messages` is deliberately excluded. The SDK's `messages-tuple` manager owns
  * chunk assembly and same-id replacement; applying the node's messages update
@@ -141,7 +141,7 @@ export function reduceThreadStateUpdates(
       }
     }
 
-    // DeerFlow's merge_todos treats null as "this node did not touch todos"
+    // Operix's merge_todos treats null as "this node did not touch todos"
     // and an empty list as an explicit clear.
     if (
       Object.hasOwn(update, "todos") &&

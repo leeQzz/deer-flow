@@ -1,7 +1,7 @@
 """``run_agent`` stamps the request trace id onto everything it hands the graph.
 
 The trace ContextVar is the only source. These tests pin the other half of
-that contract: a ``deerflow_trace_id`` arriving on the run request is a
+that contract: a ``operix_trace_id`` arriving on the run request is a
 caller's echo of a past output, not an input, and must not survive into the
 runtime context, the run metadata, or the checkpoint. Otherwise a client can
 make the most durable surfaces of a run disagree with the ``X-Trace-Id`` and
@@ -14,11 +14,11 @@ import asyncio
 
 import pytest
 
-from deerflow.runtime.context_keys import CHECKPOINT_AGENT_NAME_METADATA_KEY, DEFAULT_AGENT_NAME_METADATA_VALUE
-from deerflow.runtime.runs.manager import RunRecord, RunStartOutcome
-from deerflow.runtime.runs.schemas import DisconnectMode, RunStatus
-from deerflow.runtime.runs.worker import RunContext, _build_runtime_context, run_agent
-from deerflow.trace_context import DEERFLOW_TRACE_METADATA_KEY, get_current_trace_id, request_trace_context
+from operix.runtime.context_keys import CHECKPOINT_AGENT_NAME_METADATA_KEY, DEFAULT_AGENT_NAME_METADATA_VALUE
+from operix.runtime.runs.manager import RunRecord, RunStartOutcome
+from operix.runtime.runs.schemas import DisconnectMode, RunStatus
+from operix.runtime.runs.worker import RunContext, _build_runtime_context, run_agent
+from operix.trace_context import DEERFLOW_TRACE_METADATA_KEY, get_current_trace_id, request_trace_context
 
 
 class _FakeAgent:
@@ -131,7 +131,7 @@ async def test_caller_supplied_metadata_trace_id_is_overwritten():
 @pytest.mark.asyncio
 async def test_caller_supplied_context_trace_id_is_overwritten():
     """``config['context']`` is a second, separate way in. The Gateway filters
-    ``__``-prefixed keys out of it, but ``deerflow_trace_id`` carries no prefix
+    ``__``-prefixed keys out of it, but ``operix_trace_id`` carries no prefix
     and embedded harness callers pass through no such filter at all."""
     with request_trace_context("gateway-issued"):
         captured = await _run(

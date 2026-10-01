@@ -53,7 +53,7 @@ def test_detect_mode_local_provider():
     """Local sandbox provider should map to local mode."""
     config = """
 sandbox:
-  use: deerflow.sandbox.local:LocalSandboxProvider
+  use: operix.sandbox.local:LocalSandboxProvider
 """.strip()
 
     assert _detect_mode_with_config(config) == "local"
@@ -63,7 +63,7 @@ def test_detect_mode_aio_without_provisioner_url():
     """AIO sandbox without provisioner_url should map to aio mode."""
     config = """
 sandbox:
-  use: deerflow.community.aio_sandbox:AioSandboxProvider
+  use: operix.community.aio_sandbox:AioSandboxProvider
 """.strip()
 
     assert _detect_mode_with_config(config) == "aio"
@@ -73,7 +73,7 @@ def test_detect_mode_provisioner_with_url():
     """AIO sandbox with provisioner_url should map to provisioner mode."""
     config = """
 sandbox:
-  use: deerflow.community.aio_sandbox:AioSandboxProvider
+  use: operix.community.aio_sandbox:AioSandboxProvider
   provisioner_url: http://provisioner:8002
 """.strip()
 
@@ -84,7 +84,7 @@ def test_detect_mode_ignores_commented_provisioner_url():
     """Commented provisioner_url should not activate provisioner mode."""
     config = """
 sandbox:
-  use: deerflow.community.aio_sandbox:AioSandboxProvider
+  use: operix.community.aio_sandbox:AioSandboxProvider
   # provisioner_url: http://provisioner:8002
 """.strip()
 
@@ -131,7 +131,7 @@ require_compose_version() {{ :; }}
 
 
 @pytest.mark.parametrize("docker_command", ["logs --gateway", "stop", "restart"])
-def test_compose_commands_set_deer_flow_root_before_compose(docker_command):
+def test_compose_commands_set_operix_root_before_compose(docker_command):
     """Read-only compose commands should resolve mounts from the repository root."""
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_root = Path(tmpdir)
@@ -140,8 +140,8 @@ def test_compose_commands_set_deer_flow_root_before_compose(docker_command):
             tmp_root,
             f"""
 COMPOSE_CMD=capture_compose
-capture_compose() {{ test "${{DEER_FLOW_ROOT:-}}" = "$PROJECT_ROOT"; }}
-unset DEER_FLOW_ROOT
+capture_compose() {{ test "${{OPERIX_ROOT:-}}" = "$PROJECT_ROOT"; }}
+unset OPERIX_ROOT
 {docker_command}
 """,
         )
@@ -274,7 +274,7 @@ docker-compose() {{
   # Real wrapper ops (down/logs/...) must hit this binary, not `docker compose`.
   printf '%s\n' "$*" > '{marker}'
 }}
-unset DEER_FLOW_ROOT
+unset OPERIX_ROOT
 stop
 """
         result = subprocess.run(
@@ -317,8 +317,8 @@ require_compose_version
 def test_logs_prod_targets_production_stack(args):
     """`logs --prod` must tail the stack deploy.sh started, not the dev project.
 
-    `make up` runs scripts/deploy.sh (project `deer-flow`, docker-compose.yaml)
-    while the dev default is project `deer-flow-dev`, so `make docker-logs`
+    `make up` runs scripts/deploy.sh (project `operix`, docker-compose.yaml)
+    while the dev default is project `operix-dev`, so `make docker-logs`
     after `make up` printed nothing (#5529). The production entry point must
     target the same project and interpolate the same .env.
 
@@ -341,27 +341,27 @@ docker() {{
     return 0
   fi
   if [ "$1" = compose ]; then
-    printf '%s\\n' "$*" "DEER_FLOW_HOME=${{DEER_FLOW_HOME:-unset}}" > '{marker}'
+    printf '%s\\n' "$*" "OPERIX_HOME=${{OPERIX_HOME:-unset}}" > '{marker}'
     return 0
   fi
   command docker "$@"
 }}
-unset DEER_FLOW_ROOT DEER_FLOW_HOME DEER_FLOW_CONFIG_PATH
-unset DEER_FLOW_EXTENSIONS_CONFIG_PATH DEER_FLOW_REPO_ROOT
-unset BETTER_AUTH_SECRET DEER_FLOW_INTERNAL_AUTH_TOKEN
+unset OPERIX_ROOT OPERIX_HOME OPERIX_CONFIG_PATH
+unset OPERIX_EXTENSIONS_CONFIG_PATH OPERIX_REPO_ROOT
+unset BETTER_AUTH_SECRET OPERIX_INTERNAL_AUTH_TOKEN
 {args}
 """
         subprocess.check_call([BASH_EXECUTABLE, "-lc", command])
 
         recorded = marker.read_text(encoding="utf-8")
-        assert "-p deer-flow " in recorded, recorded
+        assert "-p operix " in recorded, recorded
         assert "-f docker-compose.yaml" in recorded, recorded
         assert "--env-file ../.env" in recorded, recorded
         assert "logs" in recorded, recorded
         # deploy.sh exports interpolation defaults before every compose call;
         # `logs --prod` must too, or the volume specs fail to parse.
-        assert "DEER_FLOW_HOME=" in recorded, recorded
-        assert "DEER_FLOW_HOME=unset" not in recorded, recorded
+        assert "OPERIX_HOME=" in recorded, recorded
+        assert "OPERIX_HOME=unset" not in recorded, recorded
 
 
 def test_logs_without_dev_containers_hints_at_prod_logs():
@@ -376,7 +376,7 @@ PROJECT_ROOT='{tmp_root}'
 DOCKER_DIR='{tmp_root}'
 require_compose_version() {{ :; }}
 COMPOSE_CMD=true
-unset DEER_FLOW_ROOT
+unset OPERIX_ROOT
 logs
 """
         result = subprocess.run(
@@ -397,7 +397,7 @@ def test_aio_dood_socket_preflight_allows_windows_when_docker_reachable():
         _seed_compose_file(tmp_root)
         _seed_env_examples(tmp_root)
         (tmp_root / "config.yaml").write_text(
-            "sandbox:\n  use: deerflow.community.aio_sandbox:AioSandboxProvider\n",
+            "sandbox:\n  use: operix.community.aio_sandbox:AioSandboxProvider\n",
             encoding="utf-8",
         )
         command = f"""
@@ -412,7 +412,7 @@ docker() {{
   fi
   return 0
 }}
-DEER_FLOW_DOCKER_SOCKET='/var/run/docker.sock'
+OPERIX_DOCKER_SOCKET='/var/run/docker.sock'
 COMPOSE_CMD=echo
 start
 """
@@ -434,7 +434,7 @@ def test_aio_dood_socket_preflight_rejects_missing_socket_on_posix():
         _seed_compose_file(tmp_root)
         _seed_env_examples(tmp_root)
         (tmp_root / "config.yaml").write_text(
-            "sandbox:\n  use: deerflow.community.aio_sandbox:AioSandboxProvider\n",
+            "sandbox:\n  use: operix.community.aio_sandbox:AioSandboxProvider\n",
             encoding="utf-8",
         )
         command = f"""
@@ -443,7 +443,7 @@ PROJECT_ROOT='{tmp_root}'
 DOCKER_DIR='{tmp_root}'
 require_compose_version() {{ :; }}
 uname() {{ echo 'Linux'; }}
-DEER_FLOW_DOCKER_SOCKET='/nonexistent/docker.sock'
+OPERIX_DOCKER_SOCKET='/nonexistent/docker.sock'
 COMPOSE_CMD=echo
 start
 """
@@ -465,7 +465,7 @@ def test_aio_dood_socket_preflight_rejects_missing_custom_socket_on_windows():
         _seed_compose_file(tmp_root)
         _seed_env_examples(tmp_root)
         (tmp_root / "config.yaml").write_text(
-            "sandbox:\n  use: deerflow.community.aio_sandbox:AioSandboxProvider\n",
+            "sandbox:\n  use: operix.community.aio_sandbox:AioSandboxProvider\n",
             encoding="utf-8",
         )
         command = f"""
@@ -480,7 +480,7 @@ docker() {{
   fi
   return 0
 }}
-DEER_FLOW_DOCKER_SOCKET='/nonexistent/docker.sock'
+OPERIX_DOCKER_SOCKET='/nonexistent/docker.sock'
 COMPOSE_CMD=echo
 start
 """
@@ -506,7 +506,7 @@ def test_aio_dood_socket_preflight_rejects_windows_when_docker_unreachable():
         _seed_compose_file(tmp_root)
         _seed_env_examples(tmp_root)
         (tmp_root / "config.yaml").write_text(
-            "sandbox:\n  use: deerflow.community.aio_sandbox:AioSandboxProvider\n",
+            "sandbox:\n  use: operix.community.aio_sandbox:AioSandboxProvider\n",
             encoding="utf-8",
         )
         command = f"""
@@ -521,7 +521,7 @@ docker() {{
   fi
   return 0
 }}
-DEER_FLOW_DOCKER_SOCKET='/var/run/docker.sock'
+OPERIX_DOCKER_SOCKET='/var/run/docker.sock'
 COMPOSE_CMD=echo
 start
 """
@@ -542,7 +542,7 @@ def _setup_deploy_worktree(tmp_path: Path) -> Path:
     shutil.copytree(REPO_ROOT / "docker", worktree / "docker")
     (worktree / "backend").mkdir()
     (worktree / "config.yaml").write_text(
-        "sandbox:\n  use: deerflow.community.aio_sandbox:AioSandboxProvider\n",
+        "sandbox:\n  use: operix.community.aio_sandbox:AioSandboxProvider\n",
         encoding="utf-8",
     )
     (worktree / "extensions_config.json").write_text("{}\n", encoding="utf-8")
@@ -569,9 +569,9 @@ def test_aio_deploy_socket_preflight_allows_windows_when_docker_reachable(tmp_pa
     env = os.environ.copy()
     env["PATH"] = f"{bin_dir}{os.pathsep}{env['PATH']}"
     env["BASH_ENV"] = str(bash_env)
-    env["DEER_FLOW_DOCKER_SOCKET"] = "/var/run/docker.sock"
+    env["OPERIX_DOCKER_SOCKET"] = "/var/run/docker.sock"
     env["BETTER_AUTH_SECRET"] = "test-secret"
-    env["DEER_FLOW_INTERNAL_AUTH_TOKEN"] = "test-token"
+    env["OPERIX_INTERNAL_AUTH_TOKEN"] = "test-token"
     env["UV_EXTRAS"] = "redis"
 
     result = subprocess.run(
@@ -594,9 +594,9 @@ def test_aio_deploy_socket_preflight_rejects_missing_socket_on_posix(tmp_path):
 
     env = os.environ.copy()
     env["BASH_ENV"] = str(bash_env)
-    env["DEER_FLOW_DOCKER_SOCKET"] = "/nonexistent/docker.sock"
+    env["OPERIX_DOCKER_SOCKET"] = "/nonexistent/docker.sock"
     env["BETTER_AUTH_SECRET"] = "test-secret"
-    env["DEER_FLOW_INTERNAL_AUTH_TOKEN"] = "test-token"
+    env["OPERIX_INTERNAL_AUTH_TOKEN"] = "test-token"
     env["UV_EXTRAS"] = "redis"
 
     result = subprocess.run(
@@ -629,9 +629,9 @@ def test_aio_deploy_socket_preflight_rejects_missing_custom_socket_on_windows(tm
     env = os.environ.copy()
     env["PATH"] = f"{bin_dir}{os.pathsep}{env['PATH']}"
     env["BASH_ENV"] = str(bash_env)
-    env["DEER_FLOW_DOCKER_SOCKET"] = "/nonexistent/docker.sock"
+    env["OPERIX_DOCKER_SOCKET"] = "/nonexistent/docker.sock"
     env["BETTER_AUTH_SECRET"] = "test-secret"
-    env["DEER_FLOW_INTERNAL_AUTH_TOKEN"] = "test-token"
+    env["OPERIX_INTERNAL_AUTH_TOKEN"] = "test-token"
     env["UV_EXTRAS"] = "redis"
 
     result = subprocess.run(
@@ -665,9 +665,9 @@ def test_aio_deploy_socket_preflight_rejects_windows_when_docker_unreachable(tmp
     env = os.environ.copy()
     env["PATH"] = f"{bin_dir}{os.pathsep}{env['PATH']}"
     env["BASH_ENV"] = str(bash_env)
-    env["DEER_FLOW_DOCKER_SOCKET"] = "/var/run/docker.sock"
+    env["OPERIX_DOCKER_SOCKET"] = "/var/run/docker.sock"
     env["BETTER_AUTH_SECRET"] = "test-secret"
-    env["DEER_FLOW_INTERNAL_AUTH_TOKEN"] = "test-token"
+    env["OPERIX_INTERNAL_AUTH_TOKEN"] = "test-token"
     env["UV_EXTRAS"] = "redis"
 
     result = subprocess.run(
@@ -690,7 +690,7 @@ def test_aio_deploy_socket_unsets_default_on_windows(tmp_path):
     capture_socket_env = tmp_path / "docker_socket_env.txt"
     docker = bin_dir / "docker"
     docker.write_text(
-        f'#!/usr/bin/env sh\nif [ "$1" = "info" ]; then exit 0; fi\nprintf "%s" "$DEER_FLOW_DOCKER_SOCKET" > "{capture_socket_env}"\nexit 0\n',
+        f'#!/usr/bin/env sh\nif [ "$1" = "info" ]; then exit 0; fi\nprintf "%s" "$OPERIX_DOCKER_SOCKET" > "{capture_socket_env}"\nexit 0\n',
         encoding="utf-8",
     )
     docker.chmod(0o755)
@@ -701,9 +701,9 @@ def test_aio_deploy_socket_unsets_default_on_windows(tmp_path):
     env = os.environ.copy()
     env["PATH"] = f"{bin_dir}{os.pathsep}{env['PATH']}"
     env["BASH_ENV"] = str(bash_env)
-    env["DEER_FLOW_DOCKER_SOCKET"] = "/var/run/docker.sock"
+    env["OPERIX_DOCKER_SOCKET"] = "/var/run/docker.sock"
     env["BETTER_AUTH_SECRET"] = "test-secret"
-    env["DEER_FLOW_INTERNAL_AUTH_TOKEN"] = "test-token"
+    env["OPERIX_INTERNAL_AUTH_TOKEN"] = "test-token"
     env["UV_EXTRAS"] = "redis"
 
     result = subprocess.run(
@@ -726,7 +726,7 @@ def test_aio_deploy_socket_preserves_unset_default_on_windows(tmp_path):
     capture_socket_env = tmp_path / "docker_socket_env.txt"
     docker = bin_dir / "docker"
     docker.write_text(
-        f'#!/usr/bin/env sh\nif [ "$1" = "info" ]; then exit 0; fi\nprintf "%s" "$DEER_FLOW_DOCKER_SOCKET" > "{capture_socket_env}"\nexit 0\n',
+        f'#!/usr/bin/env sh\nif [ "$1" = "info" ]; then exit 0; fi\nprintf "%s" "$OPERIX_DOCKER_SOCKET" > "{capture_socket_env}"\nexit 0\n',
         encoding="utf-8",
     )
     docker.chmod(0o755)
@@ -737,9 +737,9 @@ def test_aio_deploy_socket_preserves_unset_default_on_windows(tmp_path):
     env = os.environ.copy()
     env["PATH"] = f"{bin_dir}{os.pathsep}{env['PATH']}"
     env["BASH_ENV"] = str(bash_env)
-    env.pop("DEER_FLOW_DOCKER_SOCKET", None)
+    env.pop("OPERIX_DOCKER_SOCKET", None)
     env["BETTER_AUTH_SECRET"] = "test-secret"
-    env["DEER_FLOW_INTERNAL_AUTH_TOKEN"] = "test-token"
+    env["OPERIX_INTERNAL_AUTH_TOKEN"] = "test-token"
     env["UV_EXTRAS"] = "redis"
 
     result = subprocess.run(
@@ -755,14 +755,14 @@ def test_aio_deploy_socket_preserves_unset_default_on_windows(tmp_path):
 
 
 def test_aio_deploy_socket_preserves_custom_socket_on_windows(tmp_path):
-    """deploy.sh preserves and exports custom DEER_FLOW_DOCKER_SOCKET on Windows."""
+    """deploy.sh preserves and exports custom OPERIX_DOCKER_SOCKET on Windows."""
     worktree = _setup_deploy_worktree(tmp_path)
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     capture_socket_env = tmp_path / "docker_socket_env.txt"
     docker = bin_dir / "docker"
     docker.write_text(
-        f'#!/usr/bin/env sh\nif [ "$1" = "info" ]; then exit 0; fi\nprintf "%s" "$DEER_FLOW_DOCKER_SOCKET" > "{capture_socket_env}"\nexit 0\n',
+        f'#!/usr/bin/env sh\nif [ "$1" = "info" ]; then exit 0; fi\nprintf "%s" "$OPERIX_DOCKER_SOCKET" > "{capture_socket_env}"\nexit 0\n',
         encoding="utf-8",
     )
     docker.chmod(0o755)
@@ -776,9 +776,9 @@ def test_aio_deploy_socket_preserves_custom_socket_on_windows(tmp_path):
     env = os.environ.copy()
     env["PATH"] = f"{bin_dir}{os.pathsep}{env['PATH']}"
     env["BASH_ENV"] = str(bash_env)
-    env["DEER_FLOW_DOCKER_SOCKET"] = "/custom/docker.sock"
+    env["OPERIX_DOCKER_SOCKET"] = "/custom/docker.sock"
     env["BETTER_AUTH_SECRET"] = "test-secret"
-    env["DEER_FLOW_INTERNAL_AUTH_TOKEN"] = "test-token"
+    env["OPERIX_INTERNAL_AUTH_TOKEN"] = "test-token"
     env["UV_EXTRAS"] = "redis"
 
     result = subprocess.run(
@@ -794,15 +794,15 @@ def test_aio_deploy_socket_preserves_custom_socket_on_windows(tmp_path):
 
 
 def test_aio_deploy_socket_reads_from_dotenv(tmp_path):
-    """deploy.sh resolves DEER_FLOW_DOCKER_SOCKET from .env when unset in shell environment."""
+    """deploy.sh resolves OPERIX_DOCKER_SOCKET from .env when unset in shell environment."""
     worktree = _setup_deploy_worktree(tmp_path)
-    (worktree / ".env").write_text("DEER_FLOW_DOCKER_SOCKET=/var/run/docker.sock\n", encoding="utf-8")
+    (worktree / ".env").write_text("OPERIX_DOCKER_SOCKET=/var/run/docker.sock\n", encoding="utf-8")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     capture_socket_env = tmp_path / "docker_socket_env.txt"
     docker = bin_dir / "docker"
     docker.write_text(
-        f'#!/usr/bin/env sh\nif [ "$1" = "info" ]; then exit 0; fi\nprintf "%s" "$DEER_FLOW_DOCKER_SOCKET" > "{capture_socket_env}"\nexit 0\n',
+        f'#!/usr/bin/env sh\nif [ "$1" = "info" ]; then exit 0; fi\nprintf "%s" "$OPERIX_DOCKER_SOCKET" > "{capture_socket_env}"\nexit 0\n',
         encoding="utf-8",
     )
     docker.chmod(0o755)
@@ -813,9 +813,9 @@ def test_aio_deploy_socket_reads_from_dotenv(tmp_path):
     env = os.environ.copy()
     env["PATH"] = f"{bin_dir}{os.pathsep}{env['PATH']}"
     env["BASH_ENV"] = str(bash_env)
-    env.pop("DEER_FLOW_DOCKER_SOCKET", None)
+    env.pop("OPERIX_DOCKER_SOCKET", None)
     env["BETTER_AUTH_SECRET"] = "test-secret"
-    env["DEER_FLOW_INTERNAL_AUTH_TOKEN"] = "test-token"
+    env["OPERIX_INTERNAL_AUTH_TOKEN"] = "test-token"
     env["UV_EXTRAS"] = "redis"
 
     result = subprocess.run(

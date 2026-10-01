@@ -8,8 +8,8 @@ from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import InjectedToolArg, StructuredTool
 from pydantic import BaseModel, Field
 
-from deerflow.mcp.tools import get_mcp_tools
-from deerflow.tools.sync import make_sync_tool_wrapper
+from operix.mcp.tools import get_mcp_tools
+from operix.tools.sync import make_sync_tool_wrapper
 
 
 class MockArgs(BaseModel):
@@ -36,9 +36,9 @@ def test_mcp_tool_sync_wrapper_generation():
 
     with (
         patch("langchain_mcp_adapters.client.MultiServerMCPClient", return_value=mock_client_instance),
-        patch("deerflow.config.extensions_config.ExtensionsConfig.from_file"),
+        patch("operix.config.extensions_config.ExtensionsConfig.from_file"),
         patch(
-            "deerflow.mcp.tools.build_servers_config",
+            "operix.mcp.tools.build_servers_config",
             return_value={
                 "test-server": {
                     "transport": "http",
@@ -46,7 +46,7 @@ def test_mcp_tool_sync_wrapper_generation():
                 }
             },
         ),
-        patch("deerflow.mcp.tools.get_initial_oauth_headers", new_callable=AsyncMock, return_value={}),
+        patch("operix.mcp.tools.get_initial_oauth_headers", new_callable=AsyncMock, return_value={}),
     ):
         # Run the async function manually with asyncio.run
         tools = asyncio.run(get_mcp_tools())
@@ -88,11 +88,11 @@ def test_mcp_tool_loading_skips_failed_server():
 
     with (
         patch("langchain_mcp_adapters.client.MultiServerMCPClient", return_value=mock_client_instance),
-        patch("deerflow.config.extensions_config.ExtensionsConfig.from_file", return_value=MagicMock(model_extra={})),
-        patch("deerflow.mcp.tools.build_servers_config", return_value={"good-server": {}, "bad-server": {}}),
-        patch("deerflow.mcp.tools.get_initial_oauth_headers", new_callable=AsyncMock, return_value={}),
-        patch("deerflow.mcp.tools.build_oauth_tool_interceptor", return_value=None),
-        patch("deerflow.mcp.tools.logger.warning") as mock_warning,
+        patch("operix.config.extensions_config.ExtensionsConfig.from_file", return_value=MagicMock(model_extra={})),
+        patch("operix.mcp.tools.build_servers_config", return_value={"good-server": {}, "bad-server": {}}),
+        patch("operix.mcp.tools.get_initial_oauth_headers", new_callable=AsyncMock, return_value={}),
+        patch("operix.mcp.tools.build_oauth_tool_interceptor", return_value=None),
+        patch("operix.mcp.tools.logger.warning") as mock_warning,
     ):
         tools = asyncio.run(get_mcp_tools())
 
@@ -180,7 +180,7 @@ def test_mcp_tool_sync_wrapper_exception_logging():
 
     sync_func = make_sync_tool_wrapper(error_coro, "error_tool")
 
-    with patch("deerflow.tools.sync.logger.error") as mock_log_error:
+    with patch("operix.tools.sync.logger.error") as mock_log_error:
         with pytest.raises(ValueError, match="Tool failure"):
             sync_func()
         mock_log_error.assert_called_once()
@@ -209,7 +209,7 @@ def test_func_patched_mcp_tool_keeps_toolnode_runtime_injection(tmp_path):
     from langgraph.prebuilt.tool_node import _get_all_injected_args
     from mcp.types import CallToolResult, TextContent
 
-    from deerflow.mcp.tools import get_mcp_tools
+    from operix.mcp.tools import get_mcp_tools
 
     # Adapter-shaped coroutine: same signature langchain_mcp_adapters produces.
     async def adapter_coro(
@@ -234,16 +234,16 @@ def test_func_patched_mcp_tool_keeps_toolnode_runtime_injection(tmp_path):
 
     with (
         patch("langchain_mcp_adapters.client.MultiServerMCPClient", return_value=client),
-        patch("deerflow.config.extensions_config.ExtensionsConfig.from_file", return_value=cfg),
-        patch("deerflow.mcp.tools.validate_mcp_task_config_snapshot"),
+        patch("operix.config.extensions_config.ExtensionsConfig.from_file", return_value=cfg),
+        patch("operix.mcp.tools.validate_mcp_task_config_snapshot"),
         patch(
-            "deerflow.mcp.tools.build_servers_config",
+            "operix.mcp.tools.build_servers_config",
             return_value={"pw": {"transport": "stdio", "command": "x", "args": []}},
         ),
-        patch("deerflow.mcp.tools.get_initial_oauth_headers", new_callable=AsyncMock, return_value={}),
-        patch("deerflow.mcp.tools.build_mcp_tool_interceptors", return_value=[]),
+        patch("operix.mcp.tools.get_initial_oauth_headers", new_callable=AsyncMock, return_value={}),
+        patch("operix.mcp.tools.build_mcp_tool_interceptors", return_value=[]),
     ):
-        from deerflow.mcp.session_pool import reset_session_pool
+        from operix.mcp.session_pool import reset_session_pool
 
         reset_session_pool()
         (tool,) = asyncio.run(get_mcp_tools())
@@ -267,12 +267,12 @@ def test_func_patched_mcp_tool_keeps_toolnode_runtime_injection(tmp_path):
             return CallToolResult(content=[TextContent(type="text", text="ok")], isError=False)
 
     with (
-        patch("deerflow.mcp.tools.get_paths") as gp,
+        patch("operix.mcp.tools.get_paths") as gp,
         patch(
-            "deerflow.mcp.tools.call_pooled_session_tool",
+            "operix.mcp.tools.call_pooled_session_tool",
             new=AsyncMock(return_value=CallToolResult(content=[TextContent(type="text", text="ok")], isError=False)),
         ),
-        patch("deerflow.mcp.session_pool.MCPSessionPool.get_session", new=AsyncMock(return_value=FakeSession())),
+        patch("operix.mcp.session_pool.MCPSessionPool.get_session", new=AsyncMock(return_value=FakeSession())),
     ):
         gp.return_value.ensure_thread_dirs = lambda *a, **k: None
         gp.return_value.sandbox_work_dir = lambda *a, **k: tmp_path
@@ -319,11 +319,11 @@ def test_sync_wrapped_builtin_tools_still_resolve_runtime():
 
     from langgraph.prebuilt.tool_node import _get_all_injected_args
 
-    from deerflow.tools.builtins.background_tasks_tool import (
+    from operix.tools.builtins.background_tasks_tool import (
         cancel_background_task,
         list_background_tasks,
     )
-    from deerflow.tools.builtins.batch_task_tool import batch_status, cancel_batch
+    from operix.tools.builtins.batch_task_tool import batch_status, cancel_batch
 
     for tool in (list_background_tasks, cancel_background_task, batch_status, cancel_batch):
         patched = copy.copy(tool)

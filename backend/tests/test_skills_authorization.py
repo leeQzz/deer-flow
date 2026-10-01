@@ -13,14 +13,14 @@ from __future__ import annotations
 from pathlib import Path
 from types import SimpleNamespace
 
-from deerflow.authz.enforcement import filter_resources_by_authorization
-from deerflow.authz.principal import build_principal_from_context
-from deerflow.authz.rbac import RbacAuthorizationProvider
-from deerflow.authz.skill_filter import filter_available_skills_by_authorization
-from deerflow.config.app_config import AppConfig
-from deerflow.config.authorization_config import AuthorizationConfig
-from deerflow.config.model_config import ModelConfig
-from deerflow.config.sandbox_config import SandboxConfig
+from operix.authz.enforcement import filter_resources_by_authorization
+from operix.authz.principal import build_principal_from_context
+from operix.authz.rbac import RbacAuthorizationProvider
+from operix.authz.skill_filter import filter_available_skills_by_authorization
+from operix.config.app_config import AppConfig
+from operix.config.authorization_config import AuthorizationConfig
+from operix.config.model_config import ModelConfig
+from operix.config.sandbox_config import SandboxConfig
 
 # ── Helpers ────────────────────────────────────────────────────────────
 
@@ -29,7 +29,7 @@ def _make_app_config() -> AppConfig:
     """Build a minimal AppConfig for authorization tests."""
     return AppConfig(
         models=[ModelConfig(name="gpt-4", model="gpt-4", use="langchain_openai:ChatOpenAI")],
-        sandbox=SandboxConfig(use="deerflow.sandbox.local:LocalSandboxProvider"),
+        sandbox=SandboxConfig(use="operix.sandbox.local:LocalSandboxProvider"),
         authorization=AuthorizationConfig(),
     )
 
@@ -75,7 +75,7 @@ def test_filter_available_skills_rbac_allow_subset(monkeypatch):
     app_config = _make_app_config()
     _enable_authz(app_config)
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter.resolve_authorization_provider",
+        "operix.authz.skill_filter.resolve_authorization_provider",
         lambda config: provider,
     )
 
@@ -111,7 +111,7 @@ def test_filter_available_skills_provider_injected_names_excluded(monkeypatch):
     app_config = _make_app_config()
     _enable_authz(app_config)
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter.resolve_authorization_provider",
+        "operix.authz.skill_filter.resolve_authorization_provider",
         lambda config: _InjectingProvider(),
     )
 
@@ -131,7 +131,7 @@ def test_filter_available_skills_rbac_deny(monkeypatch):
     app_config = _make_app_config()
     _enable_authz(app_config)
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter.resolve_authorization_provider",
+        "operix.authz.skill_filter.resolve_authorization_provider",
         lambda config: provider,
     )
 
@@ -149,7 +149,7 @@ def test_filter_available_skills_wildcard_returns_all(monkeypatch):
     app_config = _make_app_config()
     _enable_authz(app_config)
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter.resolve_authorization_provider",
+        "operix.authz.skill_filter.resolve_authorization_provider",
         lambda config: provider,
     )
 
@@ -167,7 +167,7 @@ def test_filter_available_skills_empty_allowlist_preserved(monkeypatch):
     app_config = _make_app_config()
     _enable_authz(app_config)
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter.resolve_authorization_provider",
+        "operix.authz.skill_filter.resolve_authorization_provider",
         lambda config: provider,
     )
 
@@ -197,7 +197,7 @@ def test_filter_available_skills_provider_error_fail_closed(monkeypatch):
     app_config = _make_app_config()
     _enable_authz(app_config, fail_closed=True)
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter.resolve_authorization_provider",
+        "operix.authz.skill_filter.resolve_authorization_provider",
         lambda config: _ErrorProvider(),
     )
 
@@ -227,7 +227,7 @@ def test_filter_available_skills_provider_error_fail_open(monkeypatch):
     app_config = _make_app_config()
     _enable_authz(app_config, fail_closed=False)
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter.resolve_authorization_provider",
+        "operix.authz.skill_filter.resolve_authorization_provider",
         lambda config: _ErrorProvider(),
     )
 
@@ -250,7 +250,7 @@ def test_filter_available_skills_internal_caller_uses_default_role(monkeypatch):
     app_config = _make_app_config()
     _enable_authz(app_config, default_role="user")
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter.resolve_authorization_provider",
+        "operix.authz.skill_filter.resolve_authorization_provider",
         lambda config: provider,
     )
 
@@ -277,11 +277,11 @@ def test_filter_available_skills_candidate_resolution_error_fail_closed(monkeypa
     app_config = _make_app_config()
     _enable_authz(app_config, fail_closed=True)
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter.resolve_authorization_provider",
+        "operix.authz.skill_filter.resolve_authorization_provider",
         lambda config: provider,
     )
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter._all_configured_skill_names",
+        "operix.authz.skill_filter._all_configured_skill_names",
         lambda app_config, **kw: (_ for _ in ()).throw(RuntimeError("storage I/O failed")),
     )
 
@@ -304,11 +304,11 @@ def test_filter_available_skills_candidate_resolution_error_fail_open(monkeypatc
     app_config = _make_app_config()
     _enable_authz(app_config, fail_closed=False)
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter.resolve_authorization_provider",
+        "operix.authz.skill_filter.resolve_authorization_provider",
         lambda config: provider,
     )
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter._all_configured_skill_names",
+        "operix.authz.skill_filter._all_configured_skill_names",
         lambda app_config, **kw: (_ for _ in ()).throw(RuntimeError("storage I/O failed")),
     )
 
@@ -333,12 +333,12 @@ def test_filter_available_skills_none_with_empty_config_no_bypass(monkeypatch):
     app_config = _make_app_config()
     _enable_authz(app_config, fail_closed=True)
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter.resolve_authorization_provider",
+        "operix.authz.skill_filter.resolve_authorization_provider",
         lambda config: provider,
     )
     # Resolution succeeds, but the configured-skill set is genuinely empty.
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter._all_configured_skill_names",
+        "operix.authz.skill_filter._all_configured_skill_names",
         lambda app_config, **kw: [],
     )
 
@@ -363,7 +363,7 @@ def test_filter_available_skills_user_id_threads_into_candidate_resolution(monke
     app_config = _make_app_config()
     _enable_authz(app_config)
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter.resolve_authorization_provider",
+        "operix.authz.skill_filter.resolve_authorization_provider",
         lambda config: provider,
     )
 
@@ -375,7 +375,7 @@ def test_filter_available_skills_user_id_threads_into_candidate_resolution(monke
         return ["public-skill", "user-custom-skill"]
 
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter._all_configured_skill_names",
+        "operix.authz.skill_filter._all_configured_skill_names",
         _record,
     )
 
@@ -397,7 +397,7 @@ def test_filter_available_skills_omits_user_id_when_not_provided(monkeypatch):
     app_config = _make_app_config()
     _enable_authz(app_config)
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter.resolve_authorization_provider",
+        "operix.authz.skill_filter.resolve_authorization_provider",
         lambda config: provider,
     )
 
@@ -408,7 +408,7 @@ def test_filter_available_skills_omits_user_id_when_not_provided(monkeypatch):
         return ["public-skill"]
 
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter._all_configured_skill_names",
+        "operix.authz.skill_filter._all_configured_skill_names",
         _record,
     )
 
@@ -493,11 +493,11 @@ def test_filter_resources_by_authorization_preserves_order():
     assert [r.name for r in result] == ["z", "a", "m"]
 
 
-# ── DeerFlowClient._ensure_agent path ─────────────────────────────────
+# ── OperixClient._ensure_agent path ─────────────────────────────────
 # Regression for willem-bd's Round 2 coverage observation: the embedded
-# lead-agent construction path (DeerFlowClient._ensure_agent) must filter
+# lead-agent construction path (OperixClient._ensure_agent) must filter
 # skills through authorization too, mirroring _make_lead_agent. Otherwise a
-# caller building the agent via DeerFlowClient(available_skills=...) bypasses
+# caller building the agent via OperixClient(available_skills=...) bypasses
 # the role's skills policy.
 
 
@@ -510,21 +510,21 @@ def test_client_ensure_agent_filters_skills_by_authorization(monkeypatch):
     """
     from langchain_core.runnables import RunnableConfig
 
-    from deerflow.client import DeerFlowClient
+    from operix.client import OperixClient
 
     app_config = _make_app_config()
     _enable_authz(app_config)
     provider = _rbac_provider({"user": {"skills": {"allow": ["allowed-skill"], "deny": ["denied-skill"]}}})
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter.resolve_authorization_provider",
+        "operix.authz.skill_filter.resolve_authorization_provider",
         lambda config: provider,
     )
     monkeypatch.setattr(
-        "deerflow.authz.tool_filter.resolve_authorization_provider",
+        "operix.authz.tool_filter.resolve_authorization_provider",
         lambda config: _rbac_provider({"user": {"tools": {"allow": "*"}}}),
     )
     monkeypatch.setattr(
-        "deerflow.agents.lead_agent.agent.resolve_authorization_provider",
+        "operix.agents.lead_agent.agent.resolve_authorization_provider",
         lambda config: _rbac_provider({"user": {"models": {"allow": "*"}}}),
     )
 
@@ -534,27 +534,27 @@ def test_client_ensure_agent_filters_skills_by_authorization(monkeypatch):
         captured["available_skills"] = kwargs.get("available_skills")
         return []
 
-    monkeypatch.setattr("deerflow.client.create_chat_model", lambda **kw: object())
-    monkeypatch.setattr("deerflow.client.create_agent", lambda **kw: object())
-    monkeypatch.setattr("deerflow.client.build_middlewares", _capture_build_middlewares)
-    monkeypatch.setattr("deerflow.client.DeerFlowClient._get_tools", staticmethod(lambda *, model_name, subagent_enabled, mcp_plugins=None: []))  # noqa: ARG005
-    monkeypatch.setattr("deerflow.client.get_enabled_skills_for_config", lambda app_config, **kw: [])
+    monkeypatch.setattr("operix.client.create_chat_model", lambda **kw: object())
+    monkeypatch.setattr("operix.client.create_agent", lambda **kw: object())
+    monkeypatch.setattr("operix.client.build_middlewares", _capture_build_middlewares)
+    monkeypatch.setattr("operix.client.OperixClient._get_tools", staticmethod(lambda *, model_name, subagent_enabled, mcp_plugins=None: []))  # noqa: ARG005
+    monkeypatch.setattr("operix.client.get_enabled_skills_for_config", lambda app_config, **kw: [])
     monkeypatch.setattr(
-        "deerflow.client.build_skill_search_setup",
+        "operix.client.build_skill_search_setup",
         lambda skills, *, enabled, container_base_path, skill_authorization=None: SimpleNamespace(describe_skill_tool=None, skill_names=frozenset()),
     )
     monkeypatch.setattr(
-        "deerflow.client.assemble_deferred_tools",
+        "operix.client.assemble_deferred_tools",
         lambda tools, *, enabled: ([], SimpleNamespace(deferred_names=frozenset())),
     )
-    monkeypatch.setattr("deerflow.client.build_mcp_routing_middleware", lambda *a, **kw: None)
-    monkeypatch.setattr("deerflow.client.get_mcp_routing_hints_prompt_section", lambda *a, **kw: "")
-    monkeypatch.setattr("deerflow.client.apply_prompt_template", lambda **kw: "")
-    monkeypatch.setattr("deerflow.client.get_thread_state_schema", lambda *a, **kw: object())
-    monkeypatch.setattr("deerflow.client.normalize_middleware_state_schemas", lambda schemas, mode, freq: [])
-    monkeypatch.setattr("deerflow.client.get_effective_user_id", lambda: "user-123")
+    monkeypatch.setattr("operix.client.build_mcp_routing_middleware", lambda *a, **kw: None)
+    monkeypatch.setattr("operix.client.get_mcp_routing_hints_prompt_section", lambda *a, **kw: "")
+    monkeypatch.setattr("operix.client.apply_prompt_template", lambda **kw: "")
+    monkeypatch.setattr("operix.client.get_thread_state_schema", lambda *a, **kw: object())
+    monkeypatch.setattr("operix.client.normalize_middleware_state_schemas", lambda schemas, mode, freq: [])
+    monkeypatch.setattr("operix.client.get_effective_user_id", lambda: "user-123")
 
-    client = DeerFlowClient.__new__(DeerFlowClient)
+    client = OperixClient.__new__(OperixClient)
     client._app_config = app_config
     client._agent_name = "default"
     client._available_skills = {"allowed-skill", "denied-skill"}
@@ -576,7 +576,7 @@ def test_client_ensure_agent_noop_when_authorization_disabled(monkeypatch):
     """When authorization is disabled, _ensure_agent leaves the skill set unchanged."""
     from langchain_core.runnables import RunnableConfig
 
-    from deerflow.client import DeerFlowClient
+    from operix.client import OperixClient
 
     app_config = _make_app_config()
     # AuthorizationConfig() defaults to enabled=False.
@@ -587,27 +587,27 @@ def test_client_ensure_agent_noop_when_authorization_disabled(monkeypatch):
         captured["available_skills"] = kwargs.get("available_skills")
         return []
 
-    monkeypatch.setattr("deerflow.client.create_chat_model", lambda **kw: object())
-    monkeypatch.setattr("deerflow.client.create_agent", lambda **kw: object())
-    monkeypatch.setattr("deerflow.client.build_middlewares", _capture_build_middlewares)
-    monkeypatch.setattr("deerflow.client.DeerFlowClient._get_tools", staticmethod(lambda *, model_name, subagent_enabled, mcp_plugins=None: []))  # noqa: ARG005
-    monkeypatch.setattr("deerflow.client.get_enabled_skills_for_config", lambda app_config, **kw: [])
+    monkeypatch.setattr("operix.client.create_chat_model", lambda **kw: object())
+    monkeypatch.setattr("operix.client.create_agent", lambda **kw: object())
+    monkeypatch.setattr("operix.client.build_middlewares", _capture_build_middlewares)
+    monkeypatch.setattr("operix.client.OperixClient._get_tools", staticmethod(lambda *, model_name, subagent_enabled, mcp_plugins=None: []))  # noqa: ARG005
+    monkeypatch.setattr("operix.client.get_enabled_skills_for_config", lambda app_config, **kw: [])
     monkeypatch.setattr(
-        "deerflow.client.build_skill_search_setup",
+        "operix.client.build_skill_search_setup",
         lambda skills, *, enabled, container_base_path, skill_authorization=None: SimpleNamespace(describe_skill_tool=None, skill_names=frozenset()),
     )
     monkeypatch.setattr(
-        "deerflow.client.assemble_deferred_tools",
+        "operix.client.assemble_deferred_tools",
         lambda tools, *, enabled: ([], SimpleNamespace(deferred_names=frozenset())),
     )
-    monkeypatch.setattr("deerflow.client.build_mcp_routing_middleware", lambda *a, **kw: None)
-    monkeypatch.setattr("deerflow.client.get_mcp_routing_hints_prompt_section", lambda *a, **kw: "")
-    monkeypatch.setattr("deerflow.client.apply_prompt_template", lambda **kw: "")
-    monkeypatch.setattr("deerflow.client.get_thread_state_schema", lambda *a, **kw: object())
-    monkeypatch.setattr("deerflow.client.normalize_middleware_state_schemas", lambda schemas, mode, freq: [])
-    monkeypatch.setattr("deerflow.client.get_effective_user_id", lambda: "user-123")
+    monkeypatch.setattr("operix.client.build_mcp_routing_middleware", lambda *a, **kw: None)
+    monkeypatch.setattr("operix.client.get_mcp_routing_hints_prompt_section", lambda *a, **kw: "")
+    monkeypatch.setattr("operix.client.apply_prompt_template", lambda **kw: "")
+    monkeypatch.setattr("operix.client.get_thread_state_schema", lambda *a, **kw: object())
+    monkeypatch.setattr("operix.client.normalize_middleware_state_schemas", lambda schemas, mode, freq: [])
+    monkeypatch.setattr("operix.client.get_effective_user_id", lambda: "user-123")
 
-    client = DeerFlowClient.__new__(DeerFlowClient)
+    client = OperixClient.__new__(OperixClient)
     client._app_config = app_config
     client._agent_name = "default"
     client._available_skills = {"skill-a", "skill-b"}
@@ -640,7 +640,7 @@ class _ActionAwareProvider:
         return list(candidates)
 
     def authorize(self, request):
-        from deerflow.authz.provider import AuthzDecision
+        from operix.authz.provider import AuthzDecision
 
         if request.resource == "skill" and request.action == "activate":
             self.sync_calls.append(request.target)
@@ -649,7 +649,7 @@ class _ActionAwareProvider:
         return AuthzDecision(allow=True)
 
     async def aauthorize(self, request):
-        from deerflow.authz.provider import AuthzDecision
+        from operix.authz.provider import AuthzDecision
 
         if request.resource == "skill" and request.action == "activate":
             self.async_calls.append(request.target)
@@ -689,7 +689,7 @@ class _AsyncOnlyProvider:
         raise RuntimeError("sync authorize() is not supported by this provider")
 
     async def aauthorize(self, request):
-        from deerflow.authz.provider import AuthzDecision
+        from operix.authz.provider import AuthzDecision
 
         if request.resource == "skill" and request.action == "activate":
             self.async_calls.append(request.target)
@@ -699,11 +699,11 @@ class _AsyncOnlyProvider:
 
 
 def _resolved_skill_authorization(provider, *, fail_closed: bool):
-    from deerflow.authz.skill_filter import resolve_skill_authorization
+    from operix.authz.skill_filter import resolve_skill_authorization
 
     app_config = _make_app_config()
     _enable_authz(app_config, fail_closed=fail_closed)
-    import deerflow.authz.skill_filter as skill_filter_module
+    import operix.authz.skill_filter as skill_filter_module
 
     original = skill_filter_module.resolve_authorization_provider
     skill_filter_module.resolve_authorization_provider = lambda config: provider
@@ -718,10 +718,10 @@ def _resolved_skill_authorization(provider, *, fail_closed: bool):
 def _middleware_for(tmp_path, monkeypatch, skills, **kwargs):
     from pathlib import Path
 
-    from deerflow.agents.middlewares import skill_activation_middleware as middleware_module
-    from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-    from deerflow.skills.types import Skill as SkillObject
-    from deerflow.skills.types import SkillCategory
+    from operix.agents.middlewares import skill_activation_middleware as middleware_module
+    from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from operix.skills.types import Skill as SkillObject
+    from operix.skills.types import SkillCategory
 
     def _make_skill(name: str) -> SkillObject:
         skill_dir = tmp_path / name
@@ -837,22 +837,22 @@ def test_client_wires_skill_authorization_into_middleware(monkeypatch):
     it to build_middlewares so SkillActivationMiddleware enforces skill:activate."""
     from langchain_core.runnables import RunnableConfig
 
-    from deerflow.authz.skill_filter import ResolvedSkillAuthorization
-    from deerflow.client import DeerFlowClient
+    from operix.authz.skill_filter import ResolvedSkillAuthorization
+    from operix.client import OperixClient
 
     app_config = _make_app_config()
     _enable_authz(app_config)
     provider = _rbac_provider({"user": {"skills": {"allow": "*"}}})
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter.resolve_authorization_provider",
+        "operix.authz.skill_filter.resolve_authorization_provider",
         lambda config: provider,
     )
     monkeypatch.setattr(
-        "deerflow.authz.tool_filter.resolve_authorization_provider",
+        "operix.authz.tool_filter.resolve_authorization_provider",
         lambda config: _rbac_provider({"user": {"tools": {"allow": "*"}}}),
     )
     monkeypatch.setattr(
-        "deerflow.agents.lead_agent.agent.resolve_authorization_provider",
+        "operix.agents.lead_agent.agent.resolve_authorization_provider",
         lambda config: _rbac_provider({"user": {"models": {"allow": "*"}}}),
     )
 
@@ -862,27 +862,27 @@ def test_client_wires_skill_authorization_into_middleware(monkeypatch):
         captured["skill_authorization"] = kwargs.get("skill_authorization")
         return []
 
-    monkeypatch.setattr("deerflow.client.create_chat_model", lambda **kw: object())
-    monkeypatch.setattr("deerflow.client.create_agent", lambda **kw: object())
-    monkeypatch.setattr("deerflow.client.build_middlewares", _capture_build_middlewares)
-    monkeypatch.setattr("deerflow.client.DeerFlowClient._get_tools", staticmethod(lambda *, model_name, subagent_enabled, mcp_plugins=None: []))  # noqa: ARG005
-    monkeypatch.setattr("deerflow.client.get_enabled_skills_for_config", lambda app_config, **kw: [])
+    monkeypatch.setattr("operix.client.create_chat_model", lambda **kw: object())
+    monkeypatch.setattr("operix.client.create_agent", lambda **kw: object())
+    monkeypatch.setattr("operix.client.build_middlewares", _capture_build_middlewares)
+    monkeypatch.setattr("operix.client.OperixClient._get_tools", staticmethod(lambda *, model_name, subagent_enabled, mcp_plugins=None: []))  # noqa: ARG005
+    monkeypatch.setattr("operix.client.get_enabled_skills_for_config", lambda app_config, **kw: [])
     monkeypatch.setattr(
-        "deerflow.client.build_skill_search_setup",
+        "operix.client.build_skill_search_setup",
         lambda skills, *, enabled, container_base_path, skill_authorization=None: SimpleNamespace(describe_skill_tool=None, skill_names=frozenset()),
     )
     monkeypatch.setattr(
-        "deerflow.client.assemble_deferred_tools",
+        "operix.client.assemble_deferred_tools",
         lambda tools, *, enabled: ([], SimpleNamespace(deferred_names=frozenset())),
     )
-    monkeypatch.setattr("deerflow.client.build_mcp_routing_middleware", lambda *a, **kw: None)
-    monkeypatch.setattr("deerflow.client.get_mcp_routing_hints_prompt_section", lambda *a, **kw: "")
-    monkeypatch.setattr("deerflow.client.apply_prompt_template", lambda **kw: "")
-    monkeypatch.setattr("deerflow.client.get_thread_state_schema", lambda *a, **kw: object())
-    monkeypatch.setattr("deerflow.client.normalize_middleware_state_schemas", lambda schemas, mode, freq: [])
-    monkeypatch.setattr("deerflow.client.get_effective_user_id", lambda: "user-123")
+    monkeypatch.setattr("operix.client.build_mcp_routing_middleware", lambda *a, **kw: None)
+    monkeypatch.setattr("operix.client.get_mcp_routing_hints_prompt_section", lambda *a, **kw: "")
+    monkeypatch.setattr("operix.client.apply_prompt_template", lambda **kw: "")
+    monkeypatch.setattr("operix.client.get_thread_state_schema", lambda *a, **kw: object())
+    monkeypatch.setattr("operix.client.normalize_middleware_state_schemas", lambda schemas, mode, freq: [])
+    monkeypatch.setattr("operix.client.get_effective_user_id", lambda: "user-123")
 
-    client = DeerFlowClient.__new__(DeerFlowClient)
+    client = OperixClient.__new__(OperixClient)
     client._app_config = app_config
     client._agent_name = "default"
     client._available_skills = None
@@ -906,20 +906,20 @@ def test_client_filter_candidates_reuse_catalog_loader(monkeypatch):
     cached catalog loader — the filter's uncached storage scan never runs."""
     from langchain_core.runnables import RunnableConfig
 
-    from deerflow.client import DeerFlowClient
+    from operix.client import OperixClient
 
     app_config = _make_app_config()
     _enable_authz(app_config)
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter.resolve_authorization_provider",
+        "operix.authz.skill_filter.resolve_authorization_provider",
         lambda config: _rbac_provider({"user": {"skills": {"allow": "*"}}}),
     )
     monkeypatch.setattr(
-        "deerflow.authz.tool_filter.resolve_authorization_provider",
+        "operix.authz.tool_filter.resolve_authorization_provider",
         lambda config: _rbac_provider({"user": {"tools": {"allow": "*"}}}),
     )
     monkeypatch.setattr(
-        "deerflow.agents.lead_agent.agent.resolve_authorization_provider",
+        "operix.agents.lead_agent.agent.resolve_authorization_provider",
         lambda config: _rbac_provider({"user": {"models": {"allow": "*"}}}),
     )
 
@@ -932,10 +932,10 @@ def test_client_filter_candidates_reuse_catalog_loader(monkeypatch):
     def _must_not_scan(*a, **kw):
         raise AssertionError("filter must not rescan storage when candidates were provided")
 
-    monkeypatch.setattr("deerflow.client.get_enabled_skills_for_config", _catalog_loader)
-    monkeypatch.setattr("deerflow.authz.skill_filter._all_configured_skill_names", _must_not_scan)
+    monkeypatch.setattr("operix.client.get_enabled_skills_for_config", _catalog_loader)
+    monkeypatch.setattr("operix.authz.skill_filter._all_configured_skill_names", _must_not_scan)
 
-    import deerflow.authz.skill_filter as skill_filter_module
+    import operix.authz.skill_filter as skill_filter_module
 
     captured = {}
     _original_filter = skill_filter_module.filter_available_skills_by_authorization
@@ -947,26 +947,26 @@ def test_client_filter_candidates_reuse_catalog_loader(monkeypatch):
     # client._ensure_agent lazy-imports the filter from this module, so the
     # spy has to replace it at the source.
     monkeypatch.setattr(skill_filter_module, "filter_available_skills_by_authorization", _filter_spy)
-    monkeypatch.setattr("deerflow.client.create_chat_model", lambda **kw: object())
-    monkeypatch.setattr("deerflow.client.create_agent", lambda **kw: object())
-    monkeypatch.setattr("deerflow.client.build_middlewares", lambda *a, **kw: [])
-    monkeypatch.setattr("deerflow.client.DeerFlowClient._get_tools", staticmethod(lambda *, model_name, subagent_enabled, mcp_plugins=None: []))  # noqa: ARG005
+    monkeypatch.setattr("operix.client.create_chat_model", lambda **kw: object())
+    monkeypatch.setattr("operix.client.create_agent", lambda **kw: object())
+    monkeypatch.setattr("operix.client.build_middlewares", lambda *a, **kw: [])
+    monkeypatch.setattr("operix.client.OperixClient._get_tools", staticmethod(lambda *, model_name, subagent_enabled, mcp_plugins=None: []))  # noqa: ARG005
     monkeypatch.setattr(
-        "deerflow.client.build_skill_search_setup",
+        "operix.client.build_skill_search_setup",
         lambda skills, *, enabled, container_base_path, skill_authorization=None: SimpleNamespace(describe_skill_tool=None, skill_names=frozenset()),
     )
     monkeypatch.setattr(
-        "deerflow.client.assemble_deferred_tools",
+        "operix.client.assemble_deferred_tools",
         lambda tools, *, enabled: ([], SimpleNamespace(deferred_names=frozenset())),
     )
-    monkeypatch.setattr("deerflow.client.build_mcp_routing_middleware", lambda *a, **kw: None)
-    monkeypatch.setattr("deerflow.client.get_mcp_routing_hints_prompt_section", lambda *a, **kw: "")
-    monkeypatch.setattr("deerflow.client.apply_prompt_template", lambda **kw: "")
-    monkeypatch.setattr("deerflow.client.get_thread_state_schema", lambda *a, **kw: object())
-    monkeypatch.setattr("deerflow.client.normalize_middleware_state_schemas", lambda schemas, mode, freq: [])
-    monkeypatch.setattr("deerflow.client.get_effective_user_id", lambda: "user-123")
+    monkeypatch.setattr("operix.client.build_mcp_routing_middleware", lambda *a, **kw: None)
+    monkeypatch.setattr("operix.client.get_mcp_routing_hints_prompt_section", lambda *a, **kw: "")
+    monkeypatch.setattr("operix.client.apply_prompt_template", lambda **kw: "")
+    monkeypatch.setattr("operix.client.get_thread_state_schema", lambda *a, **kw: object())
+    monkeypatch.setattr("operix.client.normalize_middleware_state_schemas", lambda schemas, mode, freq: [])
+    monkeypatch.setattr("operix.client.get_effective_user_id", lambda: "user-123")
 
-    client = DeerFlowClient.__new__(DeerFlowClient)
+    client = OperixClient.__new__(OperixClient)
     client._app_config = app_config
     client._agent_name = "default"
     client._available_skills = None  # no agent-level allowlist → candidates matter
@@ -987,10 +987,10 @@ def test_subagent_chain_arms_skill_activate_check(monkeypatch):
     """build_subagent_runtime_middlewares forwards skill_authorization into the
     subagent chain's SkillActivationMiddleware (a delegated task is a plain
     HumanMessage, so /skill-name in task text reaches the activation path)."""
-    import deerflow.authz.skill_filter as skill_filter_module
-    from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-    from deerflow.agents.middlewares.tool_error_handling_middleware import build_subagent_runtime_middlewares
-    from deerflow.authz.skill_filter import resolve_skill_authorization
+    import operix.authz.skill_filter as skill_filter_module
+    from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from operix.agents.middlewares.tool_error_handling_middleware import build_subagent_runtime_middlewares
+    from operix.authz.skill_filter import resolve_skill_authorization
 
     app_config = _make_app_config()
     _enable_authz(app_config)
@@ -1016,7 +1016,7 @@ def test_subagent_chain_arms_skill_activate_check(monkeypatch):
 
     # The skill-read stamp gate on the same chain shares the resolved context
     # so an autonomously read SKILL.md cannot activate a denied skill.
-    from deerflow.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
+    from operix.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
 
     stampers = [m for m in middlewares if isinstance(m, ToolErrorHandlingMiddleware)]
     assert len(stampers) == 1
@@ -1030,14 +1030,14 @@ def test_subagent_executor_resolves_skill_authorization_for_chain(monkeypatch):
     import sys
     from types import SimpleNamespace
 
-    import deerflow.authz.skill_filter as skill_filter_module
-    from deerflow.authz.skill_filter import ResolvedSkillAuthorization
+    import operix.authz.skill_filter as skill_filter_module
+    from operix.authz.skill_filter import ResolvedSkillAuthorization
 
-    # tests/conftest.py injects a MagicMock for deerflow.subagents.executor to
+    # tests/conftest.py injects a MagicMock for operix.subagents.executor to
     # break a production circular import; load the real module for this test
     # (same pattern as tests/test_delegation_ledger_live.py).
-    sys.modules.pop("deerflow.subagents.executor", None)
-    executor_module = importlib.import_module("deerflow.subagents.executor")
+    sys.modules.pop("operix.subagents.executor", None)
+    executor_module = importlib.import_module("operix.subagents.executor")
     SubagentExecutor = executor_module.SubagentExecutor
 
     app_config = _make_app_config()
@@ -1054,7 +1054,7 @@ def test_subagent_executor_resolves_skill_authorization_for_chain(monkeypatch):
         return []
 
     monkeypatch.setattr(
-        "deerflow.agents.middlewares.tool_error_handling_middleware.build_subagent_runtime_middlewares",
+        "operix.agents.middlewares.tool_error_handling_middleware.build_subagent_runtime_middlewares",
         _capture_builder,
     )
 
@@ -1091,20 +1091,20 @@ def test_client_skill_surface_uses_one_effective_user(monkeypatch):
     user-scoped storage (per-user custom skills would then be filtered out)."""
     from langchain_core.runnables import RunnableConfig
 
-    from deerflow.client import DeerFlowClient
+    from operix.client import OperixClient
 
     app_config = _make_app_config()
     _enable_authz(app_config)
     monkeypatch.setattr(
-        "deerflow.authz.skill_filter.resolve_authorization_provider",
+        "operix.authz.skill_filter.resolve_authorization_provider",
         lambda config: _rbac_provider({"user": {"skills": {"allow": "*"}}}),
     )
     monkeypatch.setattr(
-        "deerflow.authz.tool_filter.resolve_authorization_provider",
+        "operix.authz.tool_filter.resolve_authorization_provider",
         lambda config: _rbac_provider({"user": {"tools": {"allow": "*"}}}),
     )
     monkeypatch.setattr(
-        "deerflow.agents.lead_agent.agent.resolve_authorization_provider",
+        "operix.agents.lead_agent.agent.resolve_authorization_provider",
         lambda config: _rbac_provider({"user": {"models": {"allow": "*"}}}),
     )
 
@@ -1114,9 +1114,9 @@ def test_client_skill_surface_uses_one_effective_user(monkeypatch):
         catalog_calls.append(kw.get("user_id"))
         return [SimpleNamespace(name="catalog-skill")]
 
-    monkeypatch.setattr("deerflow.client.get_enabled_skills_for_config", _catalog_loader)
+    monkeypatch.setattr("operix.client.get_enabled_skills_for_config", _catalog_loader)
 
-    import deerflow.authz.skill_filter as skill_filter_module
+    import operix.authz.skill_filter as skill_filter_module
 
     captured = {}
     _original_filter = skill_filter_module.filter_available_skills_by_authorization
@@ -1126,27 +1126,27 @@ def test_client_skill_surface_uses_one_effective_user(monkeypatch):
         return _original_filter(available_skills, **kwargs)
 
     monkeypatch.setattr(skill_filter_module, "filter_available_skills_by_authorization", _filter_spy)
-    monkeypatch.setattr("deerflow.client.create_chat_model", lambda **kw: object())
-    monkeypatch.setattr("deerflow.client.create_agent", lambda **kw: object())
-    monkeypatch.setattr("deerflow.client.build_middlewares", lambda *a, **kw: [])
-    monkeypatch.setattr("deerflow.client.DeerFlowClient._get_tools", staticmethod(lambda *, model_name, subagent_enabled, mcp_plugins=None: []))  # noqa: ARG005
+    monkeypatch.setattr("operix.client.create_chat_model", lambda **kw: object())
+    monkeypatch.setattr("operix.client.create_agent", lambda **kw: object())
+    monkeypatch.setattr("operix.client.build_middlewares", lambda *a, **kw: [])
+    monkeypatch.setattr("operix.client.OperixClient._get_tools", staticmethod(lambda *, model_name, subagent_enabled, mcp_plugins=None: []))  # noqa: ARG005
     monkeypatch.setattr(
-        "deerflow.client.build_skill_search_setup",
+        "operix.client.build_skill_search_setup",
         lambda skills, *, enabled, container_base_path, skill_authorization=None: SimpleNamespace(describe_skill_tool=None, skill_names=frozenset()),
     )
     monkeypatch.setattr(
-        "deerflow.client.assemble_deferred_tools",
+        "operix.client.assemble_deferred_tools",
         lambda tools, *, enabled: ([], SimpleNamespace(deferred_names=frozenset())),
     )
-    monkeypatch.setattr("deerflow.client.build_mcp_routing_middleware", lambda *a, **kw: None)
-    monkeypatch.setattr("deerflow.client.get_mcp_routing_hints_prompt_section", lambda *a, **kw: "")
-    monkeypatch.setattr("deerflow.client.apply_prompt_template", lambda **kw: "")
-    monkeypatch.setattr("deerflow.client.get_thread_state_schema", lambda *a, **kw: object())
-    monkeypatch.setattr("deerflow.client.normalize_middleware_state_schemas", lambda schemas, mode, freq: [])
+    monkeypatch.setattr("operix.client.build_mcp_routing_middleware", lambda *a, **kw: None)
+    monkeypatch.setattr("operix.client.get_mcp_routing_hints_prompt_section", lambda *a, **kw: "")
+    monkeypatch.setattr("operix.client.apply_prompt_template", lambda **kw: "")
+    monkeypatch.setattr("operix.client.get_thread_state_schema", lambda *a, **kw: object())
+    monkeypatch.setattr("operix.client.normalize_middleware_state_schemas", lambda schemas, mode, freq: [])
     # No user_id in configurable: the effective id must come from here.
-    monkeypatch.setattr("deerflow.client.get_effective_user_id", lambda: "user-123")
+    monkeypatch.setattr("operix.client.get_effective_user_id", lambda: "user-123")
 
-    client = DeerFlowClient.__new__(DeerFlowClient)
+    client = OperixClient.__new__(OperixClient)
     client._app_config = app_config
     client._agent_name = "default"
     client._available_skills = None
@@ -1172,10 +1172,10 @@ def _describe_setup_for(provider, *, fail_closed: bool = True, skills=("demo-ski
     """Build a real describe_skill tool over *skills* with the provider wired."""
     from pathlib import Path
 
-    from deerflow.skills.catalog import SkillCatalog
-    from deerflow.skills.describe import build_describe_skill_tool
-    from deerflow.skills.types import Skill as SkillObject
-    from deerflow.skills.types import SkillCategory
+    from operix.skills.catalog import SkillCatalog
+    from operix.skills.describe import build_describe_skill_tool
+    from operix.skills.types import Skill as SkillObject
+    from operix.skills.types import SkillCategory
 
     made = []
     for name in skills:
@@ -1248,10 +1248,10 @@ def test_describe_skill_disabled_authorization_describes_all():
     in the catalog (pre-authorization behavior)."""
     from pathlib import Path
 
-    from deerflow.skills.catalog import SkillCatalog
-    from deerflow.skills.describe import build_describe_skill_tool
-    from deerflow.skills.types import Skill as SkillObject
-    from deerflow.skills.types import SkillCategory
+    from operix.skills.catalog import SkillCatalog
+    from operix.skills.describe import build_describe_skill_tool
+    from operix.skills.types import Skill as SkillObject
+    from operix.skills.types import SkillCategory
 
     made = []
     for name in ("demo-skill", "other-skill"):
@@ -1291,8 +1291,8 @@ def test_skill_read_stamp_gates_on_activate_decision():
     """A completed SKILL.md read only records a skill_context entry when the
     action-scoped skill:activate decision allows it; a denied read gets the
     denial marker instead (no durable context, tool policy, or secrets)."""
-    from deerflow.agents.middlewares.skill_context import SKILL_CONTEXT_DENIED_KEY, SKILL_CONTEXT_ENTRY_KEY
-    from deerflow.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
+    from operix.agents.middlewares.skill_context import SKILL_CONTEXT_DENIED_KEY, SKILL_CONTEXT_ENTRY_KEY
+    from operix.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
 
     provider = _ActionAwareProvider(denied_activate={"demo-skill"})
     resolved = _resolved_skill_authorization(provider, fail_closed=True)
@@ -1314,15 +1314,15 @@ def test_extract_skills_skips_denied_reads_without_warning(caplog):
     no misleading 'missing skill read metadata' warning."""
     from langchain_core.messages import AIMessage, ToolMessage
 
-    from deerflow.agents.middlewares import skill_context as skill_context_module
-    from deerflow.agents.middlewares.skill_context import SKILL_CONTEXT_DENIED_KEY
+    from operix.agents.middlewares import skill_context as skill_context_module
+    from operix.agents.middlewares.skill_context import SKILL_CONTEXT_DENIED_KEY
 
     messages = [
         AIMessage(content="", tool_calls=[{"name": "read_file", "id": "call-1", "args": {"path": "/mnt/skills/public/demo-skill/SKILL.md"}}]),
         ToolMessage(content="# demo", tool_call_id="call-1", name="read_file", additional_kwargs={SKILL_CONTEXT_DENIED_KEY: True}),
     ]
 
-    with caplog.at_level("WARNING", logger="deerflow.agents.middlewares.skill_context"):
+    with caplog.at_level("WARNING", logger="operix.agents.middlewares.skill_context"):
         entries = skill_context_module.extract_skills(messages, skills_root="/mnt/skills", read_tool_names={"read_file"})
 
     assert entries == []
@@ -1340,7 +1340,7 @@ def test_lead_runtime_chain_forwards_skill_authorization_to_stamp_gate():
     user-scoped registry the activation/policy middlewares resolve (a global
     registry would fall back to path-derived names for per-user custom
     skills, producing a wrong authorization target)."""
-    from deerflow.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware, build_lead_runtime_middlewares
+    from operix.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware, build_lead_runtime_middlewares
 
     provider = _rbac_provider({"user": {"skills": {"allow": "*"}}})
     resolved = _resolved_skill_authorization(provider, fail_closed=True)
@@ -1358,7 +1358,7 @@ def test_subagent_runtime_chain_forwards_user_id_to_stamp_gate():
     ToolErrorHandlingMiddleware: the subagent stamp gate must canonicalize
     skill-read paths against the user-scoped registry, matching the
     activation middleware constructed in the same builder."""
-    from deerflow.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware, build_subagent_runtime_middlewares
+    from operix.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware, build_subagent_runtime_middlewares
 
     middlewares = build_subagent_runtime_middlewares(app_config=_make_app_config(), user_id="user-456")
 
@@ -1377,11 +1377,11 @@ def test_subagent_executor_shares_one_skill_authorization_instance(monkeypatch):
     import importlib
     import sys
 
-    import deerflow.authz.skill_filter as skill_filter_module
-    from deerflow.authz.skill_filter import ResolvedSkillAuthorization
+    import operix.authz.skill_filter as skill_filter_module
+    from operix.authz.skill_filter import ResolvedSkillAuthorization
 
-    sys.modules.pop("deerflow.subagents.executor", None)
-    executor_module = importlib.import_module("deerflow.subagents.executor")
+    sys.modules.pop("operix.subagents.executor", None)
+    executor_module = importlib.import_module("operix.subagents.executor")
     SubagentExecutor = executor_module.SubagentExecutor
 
     resolved_providers: list = []
@@ -1406,7 +1406,7 @@ def test_subagent_executor_shares_one_skill_authorization_instance(monkeypatch):
     _enable_authz(app_config)
 
     monkeypatch.setattr(
-        "deerflow.skills.storage.get_or_new_user_skill_storage",
+        "operix.skills.storage.get_or_new_user_skill_storage",
         lambda user_id, **kw: SimpleNamespace(load_skills=lambda *, enabled_only: [SimpleNamespace(name="demo-skill")]),
     )
 
@@ -1417,7 +1417,7 @@ def test_subagent_executor_shares_one_skill_authorization_instance(monkeypatch):
         return []
 
     monkeypatch.setattr(
-        "deerflow.agents.middlewares.tool_error_handling_middleware.build_subagent_runtime_middlewares",
+        "operix.agents.middlewares.tool_error_handling_middleware.build_subagent_runtime_middlewares",
         _capture_builder,
     )
     monkeypatch.setattr(executor_module, "create_chat_model", lambda **kw: object())
@@ -1499,7 +1499,7 @@ def test_tool_policy_reauthorizes_persisted_entries(monkeypatch, tmp_path):
     """[P1 regression] allow-read-then-deny-next-run for allowed-tools: the
     persisted entry no longer applies its declaration once skill:activate is
     denied; an allowed skill keeps applying (partial deny does not poison)."""
-    from deerflow.agents.middlewares.skill_tool_policy_middleware import SkillToolPolicyMiddleware
+    from operix.agents.middlewares.skill_tool_policy_middleware import SkillToolPolicyMiddleware
 
     provider = _ActionAwareProvider(denied_activate=set())
     resolved = _resolved_skill_authorization(provider, fail_closed=True)
@@ -1510,8 +1510,8 @@ def test_tool_policy_reauthorizes_persisted_entries(monkeypatch, tmp_path):
         skill_dir.mkdir(exist_ok=True)
         skill_file = skill_dir / "SKILL.md"
         skill_file.write_text("# x", encoding="utf-8")
-        from deerflow.skills.types import Skill as SkillObject
-        from deerflow.skills.types import SkillCategory
+        from operix.skills.types import Skill as SkillObject
+        from operix.skills.types import SkillCategory
 
         skills[name] = SkillObject(
             name=name,
@@ -1562,7 +1562,7 @@ def test_tool_policy_reauthorizes_persisted_entries(monkeypatch, tmp_path):
     # All denied: no active reference survives -> fail closed to builtins.
     provider.denied_activate = {"demo-skill", "ok-skill"}
     allowed = middleware._allowed_names_for_paths(tuple(paths))
-    from deerflow.skills.tool_policy import ALWAYS_AVAILABLE_BUILTIN_TOOL_NAMES
+    from operix.skills.tool_policy import ALWAYS_AVAILABLE_BUILTIN_TOOL_NAMES
 
     assert allowed == set(ALWAYS_AVAILABLE_BUILTIN_TOOL_NAMES)
 
@@ -1619,8 +1619,8 @@ def test_async_stamp_path_uses_aauthorize():
     provider still yields an entry (not a fail-closed denial marker)."""
     import asyncio
 
-    from deerflow.agents.middlewares.skill_context import SKILL_CONTEXT_DENIED_KEY, SKILL_CONTEXT_ENTRY_KEY
-    from deerflow.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
+    from operix.agents.middlewares.skill_context import SKILL_CONTEXT_DENIED_KEY, SKILL_CONTEXT_ENTRY_KEY
+    from operix.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
 
     provider = _AsyncOnlyProvider()
     resolved = _resolved_skill_authorization(provider, fail_closed=True)
@@ -1640,8 +1640,8 @@ def test_async_stamp_path_uses_aauthorize():
 def test_async_stamp_path_denies_via_aauthorize():
     import asyncio
 
-    from deerflow.agents.middlewares.skill_context import SKILL_CONTEXT_DENIED_KEY, SKILL_CONTEXT_ENTRY_KEY
-    from deerflow.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
+    from operix.agents.middlewares.skill_context import SKILL_CONTEXT_DENIED_KEY, SKILL_CONTEXT_ENTRY_KEY
+    from operix.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
 
     provider = _AsyncOnlyProvider(denied_activate={"demo-skill"})
     resolved = _resolved_skill_authorization(provider, fail_closed=True)
@@ -1680,9 +1680,9 @@ def test_async_tool_policy_uses_aauthorize(monkeypatch, tmp_path):
     with aauthorize() — the loop-affine provider's decision is respected."""
     import asyncio
 
-    from deerflow.agents.middlewares.skill_tool_policy_middleware import SkillToolPolicyMiddleware
-    from deerflow.skills.types import Skill as SkillObject
-    from deerflow.skills.types import SkillCategory
+    from operix.agents.middlewares.skill_tool_policy_middleware import SkillToolPolicyMiddleware
+    from operix.skills.types import Skill as SkillObject
+    from operix.skills.types import SkillCategory
 
     # aauthorize ALLOWS demo-skill: with correct wiring the skill's
     # declaration applies ("bash" kept). If the async hook wrongly fell back to
@@ -1757,8 +1757,8 @@ def test_async_tool_policy_uses_aauthorize(monkeypatch, tmp_path):
 
 def _mismatched_skill(tmp_path):
     """Bundled-skill shape: directory name differs from the declared name."""
-    from deerflow.skills.types import Skill as SkillObject
-    from deerflow.skills.types import SkillCategory
+    from operix.skills.types import Skill as SkillObject
+    from operix.skills.types import SkillCategory
 
     skill_dir = tmp_path / "vercel-deploy-claimable"
     skill_dir.mkdir(exist_ok=True)
@@ -1791,8 +1791,8 @@ def test_skill_read_stamp_authorizes_declared_name_not_directory(tmp_path, monke
     """[P2 regression] The stamp gate resolves the read path through the
     registry and authorizes the declared Skill.name — never the directory
     basename the path would suggest."""
-    from deerflow.agents.middlewares.skill_context import SKILL_CONTEXT_DENIED_KEY, SKILL_CONTEXT_ENTRY_KEY
-    from deerflow.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
+    from operix.agents.middlewares.skill_context import SKILL_CONTEXT_DENIED_KEY, SKILL_CONTEXT_ENTRY_KEY
+    from operix.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
 
     skill = _mismatched_skill(tmp_path)
     provider = _ActionAwareProvider(denied_activate=set())
@@ -1813,8 +1813,8 @@ def test_skill_read_stamp_rbac_allowed_read_activates_mismatched_skill(tmp_path,
     """[P2 regression] RBAC allow: ["vercel-deploy"] — a read of the advertised
     container path activates; allow: ["vercel-deploy-claimable"] (directory
     name) does not, because the decision is keyed by the declared name."""
-    from deerflow.agents.middlewares.skill_context import SKILL_CONTEXT_DENIED_KEY, SKILL_CONTEXT_ENTRY_KEY
-    from deerflow.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
+    from operix.agents.middlewares.skill_context import SKILL_CONTEXT_DENIED_KEY, SKILL_CONTEXT_ENTRY_KEY
+    from operix.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
 
     skill = _mismatched_skill(tmp_path)
 
@@ -1841,8 +1841,8 @@ def test_async_stamp_path_authorizes_declared_name(tmp_path, monkeypatch):
     denial marker from a synchronous authorize() fallback)."""
     import asyncio
 
-    from deerflow.agents.middlewares.skill_context import SKILL_CONTEXT_DENIED_KEY, SKILL_CONTEXT_ENTRY_KEY
-    from deerflow.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
+    from operix.agents.middlewares.skill_context import SKILL_CONTEXT_DENIED_KEY, SKILL_CONTEXT_ENTRY_KEY
+    from operix.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
 
     skill = _mismatched_skill(tmp_path)
     provider = _AsyncOnlyProvider()
@@ -1872,9 +1872,9 @@ def test_async_slash_to_tool_policy_uses_declared_name(tmp_path, monkeypatch):
 
     from langchain_core.messages import HumanMessage
 
-    from deerflow.agents.middlewares import skill_activation_middleware as activation_module
-    from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-    from deerflow.agents.middlewares.skill_tool_policy_middleware import SkillToolPolicyMiddleware
+    from operix.agents.middlewares import skill_activation_middleware as activation_module
+    from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from operix.agents.middlewares.skill_tool_policy_middleware import SkillToolPolicyMiddleware
 
     skill = _mismatched_skill(tmp_path)
     storage = SimpleNamespace(
@@ -1949,9 +1949,9 @@ def test_async_secret_binding_canonicalizes_persisted_entry_paths(tmp_path, monk
 
     from langchain_core.messages import HumanMessage
 
-    from deerflow.agents.middlewares import skill_activation_middleware as activation_module
-    from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-    from deerflow.runtime.secret_context import ACTIVE_SECRETS_CONTEXT_KEY
+    from operix.agents.middlewares import skill_activation_middleware as activation_module
+    from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from operix.runtime.secret_context import ACTIVE_SECRETS_CONTEXT_KEY
 
     skill = _mismatched_skill(tmp_path)
     object.__setattr__(skill, "required_secrets", [SimpleNamespace(name="API_KEY", optional=False)])
@@ -2011,13 +2011,13 @@ def test_async_secret_binding_preserves_prepass_failure(tmp_path, monkeypatch):
 
     from langchain_core.messages import HumanMessage
 
-    from deerflow.agents.middlewares import skill_activation_middleware as activation_module
-    from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-    from deerflow.runtime.secret_context import ACTIVE_SECRETS_CONTEXT_KEY
+    from operix.agents.middlewares import skill_activation_middleware as activation_module
+    from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from operix.runtime.secret_context import ACTIVE_SECRETS_CONTEXT_KEY
 
     def _skill(name: str, secret: str):
-        from deerflow.skills.types import Skill as SkillObject
-        from deerflow.skills.types import SkillCategory
+        from operix.skills.types import Skill as SkillObject
+        from operix.skills.types import SkillCategory
 
         skill_dir = tmp_path / name
         skill_dir.mkdir(exist_ok=True)
@@ -2114,11 +2114,11 @@ def test_async_secret_binding_resolves_entries_against_prepass_snapshot(tmp_path
 
     from langchain_core.messages import HumanMessage
 
-    from deerflow.agents.middlewares import skill_activation_middleware as activation_module
-    from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-    from deerflow.runtime.secret_context import ACTIVE_SECRETS_CONTEXT_KEY
-    from deerflow.skills.types import Skill as SkillObject
-    from deerflow.skills.types import SkillCategory
+    from operix.agents.middlewares import skill_activation_middleware as activation_module
+    from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from operix.runtime.secret_context import ACTIVE_SECRETS_CONTEXT_KEY
+    from operix.skills.types import Skill as SkillObject
+    from operix.skills.types import SkillCategory
 
     skill_dir = tmp_path / "entry-skill"
     skill_dir.mkdir(exist_ok=True)
@@ -2196,9 +2196,9 @@ def test_async_policy_preserves_prepass_registry_failure(monkeypatch, tmp_path):
     allowed-tools) or falsely denying permitted skills (fail_closed=true)."""
     import asyncio
 
-    from deerflow.agents.middlewares.skill_tool_policy_middleware import SkillToolPolicyMiddleware
-    from deerflow.skills.types import Skill as SkillObject
-    from deerflow.skills.types import SkillCategory
+    from operix.agents.middlewares.skill_tool_policy_middleware import SkillToolPolicyMiddleware
+    from operix.skills.types import Skill as SkillObject
+    from operix.skills.types import SkillCategory
 
     skill_dir = tmp_path / "demo-skill"
     skill_dir.mkdir(exist_ok=True)
@@ -2282,8 +2282,8 @@ def test_async_model_call_without_skill_refs_skips_registry_scan(tmp_path, monke
 
     from langchain_core.messages import HumanMessage
 
-    from deerflow.agents.middlewares import skill_activation_middleware as activation_module
-    from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from operix.agents.middlewares import skill_activation_middleware as activation_module
+    from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
 
     load_calls = {"count": 0}
 
@@ -2335,11 +2335,11 @@ def test_slash_secret_binding_uses_post_activation_registry(tmp_path, monkeypatc
 
     from langchain_core.messages import HumanMessage
 
-    from deerflow.agents.middlewares import skill_activation_middleware as activation_module
-    from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-    from deerflow.runtime.secret_context import ACTIVE_SECRETS_CONTEXT_KEY
-    from deerflow.skills.types import Skill as SkillObject
-    from deerflow.skills.types import SkillCategory
+    from operix.agents.middlewares import skill_activation_middleware as activation_module
+    from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from operix.runtime.secret_context import ACTIVE_SECRETS_CONTEXT_KEY
+    from operix.skills.types import Skill as SkillObject
+    from operix.skills.types import SkillCategory
 
     skill_dir = tmp_path / "foo-skill"
     skill_dir.mkdir(exist_ok=True)
@@ -2423,11 +2423,11 @@ def test_snapshot_entries_bind_while_slash_fresh_load_fails(tmp_path, monkeypatc
 
     from langchain_core.messages import HumanMessage
 
-    from deerflow.agents.middlewares import skill_activation_middleware as activation_module
-    from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-    from deerflow.runtime.secret_context import ACTIVE_SECRETS_CONTEXT_KEY
-    from deerflow.skills.types import Skill as SkillObject
-    from deerflow.skills.types import SkillCategory
+    from operix.agents.middlewares import skill_activation_middleware as activation_module
+    from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from operix.runtime.secret_context import ACTIVE_SECRETS_CONTEXT_KEY
+    from operix.skills.types import Skill as SkillObject
+    from operix.skills.types import SkillCategory
 
     def _skill(name: str, secret: str) -> SkillObject:
         skill_dir = tmp_path / name
@@ -2516,11 +2516,11 @@ def test_slash_era_dominates_entry_source_for_same_skill(tmp_path, monkeypatch):
 
     from langchain_core.messages import HumanMessage
 
-    from deerflow.agents.middlewares import skill_activation_middleware as activation_module
-    from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-    from deerflow.runtime.secret_context import ACTIVE_SECRETS_CONTEXT_KEY
-    from deerflow.skills.types import Skill as SkillObject
-    from deerflow.skills.types import SkillCategory
+    from operix.agents.middlewares import skill_activation_middleware as activation_module
+    from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from operix.runtime.secret_context import ACTIVE_SECRETS_CONTEXT_KEY
+    from operix.skills.types import Skill as SkillObject
+    from operix.skills.types import SkillCategory
 
     skill_dir = tmp_path / "foo"
     skill_dir.mkdir(exist_ok=True)
@@ -2602,11 +2602,11 @@ def test_sync_chain_secret_binding_uses_sync_api_and_canonical_names(tmp_path, m
     whole suite."""
     from langchain_core.messages import HumanMessage
 
-    from deerflow.agents.middlewares import skill_activation_middleware as activation_module
-    from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-    from deerflow.runtime.secret_context import ACTIVE_SECRETS_CONTEXT_KEY
-    from deerflow.skills.types import Skill as SkillObject
-    from deerflow.skills.types import SkillCategory
+    from operix.agents.middlewares import skill_activation_middleware as activation_module
+    from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from operix.runtime.secret_context import ACTIVE_SECRETS_CONTEXT_KEY
+    from operix.skills.types import Skill as SkillObject
+    from operix.skills.types import SkillCategory
 
     skill_dir = tmp_path / "vercel-deploy-claimable"
     skill_dir.mkdir(exist_ok=True)
@@ -2677,11 +2677,11 @@ def test_sync_chain_secret_binding_uses_sync_api_and_canonical_names(tmp_path, m
 
 def _durable_render_setup(tmp_path, monkeypatch, *, provider):
     """Composed activation(outer) -> durable(inner) pair over two skills."""
-    from deerflow.agents.middlewares import skill_activation_middleware as activation_module
-    from deerflow.agents.middlewares.durable_context_middleware import DurableContextMiddleware
-    from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-    from deerflow.skills.types import Skill as SkillObject
-    from deerflow.skills.types import SkillCategory
+    from operix.agents.middlewares import skill_activation_middleware as activation_module
+    from operix.agents.middlewares.durable_context_middleware import DurableContextMiddleware
+    from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from operix.skills.types import Skill as SkillObject
+    from operix.skills.types import SkillCategory
 
     made = []
     for name in ("demo-skill", "ok-skill"):
@@ -2814,8 +2814,8 @@ def test_durable_render_unfiltered_without_authorization(tmp_path, monkeypatch):
 
     from langchain_core.messages import HumanMessage
 
-    from deerflow.agents.middlewares.durable_context_middleware import DurableContextMiddleware
-    from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from operix.agents.middlewares.durable_context_middleware import DurableContextMiddleware
+    from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
 
     activation, durable, entries, load_calls = _durable_render_setup(tmp_path, monkeypatch, provider=_ActionAwareProvider(denied_activate=set()))
     # Rebuild both without authorization, sharing the fixture's storage/skills.
@@ -2851,9 +2851,9 @@ def test_lead_chain_wires_durable_render_filter():
     middleware, and is constructed AFTER it (publication must precede
     consumption in the wrap order). Dropping either silently disables the
     rendered-reminder filter — nothing else fails."""
-    from deerflow.agents.lead_agent.agent import build_middlewares
-    from deerflow.agents.middlewares.durable_context_middleware import DurableContextMiddleware
-    from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from operix.agents.lead_agent.agent import build_middlewares
+    from operix.agents.middlewares.durable_context_middleware import DurableContextMiddleware
+    from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
 
     provider = _rbac_provider({"user": {"skills": {"allow": "*"}}})
     resolved = _resolved_skill_authorization(provider, fail_closed=True)
@@ -2870,9 +2870,9 @@ def test_lead_chain_wires_durable_render_filter():
 
 def test_subagent_chain_wires_durable_render_filter():
     """Same wiring contract for the subagent builder's DurableContextMiddleware."""
-    from deerflow.agents.middlewares.durable_context_middleware import DurableContextMiddleware
-    from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-    from deerflow.agents.middlewares.tool_error_handling_middleware import build_subagent_runtime_middlewares
+    from operix.agents.middlewares.durable_context_middleware import DurableContextMiddleware
+    from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from operix.agents.middlewares.tool_error_handling_middleware import build_subagent_runtime_middlewares
 
     provider = _rbac_provider({"user": {"skills": {"allow": "*"}}})
     resolved = _resolved_skill_authorization(provider, fail_closed=True)
@@ -2892,7 +2892,7 @@ def test_entry_decisions_carrier_is_redaction_listed():
     ``redact_secret_context_keys`` — the redaction allowlist must enumerate
     every run-context key the middlewares add (paths and decisions are not
     secrets, but the carrier must never leak onto observable surfaces)."""
-    from deerflow.runtime.secret_context import redact_secret_context_keys, write_skill_entry_decisions
+    from operix.runtime.secret_context import redact_secret_context_keys, write_skill_entry_decisions
 
     context: dict = {"secrets": {"K": "v"}, "__skill_entry_activation_decisions": {"decisions": {}, "owner_token": "t"}, "keep": 1}
     write_skill_entry_decisions(context, {"/mnt/skills/custom/foo/SKILL.md": True}, owner_token="t")
@@ -2918,11 +2918,11 @@ def test_slash_dominance_holds_when_activation_era_declares_no_secrets(tmp_path,
 
     from langchain_core.messages import HumanMessage
 
-    from deerflow.agents.middlewares import skill_activation_middleware as activation_module
-    from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-    from deerflow.runtime.secret_context import ACTIVE_SECRETS_CONTEXT_KEY
-    from deerflow.skills.types import Skill as SkillObject
-    from deerflow.skills.types import SkillCategory
+    from operix.agents.middlewares import skill_activation_middleware as activation_module
+    from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from operix.runtime.secret_context import ACTIVE_SECRETS_CONTEXT_KEY
+    from operix.skills.types import Skill as SkillObject
+    from operix.skills.types import SkillCategory
 
     skill_dir = tmp_path / "foo"
     skill_dir.mkdir(exist_ok=True)
@@ -3003,11 +3003,11 @@ def test_slash_dominance_anchors_on_path_across_midrun_rename(tmp_path, monkeypa
 
     from langchain_core.messages import HumanMessage
 
-    from deerflow.agents.middlewares import skill_activation_middleware as activation_module
-    from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-    from deerflow.runtime.secret_context import ACTIVE_SECRETS_CONTEXT_KEY
-    from deerflow.skills.types import Skill as SkillObject
-    from deerflow.skills.types import SkillCategory
+    from operix.agents.middlewares import skill_activation_middleware as activation_module
+    from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from operix.runtime.secret_context import ACTIVE_SECRETS_CONTEXT_KEY
+    from operix.skills.types import Skill as SkillObject
+    from operix.skills.types import SkillCategory
 
     skill_dir = tmp_path / "foo"
     skill_dir.mkdir(exist_ok=True)
@@ -3081,6 +3081,6 @@ def posixpath_normpath(path: str) -> str:
 
 
 def is_slash_activation_reminder(message) -> bool:
-    from deerflow.agents.middlewares.skill_activation_middleware import is_slash_skill_activation_reminder
+    from operix.agents.middlewares.skill_activation_middleware import is_slash_skill_activation_reminder
 
     return is_slash_skill_activation_reminder(message)

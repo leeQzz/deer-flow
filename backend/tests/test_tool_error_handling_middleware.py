@@ -9,20 +9,20 @@ from langchain.agents.middleware import AgentMiddleware
 from langchain_core.messages import ToolMessage
 from langgraph.errors import GraphInterrupt
 
-from deerflow.agents.middlewares.tool_error_handling_middleware import (
+from operix.agents.middlewares.tool_error_handling_middleware import (
     ToolErrorHandlingMiddleware,
     build_lead_runtime_middlewares,
     build_subagent_runtime_middlewares,
 )
-from deerflow.agents.middlewares.tool_result_meta import TOOL_META_KEY
-from deerflow.agents.middlewares.view_image_middleware import ViewImageMiddleware
-from deerflow.config import summarization_config
-from deerflow.config.app_config import AppConfig, CircuitBreakerConfig
-from deerflow.config.extensions_config import ExtensionsConfig
-from deerflow.config.guardrails_config import GuardrailsConfig
-from deerflow.config.model_config import ModelConfig
-from deerflow.config.sandbox_config import SandboxConfig
-from deerflow.subagents.status_contract import SUBAGENT_ERROR_KEY, SUBAGENT_STATUS_KEY
+from operix.agents.middlewares.tool_result_meta import TOOL_META_KEY
+from operix.agents.middlewares.view_image_middleware import ViewImageMiddleware
+from operix.config import summarization_config
+from operix.config.app_config import AppConfig, CircuitBreakerConfig
+from operix.config.extensions_config import ExtensionsConfig
+from operix.config.guardrails_config import GuardrailsConfig
+from operix.config.model_config import ModelConfig
+from operix.config.sandbox_config import SandboxConfig
+from operix.subagents.status_contract import SUBAGENT_ERROR_KEY, SUBAGENT_STATUS_KEY
 
 
 class ConfiguredSubagentMiddleware(AgentMiddleware):
@@ -88,41 +88,41 @@ def _stub_runtime_middleware_imports(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setitem(
         sys.modules,
-        "deerflow.agents.middlewares.llm_error_handling_middleware",
+        "operix.agents.middlewares.llm_error_handling_middleware",
         _module(
-            "deerflow.agents.middlewares.llm_error_handling_middleware",
+            "operix.agents.middlewares.llm_error_handling_middleware",
             LLMErrorHandlingMiddleware=FakeLLMErrorHandlingMiddleware,
         ),
     )
     monkeypatch.setitem(
         sys.modules,
-        "deerflow.agents.middlewares.thread_data_middleware",
+        "operix.agents.middlewares.thread_data_middleware",
         _module(
-            "deerflow.agents.middlewares.thread_data_middleware",
+            "operix.agents.middlewares.thread_data_middleware",
             ThreadDataMiddleware=FakeThreadDataMiddleware,
         ),
     )
     monkeypatch.setitem(
         sys.modules,
-        "deerflow.sandbox.middleware",
+        "operix.sandbox.middleware",
         _module(
-            "deerflow.sandbox.middleware",
+            "operix.sandbox.middleware",
             SandboxMiddleware=FakeSandboxMiddleware,
         ),
     )
     monkeypatch.setitem(
         sys.modules,
-        "deerflow.agents.middlewares.dangling_tool_call_middleware",
+        "operix.agents.middlewares.dangling_tool_call_middleware",
         _module(
-            "deerflow.agents.middlewares.dangling_tool_call_middleware",
+            "operix.agents.middlewares.dangling_tool_call_middleware",
             DanglingToolCallMiddleware=FakeDanglingToolCallMiddleware,
         ),
     )
     monkeypatch.setitem(
         sys.modules,
-        "deerflow.agents.middlewares.sandbox_audit_middleware",
+        "operix.agents.middlewares.sandbox_audit_middleware",
         _module(
-            "deerflow.agents.middlewares.sandbox_audit_middleware",
+            "operix.agents.middlewares.sandbox_audit_middleware",
             SandboxAuditMiddleware=FakeSandboxAuditMiddleware,
         ),
     )
@@ -159,46 +159,46 @@ def test_build_subagent_runtime_middlewares_threads_app_config_to_llm_middleware
 
     monkeypatch.setitem(
         sys.modules,
-        "deerflow.agents.middlewares.llm_error_handling_middleware",
+        "operix.agents.middlewares.llm_error_handling_middleware",
         _module(
-            "deerflow.agents.middlewares.llm_error_handling_middleware",
+            "operix.agents.middlewares.llm_error_handling_middleware",
             LLMErrorHandlingMiddleware=FakeLLMErrorHandlingMiddleware,
         ),
     )
     monkeypatch.setitem(
         sys.modules,
-        "deerflow.agents.middlewares.thread_data_middleware",
+        "operix.agents.middlewares.thread_data_middleware",
         _module(
-            "deerflow.agents.middlewares.thread_data_middleware",
+            "operix.agents.middlewares.thread_data_middleware",
             ThreadDataMiddleware=FakeThreadDataMiddleware,
         ),
     )
     monkeypatch.setitem(
         sys.modules,
-        "deerflow.sandbox.middleware",
-        _module("deerflow.sandbox.middleware", SandboxMiddleware=FakeSandboxMiddleware),
+        "operix.sandbox.middleware",
+        _module("operix.sandbox.middleware", SandboxMiddleware=FakeSandboxMiddleware),
     )
     monkeypatch.setitem(
         sys.modules,
-        "deerflow.agents.middlewares.dangling_tool_call_middleware",
+        "operix.agents.middlewares.dangling_tool_call_middleware",
         _module(
-            "deerflow.agents.middlewares.dangling_tool_call_middleware",
+            "operix.agents.middlewares.dangling_tool_call_middleware",
             DanglingToolCallMiddleware=FakeDanglingToolCallMiddleware,
         ),
     )
     monkeypatch.setitem(
         sys.modules,
-        "deerflow.agents.middlewares.sandbox_audit_middleware",
+        "operix.agents.middlewares.sandbox_audit_middleware",
         _module(
-            "deerflow.agents.middlewares.sandbox_audit_middleware",
+            "operix.agents.middlewares.sandbox_audit_middleware",
             SandboxAuditMiddleware=FakeSandboxAuditMiddleware,
         ),
     )
     monkeypatch.setitem(
         sys.modules,
-        "deerflow.agents.middlewares.input_sanitization_middleware",
+        "operix.agents.middlewares.input_sanitization_middleware",
         _module(
-            "deerflow.agents.middlewares.input_sanitization_middleware",
+            "operix.agents.middlewares.input_sanitization_middleware",
             InputSanitizationMiddleware=FakeInputSanitizationMiddleware,
             neutralize_untrusted_tags=lambda value: value,
         ),
@@ -219,16 +219,16 @@ def test_build_subagent_runtime_middlewares_threads_app_config_to_llm_middleware
     # (all enabled by default).
     # + 1 ArtifactResolutionMiddleware + 1 ArtifactCaptureMiddleware
     # (tool_artifacts enabled by default, #4676).
-    from deerflow.agents.middlewares.durable_context_middleware import DurableContextMiddleware
-    from deerflow.agents.middlewares.dynamic_context_middleware import SubagentDateContextMiddleware
-    from deerflow.agents.middlewares.knowledge_scope_middleware import KnowledgeScopeMiddleware
-    from deerflow.agents.middlewares.safety_finish_reason_middleware import SafetyFinishReasonMiddleware
-    from deerflow.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
-    from deerflow.agents.middlewares.skill_tool_policy_middleware import SkillToolPolicyMiddleware
-    from deerflow.agents.middlewares.system_message_coalescing_middleware import SystemMessageCoalescingMiddleware
-    from deerflow.agents.middlewares.token_budget_middleware import TokenBudgetMiddleware
-    from deerflow.agents.middlewares.tool_output_budget_middleware import ToolOutputBudgetMiddleware
-    from deerflow.agents.middlewares.tool_receipt_middleware import ToolReceiptMiddleware
+    from operix.agents.middlewares.durable_context_middleware import DurableContextMiddleware
+    from operix.agents.middlewares.dynamic_context_middleware import SubagentDateContextMiddleware
+    from operix.agents.middlewares.knowledge_scope_middleware import KnowledgeScopeMiddleware
+    from operix.agents.middlewares.safety_finish_reason_middleware import SafetyFinishReasonMiddleware
+    from operix.agents.middlewares.skill_activation_middleware import SkillActivationMiddleware
+    from operix.agents.middlewares.skill_tool_policy_middleware import SkillToolPolicyMiddleware
+    from operix.agents.middlewares.system_message_coalescing_middleware import SystemMessageCoalescingMiddleware
+    from operix.agents.middlewares.token_budget_middleware import TokenBudgetMiddleware
+    from operix.agents.middlewares.tool_output_budget_middleware import ToolOutputBudgetMiddleware
+    from operix.agents.middlewares.tool_receipt_middleware import ToolReceiptMiddleware
 
     assert len(middlewares) == 22
     assert isinstance(middlewares[0], FakeMiddleware)  # InputSanitizationMiddleware stub
@@ -236,7 +236,7 @@ def test_build_subagent_runtime_middlewares_threads_app_config_to_llm_middleware
     assert isinstance(middlewares[2], ToolOutputBudgetMiddleware)
     assert any(isinstance(m, ToolErrorHandlingMiddleware) for m in middlewares)
     # The receipt layer wraps ToolErrorHandlingMiddleware so receipts read the
-    # deerflow_tool_meta status it stamps (guard-enforced, like ToolProgress).
+    # operix_tool_meta status it stamps (guard-enforced, like ToolProgress).
     receipt_idx = next(i for i, m in enumerate(middlewares) if isinstance(m, ToolReceiptMiddleware))
     error_idx = next(i for i, m in enumerate(middlewares) if isinstance(m, ToolErrorHandlingMiddleware))
     assert receipt_idx < error_idx
@@ -259,8 +259,8 @@ def test_build_subagent_runtime_middlewares_threads_app_config_to_llm_middleware
 
 
 def test_subagent_runtime_sandbox_does_not_own_lead_skill_projection() -> None:
-    from deerflow.extensions.registry import ExtensionRegistry
-    from deerflow.sandbox.middleware import SandboxMiddleware
+    from operix.extensions.registry import ExtensionRegistry
+    from operix.sandbox.middleware import SandboxMiddleware
 
     middlewares = build_subagent_runtime_middlewares(
         app_config=_make_app_config(),
@@ -275,9 +275,9 @@ def test_subagent_runtime_sandbox_does_not_own_lead_skill_projection() -> None:
 def test_tool_progress_middleware_is_outer_relative_to_error_handling(monkeypatch: pytest.MonkeyPatch):
     # ToolProgressMiddleware must have a lower index than ToolErrorHandlingMiddleware
     # so that the framework's "first in list = outermost" rule makes it outer.
-    # Only then can it read deerflow_tool_meta stamped by ToolErrorHandlingMiddleware.
-    from deerflow.agents.middlewares.tool_progress_middleware import ToolProgressMiddleware
-    from deerflow.config.tool_progress_config import ToolProgressConfig
+    # Only then can it read operix_tool_meta stamped by ToolErrorHandlingMiddleware.
+    from operix.agents.middlewares.tool_progress_middleware import ToolProgressMiddleware
+    from operix.config.tool_progress_config import ToolProgressConfig
 
     app_config = AppConfig(
         models=[
@@ -311,10 +311,10 @@ def test_artifact_middlewares_ordering_in_runtime_chain(monkeypatch: pytest.Monk
     # is a `before_model` hook reading state messages, not a tool wrapper — so
     # the assertion below only pins its assembly slot, not a behavioral
     # dependency. — issue #4676.
-    from deerflow.agents.middlewares.artifact_capture_middleware import ArtifactCaptureMiddleware
-    from deerflow.agents.middlewares.artifact_resolution_middleware import ArtifactResolutionMiddleware
-    from deerflow.config.tool_artifact_config import ToolArtifactConfig
-    from deerflow.config.tool_progress_config import ToolProgressConfig
+    from operix.agents.middlewares.artifact_capture_middleware import ArtifactCaptureMiddleware
+    from operix.agents.middlewares.artifact_resolution_middleware import ArtifactResolutionMiddleware
+    from operix.config.tool_artifact_config import ToolArtifactConfig
+    from operix.config.tool_progress_config import ToolProgressConfig
 
     app_config = AppConfig(
         models=[
@@ -348,8 +348,8 @@ def test_artifact_middlewares_ordering_in_runtime_chain(monkeypatch: pytest.Monk
 
 
 def test_artifact_capture_absent_when_disabled(monkeypatch: pytest.MonkeyPatch):
-    from deerflow.agents.middlewares.artifact_capture_middleware import ArtifactCaptureMiddleware
-    from deerflow.config.tool_artifact_config import ToolArtifactConfig
+    from operix.agents.middlewares.artifact_capture_middleware import ArtifactCaptureMiddleware
+    from operix.config.tool_artifact_config import ToolArtifactConfig
 
     app_config = AppConfig(
         models=[
@@ -375,21 +375,21 @@ def test_artifact_capture_absent_when_disabled(monkeypatch: pytest.MonkeyPatch):
 
 def test_middleware_ordering_guard_moved_to_declarative_constraints(monkeypatch: pytest.MonkeyPatch):
     """_build_runtime_middlewares no longer hand-validates ordering; the invariant is now
-    declared in deerflow.extensions.ordering (core_ordering_constraints / assert_ordering) and
+    declared in operix.extensions.ordering (core_ordering_constraints / assert_ordering) and
     is checked once the composing builder merges extension contributions in (Task 9).
 
     This test previously monkeypatched SandboxAuditMiddleware to a ToolErrorHandlingMiddleware
     instance to force the wrong-order condition and asserted that the builder itself raised.
     That in-builder guard was deleted on purpose: validating here would check a stack that
     hasn't received extension contributions yet. Building under the same wrong-order condition
-    must no longer raise inside this builder; deerflow.extensions.ordering has the equivalent
+    must no longer raise inside this builder; operix.extensions.ordering has the equivalent
     coverage (see test_extension_ordering.py and test_core_constraints_are_declared).
     """
-    from deerflow.agents.middlewares.tool_error_handling_middleware import (
+    from operix.agents.middlewares.tool_error_handling_middleware import (
         ToolErrorHandlingMiddleware,
         build_lead_runtime_middlewares,
     )
-    from deerflow.config.tool_progress_config import ToolProgressConfig
+    from operix.config.tool_progress_config import ToolProgressConfig
 
     _stub_runtime_middleware_imports(monkeypatch)
     # Override the SandboxAuditMiddleware stub with a real ToolErrorHandlingMiddleware so it
@@ -397,9 +397,9 @@ def test_middleware_ordering_guard_moved_to_declarative_constraints(monkeypatch:
     # ToolProgressMiddleware — the same wrong-order condition the deleted guard used to catch.
     monkeypatch.setitem(
         sys.modules,
-        "deerflow.agents.middlewares.sandbox_audit_middleware",
+        "operix.agents.middlewares.sandbox_audit_middleware",
         _module(
-            "deerflow.agents.middlewares.sandbox_audit_middleware",
+            "operix.agents.middlewares.sandbox_audit_middleware",
             SandboxAuditMiddleware=ToolErrorHandlingMiddleware,
         ),
     )
@@ -415,8 +415,8 @@ def test_middleware_ordering_guard_moved_to_declarative_constraints(monkeypatch:
 def test_lead_runtime_middlewares_thread_app_config_to_tool_error_handling(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setitem(
         sys.modules,
-        "deerflow.agents.middlewares.input_sanitization_middleware",
-        _module("deerflow.agents.middlewares.input_sanitization_middleware", InputSanitizationMiddleware=object),
+        "operix.agents.middlewares.input_sanitization_middleware",
+        _module("operix.agents.middlewares.input_sanitization_middleware", InputSanitizationMiddleware=object),
     )
     app_config = _make_app_config()
     _stub_runtime_middleware_imports(monkeypatch)
@@ -432,9 +432,9 @@ def test_lead_runtime_middlewares_pass_agent_skills_to_sandbox(
 ):
     monkeypatch.setitem(
         sys.modules,
-        "deerflow.agents.middlewares.input_sanitization_middleware",
+        "operix.agents.middlewares.input_sanitization_middleware",
         _module(
-            "deerflow.agents.middlewares.input_sanitization_middleware",
+            "operix.agents.middlewares.input_sanitization_middleware",
             InputSanitizationMiddleware=object,
             neutralize_untrusted_tags=lambda value: value,
         ),
@@ -460,9 +460,9 @@ def test_lead_runtime_middlewares_can_delegate_skill_projection_ownership(
 ):
     monkeypatch.setitem(
         sys.modules,
-        "deerflow.agents.middlewares.input_sanitization_middleware",
+        "operix.agents.middlewares.input_sanitization_middleware",
         _module(
-            "deerflow.agents.middlewares.input_sanitization_middleware",
+            "operix.agents.middlewares.input_sanitization_middleware",
             InputSanitizationMiddleware=object,
             neutralize_untrusted_tags=lambda value: value,
         ),
@@ -492,8 +492,8 @@ def test_build_lead_runtime_middlewares_orders_thread_data_before_uploads():
     first run of a thread when the directory has not been pre-created by the
     upload endpoint.
     """
-    from deerflow.agents.middlewares.thread_data_middleware import ThreadDataMiddleware
-    from deerflow.agents.middlewares.uploads_middleware import UploadsMiddleware
+    from operix.agents.middlewares.thread_data_middleware import ThreadDataMiddleware
+    from operix.agents.middlewares.uploads_middleware import UploadsMiddleware
 
     app_config = _make_app_config()
     middlewares = build_lead_runtime_middlewares(app_config=app_config)
@@ -515,16 +515,16 @@ def test_build_lead_runtime_middlewares_chain_order_matches_agents_md():
     DanglingToolCall) is caught. If a future refactor legitimately reorders
     these, update backend/AGENTS.md "Middleware Chain" in the same change.
     """
-    from deerflow.agents.middlewares.dangling_tool_call_middleware import DanglingToolCallMiddleware
-    from deerflow.agents.middlewares.input_sanitization_middleware import InputSanitizationMiddleware
-    from deerflow.agents.middlewares.llm_error_handling_middleware import LLMErrorHandlingMiddleware
-    from deerflow.agents.middlewares.read_before_write_middleware import ReadBeforeWriteMiddleware
-    from deerflow.agents.middlewares.sandbox_audit_middleware import SandboxAuditMiddleware
-    from deerflow.agents.middlewares.thread_data_middleware import ThreadDataMiddleware
-    from deerflow.agents.middlewares.tool_output_budget_middleware import ToolOutputBudgetMiddleware
-    from deerflow.agents.middlewares.tool_result_sanitization_middleware import ToolResultSanitizationMiddleware
-    from deerflow.agents.middlewares.uploads_middleware import UploadsMiddleware
-    from deerflow.sandbox.middleware import SandboxMiddleware
+    from operix.agents.middlewares.dangling_tool_call_middleware import DanglingToolCallMiddleware
+    from operix.agents.middlewares.input_sanitization_middleware import InputSanitizationMiddleware
+    from operix.agents.middlewares.llm_error_handling_middleware import LLMErrorHandlingMiddleware
+    from operix.agents.middlewares.read_before_write_middleware import ReadBeforeWriteMiddleware
+    from operix.agents.middlewares.sandbox_audit_middleware import SandboxAuditMiddleware
+    from operix.agents.middlewares.thread_data_middleware import ThreadDataMiddleware
+    from operix.agents.middlewares.tool_output_budget_middleware import ToolOutputBudgetMiddleware
+    from operix.agents.middlewares.tool_result_sanitization_middleware import ToolResultSanitizationMiddleware
+    from operix.agents.middlewares.uploads_middleware import UploadsMiddleware
+    from operix.sandbox.middleware import SandboxMiddleware
 
     app_config = _make_app_config()
     middlewares = build_lead_runtime_middlewares(app_config=app_config)
@@ -766,12 +766,12 @@ def test_subagent_runtime_middlewares_attach_deferred_filter_when_setup_has_name
     """A subagent built with deferred MCP tools gets DeferredToolFilterMiddleware, positioned before SafetyFinishReasonMiddleware (mirrors the lead ordering)."""
     from langchain_core.tools import tool as as_tool
 
-    from deerflow.agents.middlewares.deferred_tool_filter_middleware import DeferredToolFilterMiddleware
-    from deerflow.agents.middlewares.safety_finish_reason_middleware import SafetyFinishReasonMiddleware
-    from deerflow.agents.middlewares.skill_tool_policy_middleware import SkillToolPolicyMiddleware
-    from deerflow.agents.middlewares.tool_promotion_audit_middleware import DeferredToolPromotionAuditMiddleware
-    from deerflow.tools.builtins.tool_search import build_deferred_tool_setup
-    from deerflow.tools.mcp_metadata import tag_mcp_tool
+    from operix.agents.middlewares.deferred_tool_filter_middleware import DeferredToolFilterMiddleware
+    from operix.agents.middlewares.safety_finish_reason_middleware import SafetyFinishReasonMiddleware
+    from operix.agents.middlewares.skill_tool_policy_middleware import SkillToolPolicyMiddleware
+    from operix.agents.middlewares.tool_promotion_audit_middleware import DeferredToolPromotionAuditMiddleware
+    from operix.tools.builtins.tool_search import build_deferred_tool_setup
+    from operix.tools.mcp_metadata import tag_mcp_tool
 
     app_config = _make_app_config()
     _stub_runtime_middleware_imports(monkeypatch)
@@ -799,7 +799,7 @@ def test_subagent_runtime_middlewares_attach_deferred_filter_when_setup_has_name
 
 
 def test_subagent_runtime_middlewares_inject_configured_extension_middlewares(monkeypatch):
-    from deerflow.agents.middlewares.safety_finish_reason_middleware import SafetyFinishReasonMiddleware
+    from operix.agents.middlewares.safety_finish_reason_middleware import SafetyFinishReasonMiddleware
 
     app_config = _make_app_config()
     app_config.extensions = ExtensionsConfig(middlewares=[f"{__name__}:ConfiguredSubagentMiddleware"])
@@ -817,9 +817,9 @@ def test_subagent_runtime_middlewares_inject_configured_extension_middlewares(mo
 
 
 def test_subagent_runtime_middlewares_place_mcp_routing_before_deferred_filter(monkeypatch):
-    from deerflow.agents.middlewares.deferred_tool_filter_middleware import DeferredToolFilterMiddleware
-    from deerflow.agents.middlewares.mcp_routing_middleware import McpRoutingMiddleware
-    from deerflow.tools.builtins.tool_search import DeferredToolSetup
+    from operix.agents.middlewares.deferred_tool_filter_middleware import DeferredToolFilterMiddleware
+    from operix.agents.middlewares.mcp_routing_middleware import McpRoutingMiddleware
+    from operix.tools.builtins.tool_search import DeferredToolSetup
 
     app_config = _make_app_config()
     _stub_runtime_middleware_imports(monkeypatch)
@@ -835,9 +835,9 @@ def test_subagent_runtime_middlewares_place_mcp_routing_before_deferred_filter(m
 
 def test_subagent_runtime_middlewares_skip_deferred_filter_without_names(monkeypatch):
     """No deferred setup (disabled / no MCP tool) -> no DeferredToolFilterMiddleware."""
-    from deerflow.agents.middlewares.deferred_tool_filter_middleware import DeferredToolFilterMiddleware
-    from deerflow.agents.middlewares.tool_promotion_audit_middleware import DeferredToolPromotionAuditMiddleware
-    from deerflow.tools.builtins.tool_search import DeferredToolSetup
+    from operix.agents.middlewares.deferred_tool_filter_middleware import DeferredToolFilterMiddleware
+    from operix.agents.middlewares.tool_promotion_audit_middleware import DeferredToolPromotionAuditMiddleware
+    from operix.tools.builtins.tool_search import DeferredToolSetup
 
     app_config = _make_app_config()
     _stub_runtime_middleware_imports(monkeypatch)
@@ -853,7 +853,7 @@ def test_subagent_runtime_middlewares_attach_loop_detection_when_enabled(monkeyp
     tool loop is broken instead of burning tokens until ``max_turns`` (#3875).
     ``loop_detection.enabled`` defaults to True, so the default subagent chain
     carries the guard. Phase 1 of #3875."""
-    from deerflow.agents.middlewares.loop_detection_middleware import LoopDetectionMiddleware
+    from operix.agents.middlewares.loop_detection_middleware import LoopDetectionMiddleware
 
     app_config = _make_app_config()
     _stub_runtime_middleware_imports(monkeypatch)
@@ -867,8 +867,8 @@ def test_subagent_runtime_middlewares_attach_loop_detection_when_enabled(monkeyp
 def test_subagent_runtime_middlewares_omit_loop_detection_when_disabled(monkeypatch):
     """``loop_detection.enabled=False`` must drop the guard from the subagent
     chain, mirroring the lead's gate (``lead_agent/agent.py``)."""
-    from deerflow.agents.middlewares.loop_detection_middleware import LoopDetectionMiddleware
-    from deerflow.config.loop_detection_config import LoopDetectionConfig
+    from operix.agents.middlewares.loop_detection_middleware import LoopDetectionMiddleware
+    from operix.config.loop_detection_config import LoopDetectionConfig
 
     app_config = _make_app_config().model_copy(update={"loop_detection": LoopDetectionConfig(enabled=False)})
     _stub_runtime_middleware_imports(monkeypatch)
@@ -885,8 +885,8 @@ def test_subagent_runtime_middlewares_place_loop_detection_before_safety_finish(
     later) executes first — the placement its docstring requires and the lead
     chain (``lead_agent/agent.py``) uses. The assertion pins registration order,
     not execution order."""
-    from deerflow.agents.middlewares.loop_detection_middleware import LoopDetectionMiddleware
-    from deerflow.agents.middlewares.safety_finish_reason_middleware import SafetyFinishReasonMiddleware
+    from operix.agents.middlewares.loop_detection_middleware import LoopDetectionMiddleware
+    from operix.agents.middlewares.safety_finish_reason_middleware import SafetyFinishReasonMiddleware
 
     app_config = _make_app_config()
     _stub_runtime_middleware_imports(monkeypatch)
@@ -909,8 +909,8 @@ def test_subagent_runtime_middlewares_attach_durable_context_before_summarizatio
     context layer must use the same skill settings as the lead chain and run
     before summarization.
     """
-    from deerflow.agents.middlewares import summarization_middleware as sm
-    from deerflow.agents.middlewares.durable_context_middleware import DurableContextMiddleware
+    from operix.agents.middlewares import summarization_middleware as sm
+    from operix.agents.middlewares.durable_context_middleware import DurableContextMiddleware
 
     sentinel = object()
     captured: dict[str, object] = {}
@@ -934,7 +934,7 @@ def test_subagent_runtime_middlewares_attach_durable_context_before_summarizatio
 
     # summarization is enabled by default False; flip it on so the factory path
     # is taken (the factory early-returns None when disabled).
-    from deerflow.config.summarization_config import SummarizationConfig
+    from operix.config.summarization_config import SummarizationConfig
 
     app_config = _make_app_config().model_copy(update={"summarization": SummarizationConfig(enabled=True)})
     monkeypatch.setattr(sm, "create_summarization_middleware", fake_create_summarization_middleware)
@@ -978,11 +978,11 @@ def test_subagent_compaction_injects_summary_before_assistant_tool_tail(monkeypa
     from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
     from langchain_core.outputs import ChatGeneration, ChatResult
 
-    from deerflow.agents.middlewares.durable_context_middleware import DurableContextMiddleware
-    from deerflow.agents.middlewares.summarization_middleware import DeerFlowSummarizationMiddleware
-    from deerflow.agents.middlewares.system_message_coalescing_middleware import SystemMessageCoalescingMiddleware
-    from deerflow.agents.thread_state import ThreadState
-    from deerflow.config.summarization_config import ContextSize, SummarizationConfig
+    from operix.agents.middlewares.durable_context_middleware import DurableContextMiddleware
+    from operix.agents.middlewares.summarization_middleware import OperixSummarizationMiddleware
+    from operix.agents.middlewares.system_message_coalescing_middleware import SystemMessageCoalescingMiddleware
+    from operix.agents.thread_state import ThreadState
+    from operix.config.summarization_config import ContextSize, SummarizationConfig
 
     class _StaticModel(BaseChatModel):
         text: str
@@ -1014,7 +1014,7 @@ def test_subagent_compaction_injects_summary_before_assistant_tool_tail(monkeypa
     summary_model = _StaticModel(text="COMPRESSED_SUBAGENT_HISTORY")
     strict_model = _StaticModel(text="final answer", require_durable_summary=True)
     monkeypatch.setattr(
-        "deerflow.agents.middlewares.summarization_middleware.create_chat_model",
+        "operix.agents.middlewares.summarization_middleware.create_chat_model",
         lambda **kwargs: summary_model,
     )
 
@@ -1032,7 +1032,7 @@ def test_subagent_compaction_injects_summary_before_assistant_tool_tail(monkeypa
         model_name="test-model",
         agent_name="general-purpose",
     )
-    compaction_middlewares = [middleware for middleware in runtime_middlewares if isinstance(middleware, (DurableContextMiddleware, DeerFlowSummarizationMiddleware, SystemMessageCoalescingMiddleware))]
+    compaction_middlewares = [middleware for middleware in runtime_middlewares if isinstance(middleware, (DurableContextMiddleware, OperixSummarizationMiddleware, SystemMessageCoalescingMiddleware))]
     agent = create_agent(
         model=strict_model,
         tools=[],
@@ -1079,9 +1079,9 @@ def test_subagent_chain_coalesces_durable_authority_system_message(monkeypatch):
     from langchain_core.messages import AIMessage, SystemMessage, ToolMessage
     from langchain_core.outputs import ChatGeneration, ChatResult
 
-    from deerflow.agents.middlewares.durable_context_middleware import DurableContextMiddleware
-    from deerflow.agents.middlewares.system_message_coalescing_middleware import SystemMessageCoalescingMiddleware
-    from deerflow.agents.thread_state import ThreadState
+    from operix.agents.middlewares.durable_context_middleware import DurableContextMiddleware
+    from operix.agents.middlewares.system_message_coalescing_middleware import SystemMessageCoalescingMiddleware
+    from operix.agents.thread_state import ThreadState
 
     seen: dict[str, list[int]] = {}
 
@@ -1137,9 +1137,9 @@ def test_subagent_chain_injects_date_without_memory_and_coalesces_for_strict_pro
     from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
     from langchain_core.outputs import ChatGeneration, ChatResult
 
-    from deerflow.agents.middlewares import dynamic_context_middleware as dynamic_context
-    from deerflow.agents.middlewares.system_message_coalescing_middleware import SystemMessageCoalescingMiddleware
-    from deerflow.agents.thread_state import ThreadState
+    from operix.agents.middlewares import dynamic_context_middleware as dynamic_context
+    from operix.agents.middlewares.system_message_coalescing_middleware import SystemMessageCoalescingMiddleware
+    from operix.agents.thread_state import ThreadState
 
     class _FrozenDateTime:
         @classmethod
@@ -1182,7 +1182,7 @@ def test_subagent_chain_injects_date_without_memory_and_coalesces_for_strict_pro
     app_config = _make_app_config()
     assert app_config.memory.injection_enabled is True
     monkeypatch.setattr(dynamic_context, "datetime", _FrozenDateTime)
-    monkeypatch.setattr("deerflow.agents.lead_agent.prompt._get_memory_context", _unexpected_memory_lookup)
+    monkeypatch.setattr("operix.agents.lead_agent.prompt._get_memory_context", _unexpected_memory_lookup)
 
     runtime_middlewares = build_subagent_runtime_middlewares(
         app_config=app_config,
@@ -1210,14 +1210,14 @@ def test_subagent_runtime_middlewares_omit_summarization_when_factory_returns_no
     """When ``summarization.enabled`` is False the shared factory returns None and
     the subagent chain must NOT carry a summarization middleware — the default
     state, since SummarizationConfig.enabled defaults to False."""
-    from deerflow.agents.middlewares.summarization_middleware import DeerFlowSummarizationMiddleware
+    from operix.agents.middlewares.summarization_middleware import OperixSummarizationMiddleware
 
     app_config = _make_app_config()  # summarization.enabled defaults to False
     _stub_runtime_middleware_imports(monkeypatch)
 
     middlewares = build_subagent_runtime_middlewares(app_config=app_config, model_name="test-model")
 
-    assert not any(isinstance(m, DeerFlowSummarizationMiddleware) for m in middlewares)
+    assert not any(isinstance(m, OperixSummarizationMiddleware) for m in middlewares)
 
 
 def test_lead_runtime_chain_finds_historical_uploads_under_lazy_init_false(tmp_path, monkeypatch):
@@ -1236,10 +1236,10 @@ def test_lead_runtime_chain_finds_historical_uploads_under_lazy_init_false(tmp_p
     from langchain_core.messages import HumanMessage
     from langgraph.runtime import Runtime
 
-    from deerflow.agents.middlewares.thread_data_middleware import ThreadDataMiddleware
-    from deerflow.agents.middlewares.uploads_middleware import UploadsMiddleware
-    from deerflow.config.paths import Paths
-    from deerflow.runtime.user_context import get_effective_user_id
+    from operix.agents.middlewares.thread_data_middleware import ThreadDataMiddleware
+    from operix.agents.middlewares.uploads_middleware import UploadsMiddleware
+    from operix.config.paths import Paths
+    from operix.runtime.user_context import get_effective_user_id
 
     thread_id = "thread-historical-files"
     user_id = get_effective_user_id()
@@ -1276,7 +1276,7 @@ def test_lead_runtime_chain_finds_historical_uploads_under_lazy_init_false(tmp_p
 
 def test_subagent_summarization_fires_mid_run_and_produces_usable_result(monkeypatch):
     """Integration coverage for #3875 Phase 3 review gap: drive the REAL
-    ``DeerFlowSummarizationMiddleware`` (the exact instance the subagent chain
+    ``OperixSummarizationMiddleware`` (the exact instance the subagent chain
     gets via ``create_summarization_middleware(skip_memory_flush=True)``) through
     a ``create_agent`` run, and assert that (a) compaction actually fires mid-run
     (messages channel contracts via ``RemoveMessage``) and (b) the run still
@@ -1292,13 +1292,13 @@ def test_subagent_summarization_fires_mid_run_and_produces_usable_result(monkeyp
     from langchain_core.messages import AIMessage, HumanMessage, RemoveMessage
     from langchain_core.outputs import ChatGeneration, ChatResult
 
-    from deerflow.agents.middlewares.summarization_middleware import (
-        DeerFlowSummarizationMiddleware,
+    from operix.agents.middlewares.summarization_middleware import (
+        OperixSummarizationMiddleware,
         create_summarization_middleware,
     )
-    from deerflow.agents.thread_state import ThreadState
-    from deerflow.config.memory_config import MemoryConfig
-    from deerflow.config.summarization_config import ContextSize, SummarizationConfig
+    from operix.agents.thread_state import ThreadState
+    from operix.config.memory_config import MemoryConfig
+    from operix.config.summarization_config import ContextSize, SummarizationConfig
 
     # A model that always emits a plain AIMessage — no tools, so the run is a
     # single turn but the input already exceeds the trigger threshold, forcing
@@ -1320,7 +1320,7 @@ def test_subagent_summarization_fires_mid_run_and_produces_usable_result(monkeyp
     # The factory resolves its summary model via create_chat_model; point it at
     # the same static model so no real provider is contacted.
     monkeypatch.setattr(
-        "deerflow.agents.middlewares.summarization_middleware.create_chat_model",
+        "operix.agents.middlewares.summarization_middleware.create_chat_model",
         lambda **kwargs: static_model,
     )
 
@@ -1338,7 +1338,7 @@ def test_subagent_summarization_fires_mid_run_and_produces_usable_result(monkeyp
         app_config=app_config,
         skip_memory_flush=True,
     )
-    assert isinstance(middleware, DeerFlowSummarizationMiddleware), "the real middleware must be built"
+    assert isinstance(middleware, OperixSummarizationMiddleware), "the real middleware must be built"
     # Subagent invariant: skip_memory_flush means no durable-memory hook.
     assert not middleware._before_summarization_hooks
 
@@ -1361,9 +1361,9 @@ def test_subagent_summarization_fires_mid_run_and_produces_usable_result(monkeyp
     chunks = list(agent.stream({"messages": seed}, stream_mode="updates"))
 
     # (a) Compaction fired: the middleware's before_model emitted a summary + RemoveMessage.
-    before_model_chunks = [c for c in chunks if "DeerFlowSummarizationMiddleware.before_model" in c]
+    before_model_chunks = [c for c in chunks if "OperixSummarizationMiddleware.before_model" in c]
     assert before_model_chunks, "summarization before_model must fire when messages exceed the trigger"
-    summary_update = before_model_chunks[0]["DeerFlowSummarizationMiddleware.before_model"]
+    summary_update = before_model_chunks[0]["OperixSummarizationMiddleware.before_model"]
     assert summary_update.get("summary_text"), "a summary must be produced"
     emitted = summary_update["messages"]
     assert isinstance(emitted[0], RemoveMessage), "compaction must lead with RemoveMessage"
@@ -1381,8 +1381,8 @@ def test_subagent_summarization_fires_mid_run_and_produces_usable_result(monkeyp
 
 def test_build_lead_runtime_middlewares_passes_read_before_write_config():
     """The gate's model-bound payload elision is configured from app_config.read_before_write."""
-    from deerflow.agents.middlewares.read_before_write_middleware import ReadBeforeWriteMiddleware
-    from deerflow.config.read_before_write_config import ReadBeforeWriteConfig
+    from operix.agents.middlewares.read_before_write_middleware import ReadBeforeWriteMiddleware
+    from operix.config.read_before_write_config import ReadBeforeWriteConfig
 
     app_config = _make_app_config().model_copy(update={"read_before_write": ReadBeforeWriteConfig(elide_min_chars=321)})
     middlewares = build_lead_runtime_middlewares(app_config=app_config)

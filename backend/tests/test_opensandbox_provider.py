@@ -1,7 +1,7 @@
 """Unit tests for the optional OpenSandbox community provider.
 
 The real ``opensandbox`` SDK is deliberately not required for this suite.  The
-tests pin DeerFlow's adapter contract with a small synchronous fake: lazy
+tests pin Operix's adapter contract with a small synchronous fake: lazy
 dependency loading, scoped lifecycle reuse, command forwarding, native file
 transport, search parsing, path guards, and terminal-session eviction.
 """
@@ -26,8 +26,8 @@ from typing import Any
 
 import pytest
 
-from deerflow.community.opensandbox.provider import OpenSandboxProvider, _import_sdk
-from deerflow.community.opensandbox.sandbox import OpenSandboxSandbox
+from operix.community.opensandbox.provider import OpenSandboxProvider, _import_sdk
+from operix.community.opensandbox.sandbox import OpenSandboxSandbox
 
 
 @dataclass
@@ -253,9 +253,9 @@ def _stub_config(attrs: dict[str, Any] | None = None) -> types.SimpleNamespace:
 
 def _install(monkeypatch: pytest.MonkeyPatch, *, sdk: _FakeSandboxClass | None = None, config: dict[str, Any] | None = None) -> tuple[OpenSandboxProvider, _FakeSandboxClass]:
     fake_sdk = sdk or _FakeSandboxClass()
-    monkeypatch.setattr("deerflow.community.opensandbox.provider.get_app_config", lambda: _stub_config(config))
+    monkeypatch.setattr("operix.community.opensandbox.provider.get_app_config", lambda: _stub_config(config))
     monkeypatch.setattr(
-        "deerflow.community.opensandbox.provider._import_sdk",
+        "operix.community.opensandbox.provider._import_sdk",
         lambda: (fake_sdk, _FakeConnectionConfig, _FakeRunCommandOpts),
     )
     return OpenSandboxProvider(), fake_sdk
@@ -288,12 +288,12 @@ def test_missing_sdk_has_actionable_error(monkeypatch: pytest.MonkeyPatch) -> No
         "opensandbox.models.execd",
     ):
         monkeypatch.setitem(sys.modules, module_name, None)
-    with pytest.raises(ImportError, match=r"deerflow-harness\[opensandbox\]"):
+    with pytest.raises(ImportError, match=r"operix-harness\[opensandbox\]"):
         _import_sdk()
 
 
 def test_provider_defers_sdk_import_until_acquire(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("deerflow.community.opensandbox.provider.get_app_config", lambda: _stub_config())
+    monkeypatch.setattr("operix.community.opensandbox.provider.get_app_config", lambda: _stub_config())
     calls = 0
 
     def fail_if_called():
@@ -301,7 +301,7 @@ def test_provider_defers_sdk_import_until_acquire(monkeypatch: pytest.MonkeyPatc
         calls += 1
         raise AssertionError("SDK imported")
 
-    monkeypatch.setattr("deerflow.community.opensandbox.provider._import_sdk", fail_if_called)
+    monkeypatch.setattr("operix.community.opensandbox.provider._import_sdk", fail_if_called)
     provider = OpenSandboxProvider()
     assert calls == 0
     with pytest.raises(AssertionError, match="SDK imported"):
@@ -338,9 +338,9 @@ def test_create_passes_connection_lifetime_scope_and_environment(monkeypatch: py
     assert call["ready_timeout"] == timedelta(seconds=18)
     assert call["env"] == {"BASE": "1", "FROM_ENV": "resolved", "MISSING_ENV": ""}
     assert call["metadata"] == {
-        "deer_flow_provider": "opensandbox",
-        "deer_flow_thread": "thread-1",
-        "deer_flow_user": "user-1",
+        "operix_provider": "opensandbox",
+        "operix_thread": "thread-1",
+        "operix_user": "user-1",
     }
     assert call["connection_config"].kwargs == {
         "api_key": "secret",
@@ -366,7 +366,7 @@ def test_missing_connection_config_warns_about_sdk_default(monkeypatch: pytest.M
 
 
 def test_remote_http_connection_warns_without_logging_api_key(monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture) -> None:
-    caplog.set_level(logging.DEBUG, logger="deerflow.community.opensandbox.provider")
+    caplog.set_level(logging.DEBUG, logger="operix.community.opensandbox.provider")
     provider, _ = _install(
         monkeypatch,
         config={"api_key": "not-a-real-secret", "domain": "sandbox.example", "protocol": "http"},
@@ -631,7 +631,7 @@ def test_text_binary_append_and_line_ranges() -> None:
 
 
 def test_download_rejects_oversize_stream(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("deerflow.community.opensandbox.sandbox._MAX_DOWNLOAD_SIZE", 4)
+    monkeypatch.setattr("operix.community.opensandbox.sandbox._MAX_DOWNLOAD_SIZE", 4)
     remote = _FakeRemote("remote")
     path = "/mnt/user-data/outputs/oversize.bin"
     remote.file_data[path] = b"12345"
@@ -806,7 +806,7 @@ async def test_cancelled_acquire_async_serializes_retry_behind_abandoned_body(mo
 
 
 def test_sandbox_id_matches_shared_identity():
-    from deerflow.sandbox.identity import derive_sandbox_scope_token
+    from operix.sandbox.identity import derive_sandbox_scope_token
 
     assert OpenSandboxProvider._sandbox_id("t-1", "u-1") == derive_sandbox_scope_token(user_id="u-1", thread_id="t-1")
     assert OpenSandboxProvider._sandbox_id("t-1", "") == derive_sandbox_scope_token(user_id="", thread_id="t-1")

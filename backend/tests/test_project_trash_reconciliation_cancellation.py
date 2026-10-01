@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import pytest
 from fastapi import FastAPI
 
-import deerflow.projects.trash as trash_mod
+import operix.projects.trash as trash_mod
 
 
 class _EmptySweepRepo:

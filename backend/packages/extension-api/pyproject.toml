@@ -1,10 +1,10 @@
 [project]
-name = "deerflow-extension-api"
+name = "operix-extension-api"
 version = "0.2.4"
-description = "Public contracts for DeerFlow extensions"
+description = "Public contracts for Operix extensions"
 requires-python = ">=3.12"
 # Keep the contract package import-light and independent from the host. Public
-# values are stdlib-based; concrete middleware types are validated by DeerFlow.
+# values are stdlib-based; concrete middleware types are validated by Operix.
 dependencies = []
 
 [build-system]
@@ -12,4 +12,4 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["deerflow_extension_api"]
+packages = ["operix_extension_api"]

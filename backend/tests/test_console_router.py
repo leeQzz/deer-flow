@@ -24,9 +24,9 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
 from app.gateway.routers import console
-from deerflow.persistence.base import Base
-from deerflow.persistence.run.model import RunRow
-from deerflow.persistence.thread_meta.model import ThreadMetaRow
+from operix.persistence.base import Base
+from operix.persistence.run.model import RunRow
+from operix.persistence.thread_meta.model import ThreadMetaRow
 
 # Pinned to noon UTC so hour-level seed offsets (NOW - 1h, NOW - 2h) never cross
 # the midnight boundary into the previous calendar day, which would otherwise

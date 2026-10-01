@@ -4,9 +4,9 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from app.scheduler.service import ScheduledTaskService
-from deerflow.runtime import ConflictError, RunStatus
-from deerflow.runtime.runs.manager import RunRecord
-from deerflow.runtime.runs.schemas import DisconnectMode
+from operix.runtime import ConflictError, RunStatus
+from operix.runtime.runs.manager import RunRecord
+from operix.runtime.runs.schemas import DisconnectMode
 
 
 class DummyTaskRepo:

@@ -6,8 +6,8 @@ from copy import deepcopy
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 
-from deerflow.subagents.context_snapshot import ParentContextSnapshot
-from deerflow.utils.messages import message_content_to_text
+from operix.subagents.context_snapshot import ParentContextSnapshot
+from operix.utils.messages import message_content_to_text
 
 
 @pytest.mark.parametrize("dispatch_id", ["dispatch", "earlier-delegation"])
@@ -257,8 +257,8 @@ def test_snapshot_keeps_tool_content_normalized_by_message_constructor(content, 
 
 @pytest.mark.parametrize("injection", ["memory", "todo"])
 def test_snapshot_excludes_real_framework_injections(injection):
-    from deerflow.agents.middlewares.dynamic_context_middleware import DynamicContextMiddleware
-    from deerflow.agents.middlewares.todo_middleware import TodoMiddleware
+    from operix.agents.middlewares.dynamic_context_middleware import DynamicContextMiddleware
+    from operix.agents.middlewares.todo_middleware import TodoMiddleware
 
     original = HumanMessage(content="VISIBLE_USER_REQUEST", id="user-turn")
     if injection == "memory":

@@ -10,13 +10,13 @@ from unittest.mock import patch
 
 import pytest
 
-from deerflow.config.paths import Paths
-from deerflow.skills.installer import SkillSecurityScanError
-from deerflow.skills.security_scanner import ScanResult
-from deerflow.skills.storage import reset_skill_storage, reset_user_skill_storage
-from deerflow.skills.storage.local_skill_storage import LocalSkillStorage
-from deerflow.skills.storage.user_scoped_skill_storage import UserScopedSkillStorage
-from deerflow.skills.types import SkillCategory
+from operix.config.paths import Paths
+from operix.skills.installer import SkillSecurityScanError
+from operix.skills.security_scanner import ScanResult
+from operix.skills.storage import reset_skill_storage, reset_user_skill_storage
+from operix.skills.storage.local_skill_storage import LocalSkillStorage
+from operix.skills.storage.user_scoped_skill_storage import UserScopedSkillStorage
+from operix.skills.types import SkillCategory
 
 
 def _skill_content(name: str, description: str = "Demo skill") -> str:
@@ -33,7 +33,7 @@ def _reset_storages():
 
 @pytest.fixture
 def base_dir(tmp_path: Path) -> Path:
-    """Provide a temp directory as the DeerFlow base_dir."""
+    """Provide a temp directory as the Operix base_dir."""
     return tmp_path
 
 
@@ -61,7 +61,7 @@ def config(skills_root):
         skills=SimpleNamespace(
             get_skills_path=lambda: skills_root,
             container_path="/mnt/skills",
-            use="deerflow.skills.storage.local_skill_storage:LocalSkillStorage",
+            use="operix.skills.storage.local_skill_storage:LocalSkillStorage",
         ),
     )
 
@@ -69,8 +69,8 @@ def config(skills_root):
 @pytest.fixture
 def user_storage(base_dir: Path, skills_root, config) -> UserScopedSkillStorage:
     """Create a UserScopedSkillStorage for user 'test-user'."""
-    with patch("deerflow.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
-        with patch("deerflow.config.paths._paths", None):
+    with patch("operix.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
+        with patch("operix.config.paths._paths", None):
             storage = UserScopedSkillStorage("test-user", host_path=str(skills_root), app_config=config)
     return storage
 
@@ -152,7 +152,7 @@ class TestSkillLoading:
         integration_dir.mkdir(parents=True)
         (integration_dir / "SKILL.md").write_text(_skill_content("lark-doc"), encoding="utf-8")
 
-        with patch("deerflow.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
+        with patch("operix.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
             alice = UserScopedSkillStorage("alice", host_path=str(skills_root), app_config=config)
             bob = UserScopedSkillStorage("bob", host_path=str(skills_root), app_config=config)
 
@@ -256,8 +256,8 @@ class TestIsolation:
     """Different users must see different custom skills."""
 
     def test_two_users_isolated(self, base_dir: Path, skills_root, config):
-        with patch("deerflow.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
-            with patch("deerflow.config.paths._paths", None):
+        with patch("operix.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
+            with patch("operix.config.paths._paths", None):
                 storage_a = UserScopedSkillStorage("alice", host_path=str(skills_root), app_config=config)
                 storage_b = UserScopedSkillStorage("bob", host_path=str(skills_root), app_config=config)
 
@@ -273,8 +273,8 @@ class TestIsolation:
                 assert skills_b[0].name == "skill-b"
 
     def test_delete_is_isolated(self, base_dir: Path, skills_root, config):
-        with patch("deerflow.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
-            with patch("deerflow.config.paths._paths", None):
+        with patch("operix.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
+            with patch("operix.config.paths._paths", None):
                 storage_a = UserScopedSkillStorage("alice", host_path=str(skills_root), app_config=config)
                 storage_b = UserScopedSkillStorage("bob", host_path=str(skills_root), app_config=config)
 
@@ -295,8 +295,8 @@ class TestHistoryIsolation:
     """History files are per-user."""
 
     def test_history_per_user(self, base_dir: Path, skills_root, config):
-        with patch("deerflow.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
-            with patch("deerflow.config.paths._paths", None):
+        with patch("operix.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
+            with patch("operix.config.paths._paths", None):
                 storage_a = UserScopedSkillStorage("alice", host_path=str(skills_root), app_config=config)
                 storage_a.write_custom_skill("shared-name", "SKILL.md", _skill_content("shared-name"))
 
@@ -306,8 +306,8 @@ class TestHistoryIsolation:
                 assert history_file_a.exists()
 
     def test_history_does_not_leak_to_global(self, base_dir: Path, skills_root, config):
-        with patch("deerflow.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
-            with patch("deerflow.config.paths._paths", None):
+        with patch("operix.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
+            with patch("operix.config.paths._paths", None):
                 storage = UserScopedSkillStorage("alice", host_path=str(skills_root), app_config=config)
                 storage.write_custom_skill("my-skill", "SKILL.md", _skill_content("my-skill"))
                 storage.append_history("my-skill", {"action": "create"})
@@ -430,27 +430,27 @@ class TestFactory:
     """get_or_new_user_skill_storage factory behavior."""
 
     def test_returns_same_instance_for_same_user(self, base_dir: Path, skills_root, config):
-        with patch("deerflow.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
-            with patch("deerflow.config.paths._paths", None):
-                from deerflow.skills.storage import get_or_new_user_skill_storage
+        with patch("operix.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
+            with patch("operix.config.paths._paths", None):
+                from operix.skills.storage import get_or_new_user_skill_storage
 
                 s1 = get_or_new_user_skill_storage("alice", app_config=config)
                 s2 = get_or_new_user_skill_storage("alice", app_config=config)
                 assert s1 is s2
 
     def test_returns_different_instance_for_different_user(self, base_dir: Path, skills_root, config):
-        with patch("deerflow.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
-            with patch("deerflow.config.paths._paths", None):
-                from deerflow.skills.storage import get_or_new_user_skill_storage
+        with patch("operix.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
+            with patch("operix.config.paths._paths", None):
+                from operix.skills.storage import get_or_new_user_skill_storage
 
                 s1 = get_or_new_user_skill_storage("alice", app_config=config)
                 s2 = get_or_new_user_skill_storage("bob", app_config=config)
                 assert s1 is not s2
 
     def test_reset_clears_specific_user(self, base_dir: Path, skills_root, config):
-        with patch("deerflow.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
-            with patch("deerflow.config.paths._paths", None):
-                from deerflow.skills.storage import get_or_new_user_skill_storage
+        with patch("operix.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
+            with patch("operix.config.paths._paths", None):
+                from operix.skills.storage import get_or_new_user_skill_storage
 
                 s_alice = get_or_new_user_skill_storage("alice", app_config=config)
                 s_bob = get_or_new_user_skill_storage("bob", app_config=config)
@@ -478,9 +478,9 @@ class TestSkillToggleIsolation:
     def test_alice_disable_does_not_affect_bob(self, base_dir: Path, skills_root, config):
         from types import SimpleNamespace
 
-        from deerflow.agents.lead_agent.prompt import clear_skills_system_prompt_cache, get_skills_prompt_section
-        from deerflow.sandbox.tools import _is_disabled_skill_path
-        from deerflow.skills.storage import get_or_new_user_skill_storage
+        from operix.agents.lead_agent.prompt import clear_skills_system_prompt_cache, get_skills_prompt_section
+        from operix.sandbox.tools import _is_disabled_skill_path
+        from operix.skills.storage import get_or_new_user_skill_storage
 
         # Rich config that includes skill_evolution (required by
         # get_skills_prompt_section) while keeping the test skills root.
@@ -489,9 +489,9 @@ class TestSkillToggleIsolation:
             skill_evolution=SimpleNamespace(enabled=False),
         )
 
-        with patch("deerflow.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
-            with patch("deerflow.config.paths._paths", None):
-                with patch("deerflow.config.get_app_config", return_value=rich_config):
+        with patch("operix.config.paths.get_paths", return_value=Paths(base_dir=base_dir)):
+            with patch("operix.config.paths._paths", None):
+                with patch("operix.config.get_app_config", return_value=rich_config):
                     # Use the factory so storages enter the cache — both
                     # _is_disabled_skill_path and get_skills_prompt_section
                     # call the factory internally.
@@ -584,21 +584,21 @@ class TestSkillStateFailClosed:
     """
 
     def test_returns_true_when_state_lookup_raises(self) -> None:
-        from deerflow.sandbox.tools import _is_disabled_skill_path
+        from operix.sandbox.tools import _is_disabled_skill_path
 
         def _boom(_skill_name: str) -> bool:
             raise OSError("storage unavailable")
 
-        with patch("deerflow.skills.storage.user_scoped_skill_storage.UserScopedSkillStorage.get_skill_enabled_state", side_effect=_boom):
+        with patch("operix.skills.storage.user_scoped_skill_storage.UserScopedSkillStorage.get_skill_enabled_state", side_effect=_boom):
             assert _is_disabled_skill_path("/mnt/skills/custom/report-gen/SKILL.md", user_id="default") is True
 
     def test_returns_true_when_public_extensions_config_raises(self) -> None:
-        from deerflow.sandbox.tools import _is_disabled_skill_path
+        from operix.sandbox.tools import _is_disabled_skill_path
 
         def _boom() -> bool:
             raise OSError("extensions_config.json unreadable")
 
-        with patch("deerflow.config.extensions_config.ExtensionsConfig.from_file", side_effect=_boom):
+        with patch("operix.config.extensions_config.ExtensionsConfig.from_file", side_effect=_boom):
             assert _is_disabled_skill_path("/mnt/skills/public/bootstrap/SKILL.md", user_id="default") is True
 
 
@@ -614,9 +614,9 @@ class TestSkillLoadingRespectsGlobalDisable:
     def test_global_disable_wins_when_per_user_state_missing(self, tmp_path: Path) -> None:
         from types import SimpleNamespace
 
-        from deerflow.config.paths import Paths
-        from deerflow.skills.storage import get_or_new_user_skill_storage
-        from deerflow.skills.types import SkillCategory
+        from operix.config.paths import Paths
+        from operix.skills.storage import get_or_new_user_skill_storage
+        from operix.skills.types import SkillCategory
 
         base = tmp_path
         skills_root = base / "skills"
@@ -629,16 +629,16 @@ class TestSkillLoadingRespectsGlobalDisable:
         )
 
         # Per-user state is empty (no per-user override for "shared-skill").
-        with patch("deerflow.config.paths.get_paths", return_value=Paths(base_dir=base)):
-            with patch("deerflow.config.paths._paths", None):
+        with patch("operix.config.paths.get_paths", return_value=Paths(base_dir=base)):
+            with patch("operix.config.paths._paths", None):
                 cfg = SimpleNamespace(
                     skills=SimpleNamespace(
                         get_skills_path=lambda: skills_root,
                         container_path="/mnt/skills",
-                        use="deerflow.skills.storage.local_skill_storage:LocalSkillStorage",
+                        use="operix.skills.storage.local_skill_storage:LocalSkillStorage",
                     ),
                 )
-                with patch("deerflow.config.get_app_config", return_value=cfg):
+                with patch("operix.config.get_app_config", return_value=cfg):
                     # Global extensions_config reports the shared skill as disabled.
                     ext_cfg = SimpleNamespace(
                         skills={"shared-skill": SimpleNamespace(enabled=False)},
@@ -646,7 +646,7 @@ class TestSkillLoadingRespectsGlobalDisable:
                     )
                     # User-scoped loading re-reads disk state so another
                     # worker's global disable is not hidden by a stale cache.
-                    with patch("deerflow.config.extensions_config.ExtensionsConfig.from_file", return_value=ext_cfg):
+                    with patch("operix.config.extensions_config.ExtensionsConfig.from_file", return_value=ext_cfg):
                         storage = get_or_new_user_skill_storage("alice", app_config=cfg)
                         loaded = storage.load_skills(enabled_only=False)
                         shared = [s for s in loaded if s.name == "shared-skill" and s.category == SkillCategory.LEGACY]
@@ -664,7 +664,7 @@ class TestEnabledSkillsByConfigCacheBounded:
     def test_evicts_least_recently_used_above_maxsize(self, monkeypatch) -> None:
         from collections import OrderedDict
 
-        from deerflow.agents.lead_agent import prompt as prompt_module
+        from operix.agents.lead_agent import prompt as prompt_module
 
         # Shrink the cap so the test stays fast.
         monkeypatch.setattr(prompt_module, "_ENABLED_SKILLS_BY_CONFIG_CACHE_MAXSIZE", 4)
@@ -745,7 +745,7 @@ def _storage_config(skills_root: Path, *, scan_enabled: bool) -> SimpleNamespace
         skills=SimpleNamespace(
             get_skills_path=lambda: skills_root,
             container_path="/mnt/skills",
-            use="deerflow.skills.storage.local_skill_storage:LocalSkillStorage",
+            use="operix.skills.storage.local_skill_storage:LocalSkillStorage",
         ),
         skill_scan=SimpleNamespace(enabled=scan_enabled),
     )
@@ -781,7 +781,7 @@ class TestInstallScanConfigParity:
     inherits already reads — not from the process-global ``get_app_config()``.
 
     The divergence is reachable whenever the storage outlives a config edit:
-    ``DeerFlowClient`` snapshots ``get_app_config()`` at construction, and the
+    ``OperixClient`` snapshots ``get_app_config()`` at construction, and the
     Gateway hands its per-request ``get_config()`` to
     ``get_or_new_user_skill_storage``, while ``get_app_config`` hot-reloads a
     later edit of ``config.yaml``. Resolving the content scan from the process
@@ -796,19 +796,19 @@ class TestInstallScanConfigParity:
         async def _allow(*args, **kwargs):
             return ScanResult(decision="allow", reason="ok")
 
-        monkeypatch.setattr("deerflow.skills.installer.scan_skill_content", _allow)
+        monkeypatch.setattr("operix.skills.installer.scan_skill_content", _allow)
 
     def _local_storage(self, skills_root: Path, config: SimpleNamespace) -> LocalSkillStorage:
         return LocalSkillStorage(host_path=str(skills_root), app_config=config)
 
     def _user_storage(self, base: Path, skills_root: Path, config: SimpleNamespace) -> UserScopedSkillStorage:
-        with patch("deerflow.config.paths.get_paths", return_value=Paths(base_dir=base)):
-            with patch("deerflow.config.paths._paths", None):
+        with patch("operix.config.paths.get_paths", return_value=Paths(base_dir=base)):
+            with patch("operix.config.paths._paths", None):
                 return UserScopedSkillStorage("test-user", host_path=str(skills_root), app_config=config)
 
     def test_content_scan_honours_the_storages_own_config(self, tmp_path: Path, monkeypatch) -> None:
         """Storage config ON, process global OFF: the archive must still be blocked."""
-        monkeypatch.setattr("deerflow.config.get_app_config", lambda: SimpleNamespace(skill_scan=SimpleNamespace(enabled=False)))
+        monkeypatch.setattr("operix.config.get_app_config", lambda: SimpleNamespace(skill_scan=SimpleNamespace(enabled=False)))
 
         skills_root = _skills_root(tmp_path)
         archive = _malicious_archive(tmp_path)
@@ -824,7 +824,7 @@ class TestInstallScanConfigParity:
         operator who disables ``skill_scan`` in the config the storage was
         handed gets no scan, regardless of what the hot-reloaded global says.
         """
-        monkeypatch.setattr("deerflow.config.get_app_config", lambda: SimpleNamespace(skill_scan=SimpleNamespace(enabled=True)))
+        monkeypatch.setattr("operix.config.get_app_config", lambda: SimpleNamespace(skill_scan=SimpleNamespace(enabled=True)))
 
         skills_root = _skills_root(tmp_path)
         archive = _malicious_archive(tmp_path)
@@ -847,7 +847,7 @@ class TestInstallScanConfigParity:
             seen.append(kwargs.get("app_config"))
             return ScanResult(decision="allow", reason="ok")
 
-        monkeypatch.setattr("deerflow.skills.installer.scan_skill_content", _record)
+        monkeypatch.setattr("operix.skills.installer.scan_skill_content", _record)
 
         skills_root = _skills_root(tmp_path)
         archive = _archive(tmp_path)

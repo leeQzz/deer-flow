@@ -26,9 +26,9 @@ import pytest
 from fastapi import HTTPException, Request
 
 from app.gateway.routers.skills import SkillRollbackRequest, rollback_custom_skill
-from deerflow.config.app_config import AppConfig
-from deerflow.config.paths import get_paths
-from deerflow.runtime.user_context import get_effective_user_id
+from operix.config.app_config import AppConfig
+from operix.config.paths import get_paths
+from operix.runtime.user_context import get_effective_user_id
 
 pytestmark = pytest.mark.asyncio
 
@@ -42,8 +42,8 @@ def _custom_dir() -> Path:
 
 @pytest.fixture(autouse=True)
 def _isolate_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("DEER_FLOW_HOME", str(tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
+    monkeypatch.setenv("OPERIX_HOME", str(tmp_path))
+    monkeypatch.setattr("operix.config.paths._paths", None)
 
 
 def _admin_request() -> Request:

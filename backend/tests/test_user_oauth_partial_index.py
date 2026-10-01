@@ -20,8 +20,8 @@ from datetime import UTC, datetime
 import pytest
 from sqlalchemy import text
 
-from deerflow.config.database_config import DatabaseConfig
-from deerflow.persistence.engine import close_engine, get_engine, init_engine_from_config
+from operix.config.database_config import DatabaseConfig
+from operix.persistence.engine import close_engine, get_engine, init_engine_from_config
 
 POSTGRES_URL = os.getenv("DEERFLOW_TEST_POSTGRES_URL")
 
@@ -33,7 +33,7 @@ pytestmark = pytest.mark.skipif(
 
 @pytest.mark.anyio
 async def test_oauth_identity_index_is_partial_on_postgres():
-    schema = f"deerflow_test_{uuid.uuid4().hex[:12]}"
+    schema = f"operix_test_{uuid.uuid4().hex[:12]}"
     db_config = DatabaseConfig(backend="postgres", postgres_url=POSTGRES_URL or "", postgres_schema=schema)
 
     await init_engine_from_config(db_config)
@@ -64,7 +64,7 @@ async def test_oauth_identity_uniqueness_enforced_end_to_end():
     a genuine duplicate (provider, oauth_id) pair is rejected, and
     multiple plain-password accounts (both fields NULL) are allowed to
     coexist -- the two behaviours the index exists to guarantee."""
-    schema = f"deerflow_test_{uuid.uuid4().hex[:12]}"
+    schema = f"operix_test_{uuid.uuid4().hex[:12]}"
     db_config = DatabaseConfig(backend="postgres", postgres_url=POSTGRES_URL or "", postgres_schema=schema)
 
     await init_engine_from_config(db_config)
@@ -74,7 +74,7 @@ async def test_oauth_identity_uniqueness_enforced_end_to_end():
     try:
         from app.gateway.auth.models import User
         from app.gateway.auth.repositories.sqlite import SQLiteUserRepository
-        from deerflow.persistence.engine import get_session_factory
+        from operix.persistence.engine import get_session_factory
 
         repo = SQLiteUserRepository(get_session_factory())
 

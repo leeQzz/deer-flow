@@ -4,15 +4,15 @@ from pathlib import Path
 
 import pytest
 
-from deerflow.skills.catalog import SkillCatalog
-from deerflow.skills.describe import (
+from operix.skills.catalog import SkillCatalog
+from operix.skills.describe import (
     _render_skill_metadata,
     build_describe_skill_tool,
     build_skill_search_setup,
     get_skill_index_prompt_section,
 )
-from deerflow.skills.tool_policy import allowed_tool_names_for_skills
-from deerflow.skills.types import Skill, SkillCategory
+from operix.skills.tool_policy import allowed_tool_names_for_skills
+from operix.skills.types import Skill, SkillCategory
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -267,7 +267,7 @@ def test_describe_tool_keyword_search(catalog: SkillCatalog):
 
 def test_describe_tool_select_uncapped():
     """select: must return ALL requested skills, not capped at MAX_RESULTS."""
-    from deerflow.skills.catalog import MAX_QUERY_CHARS, MAX_RESULTS
+    from operix.skills.catalog import MAX_QUERY_CHARS, MAX_RESULTS
 
     # Build more skills than MAX_RESULTS so the cap would visibly truncate
     many_skills = [_make_skill(f"skill-number-{i:02d}-with-a-longish-name") for i in range(MAX_RESULTS + 10)]

@@ -61,7 +61,7 @@ async def _postgres_engine():
     attached to a different loop" error that arises when the engine is built in
     a loop that pytest-asyncio later closes.
     """
-    from deerflow.persistence.engine import close_engine, init_engine
+    from operix.persistence.engine import close_engine, init_engine
 
     await init_engine("postgres", url=_asyncpg_url(POSTGRES_URL))
     try:
@@ -72,9 +72,9 @@ async def _postgres_engine():
 
 @pytest.mark.asyncio
 async def test_two_stores_share_dedupe_state_across_pods():
-    from deerflow.persistence.base import Base
-    from deerflow.persistence.engine import get_engine, get_session_factory
-    from deerflow.persistence.webhook_delivery.model import WebhookDeliveryRow
+    from operix.persistence.base import Base
+    from operix.persistence.engine import get_engine, get_session_factory
+    from operix.persistence.webhook_delivery.model import WebhookDeliveryRow
 
     engine = get_engine()
     sf = get_session_factory()
@@ -103,7 +103,7 @@ async def test_manager_injects_shared_store_and_dedupes_cross_pod():
     from app.channels.manager import ChannelManager
     from app.channels.message_bus import InboundMessage, MessageBus
     from app.channels.store import ChannelStore
-    from deerflow.persistence.engine import get_session_factory
+    from operix.persistence.engine import get_session_factory
 
     sf = get_session_factory()
     shared_store = PostgresInboundDedupeStore(session_factory=sf)
@@ -134,9 +134,9 @@ async def test_expired_unreleased_row_is_reclaimed_on_next_redelivery():
     reclaimed so the next redelivery is re-admitted (not dropped forever)."""
     from sqlalchemy import text
 
-    from deerflow.persistence.base import Base
-    from deerflow.persistence.engine import get_engine, get_session_factory
-    from deerflow.persistence.webhook_delivery.model import WebhookDeliveryRow
+    from operix.persistence.base import Base
+    from operix.persistence.engine import get_engine, get_session_factory
+    from operix.persistence.webhook_delivery.model import WebhookDeliveryRow
 
     engine = get_engine()
     sf = get_session_factory()

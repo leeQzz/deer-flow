@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from deerflow.persistence import engine as engine_mod
+from operix.persistence import engine as engine_mod
 
 
 class _BlockingEngine:

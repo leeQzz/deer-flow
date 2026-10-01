@@ -5,9 +5,9 @@ from types import SimpleNamespace
 import anyio
 import pytest
 
-from deerflow.skills.security_static_scanner import StaticScannerError
+from operix.skills.security_static_scanner import StaticScannerError
 
-skill_manage_module = importlib.import_module("deerflow.tools.skill_manage_tool")
+skill_manage_module = importlib.import_module("operix.tools.skill_manage_tool")
 
 
 def _skill_content(name: str, description: str = "Demo skill") -> str:
@@ -15,7 +15,7 @@ def _skill_content(name: str, description: str = "Demo skill") -> str:
 
 
 async def _async_result(decision: str, reason: str):
-    from deerflow.skills.security_scanner import ScanResult
+    from operix.skills.security_scanner import ScanResult
 
     return ScanResult(decision=decision, reason=reason)
 
@@ -25,7 +25,7 @@ def _make_config(skills_root: Path):
         skills=SimpleNamespace(
             get_skills_path=lambda: skills_root,
             container_path="/mnt/skills",
-            use="deerflow.skills.storage.local_skill_storage:LocalSkillStorage",
+            use="operix.skills.storage.local_skill_storage:LocalSkillStorage",
         ),
         skill_evolution=SimpleNamespace(enabled=True, moderation_model_name=None),
     )
@@ -41,13 +41,13 @@ def _make_runtime(*, thread_id: str = "thread-1", user_id: str = "default"):
 def test_skill_manage_create_and_patch(monkeypatch, tmp_path):
     skills_root = tmp_path / "skills"
     config = _make_config(skills_root)
-    monkeypatch.setattr("deerflow.config.get_app_config", lambda: config)
-    monkeypatch.setattr("deerflow.skills.security_scanner.get_app_config", lambda: config)
+    monkeypatch.setattr("operix.config.get_app_config", lambda: config)
+    monkeypatch.setattr("operix.skills.security_scanner.get_app_config", lambda: config)
     # Patch get_paths so UserScopedSkillStorage resolves user dirs under tmp_path
-    from deerflow.config.paths import Paths
+    from operix.config.paths import Paths
 
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
+    monkeypatch.setattr("operix.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
+    monkeypatch.setattr("operix.config.paths._paths", None)
 
     refresh_calls = []
 
@@ -89,12 +89,12 @@ def test_skill_manage_create_and_patch(monkeypatch, tmp_path):
 def test_skill_manage_patch_replaces_single_occurrence_by_default(monkeypatch, tmp_path):
     skills_root = tmp_path / "skills"
     config = _make_config(skills_root)
-    monkeypatch.setattr("deerflow.config.get_app_config", lambda: config)
-    monkeypatch.setattr("deerflow.skills.security_scanner.get_app_config", lambda: config)
-    from deerflow.config.paths import Paths
+    monkeypatch.setattr("operix.config.get_app_config", lambda: config)
+    monkeypatch.setattr("operix.skills.security_scanner.get_app_config", lambda: config)
+    from operix.config.paths import Paths
 
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
+    monkeypatch.setattr("operix.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
+    monkeypatch.setattr("operix.config.paths._paths", None)
 
     async def _refresh(user_id: str):
         return None
@@ -130,11 +130,11 @@ def test_skill_manage_rejects_public_skill_patch(monkeypatch, tmp_path):
     public_dir.mkdir(parents=True, exist_ok=True)
     (public_dir / "SKILL.md").write_text(_skill_content("deep-research"), encoding="utf-8")
     config = _make_config(skills_root)
-    monkeypatch.setattr("deerflow.config.get_app_config", lambda: config)
-    from deerflow.config.paths import Paths
+    monkeypatch.setattr("operix.config.get_app_config", lambda: config)
+    from operix.config.paths import Paths
 
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
+    monkeypatch.setattr("operix.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
+    monkeypatch.setattr("operix.config.paths._paths", None)
 
     runtime = _make_runtime(user_id="default")
 
@@ -154,11 +154,11 @@ def test_skill_manage_rejects_public_skill_patch(monkeypatch, tmp_path):
 def test_skill_manage_sync_wrapper_supported(monkeypatch, tmp_path):
     skills_root = tmp_path / "skills"
     config = _make_config(skills_root)
-    monkeypatch.setattr("deerflow.config.get_app_config", lambda: config)
-    from deerflow.config.paths import Paths
+    monkeypatch.setattr("operix.config.get_app_config", lambda: config)
+    from operix.config.paths import Paths
 
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
+    monkeypatch.setattr("operix.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
+    monkeypatch.setattr("operix.config.paths._paths", None)
 
     refresh_calls = []
 
@@ -183,12 +183,12 @@ def test_skill_manage_sync_wrapper_supported(monkeypatch, tmp_path):
 def test_skill_manage_rejects_support_path_traversal(monkeypatch, tmp_path):
     skills_root = tmp_path / "skills"
     config = _make_config(skills_root)
-    monkeypatch.setattr("deerflow.config.get_app_config", lambda: config)
-    monkeypatch.setattr("deerflow.skills.security_scanner.get_app_config", lambda: config)
-    from deerflow.config.paths import Paths
+    monkeypatch.setattr("operix.config.get_app_config", lambda: config)
+    monkeypatch.setattr("operix.skills.security_scanner.get_app_config", lambda: config)
+    from operix.config.paths import Paths
 
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
+    monkeypatch.setattr("operix.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
+    monkeypatch.setattr("operix.config.paths._paths", None)
 
     async def _refresh(user_id: str):
         return None
@@ -213,12 +213,12 @@ def test_skill_manage_rejects_support_path_traversal(monkeypatch, tmp_path):
 def test_skill_manage_remove_file_updates_sandbox_projection_before_return(monkeypatch, tmp_path):
     skills_root = tmp_path / "skills"
     config = _make_config(skills_root)
-    monkeypatch.setattr("deerflow.config.get_app_config", lambda: config)
-    monkeypatch.setattr("deerflow.skills.security_scanner.get_app_config", lambda: config)
-    from deerflow.config.paths import Paths
+    monkeypatch.setattr("operix.config.get_app_config", lambda: config)
+    monkeypatch.setattr("operix.skills.security_scanner.get_app_config", lambda: config)
+    from operix.config.paths import Paths
 
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
+    monkeypatch.setattr("operix.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
+    monkeypatch.setattr("operix.config.paths._paths", None)
 
     async def _refresh(user_id: str):
         return None
@@ -255,12 +255,12 @@ def test_skill_manage_remove_file_updates_sandbox_projection_before_return(monke
 def _setup_demo_skill_with_binary_asset(monkeypatch, tmp_path):
     skills_root = tmp_path / "skills"
     config = _make_config(skills_root)
-    monkeypatch.setattr("deerflow.config.get_app_config", lambda: config)
-    monkeypatch.setattr("deerflow.skills.security_scanner.get_app_config", lambda: config)
-    from deerflow.config.paths import Paths
+    monkeypatch.setattr("operix.config.get_app_config", lambda: config)
+    monkeypatch.setattr("operix.skills.security_scanner.get_app_config", lambda: config)
+    from operix.config.paths import Paths
 
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
+    monkeypatch.setattr("operix.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
+    monkeypatch.setattr("operix.config.paths._paths", None)
 
     async def _refresh(user_id: str):
         return None
@@ -328,12 +328,12 @@ def test_skill_manage_rejects_a_support_directory_path(monkeypatch, tmp_path, ac
 def test_skill_manage_static_critical_blocks_create_before_llm(monkeypatch, tmp_path):
     skills_root = tmp_path / "skills"
     config = _make_config(skills_root)
-    monkeypatch.setattr("deerflow.config.get_app_config", lambda: config)
-    monkeypatch.setattr("deerflow.skills.security_scanner.get_app_config", lambda: config)
-    from deerflow.config.paths import Paths
+    monkeypatch.setattr("operix.config.get_app_config", lambda: config)
+    monkeypatch.setattr("operix.skills.security_scanner.get_app_config", lambda: config)
+    from operix.config.paths import Paths
 
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
+    monkeypatch.setattr("operix.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
+    monkeypatch.setattr("operix.config.paths._paths", None)
     refresh_calls = []
     llm_calls = []
 
@@ -369,12 +369,12 @@ def test_skill_manage_static_critical_blocks_create_before_llm(monkeypatch, tmp_
 def test_skill_manage_static_scan_failure_blocks_create_before_llm(monkeypatch, tmp_path):
     skills_root = tmp_path / "skills"
     config = _make_config(skills_root)
-    monkeypatch.setattr("deerflow.config.get_app_config", lambda: config)
-    monkeypatch.setattr("deerflow.skills.security_scanner.get_app_config", lambda: config)
-    from deerflow.config.paths import Paths
+    monkeypatch.setattr("operix.config.get_app_config", lambda: config)
+    monkeypatch.setattr("operix.skills.security_scanner.get_app_config", lambda: config)
+    from operix.config.paths import Paths
 
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
+    monkeypatch.setattr("operix.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
+    monkeypatch.setattr("operix.config.paths._paths", None)
     refresh_calls = []
     llm_calls = []
 
@@ -412,12 +412,12 @@ def test_skill_manage_per_user_isolation(monkeypatch, tmp_path):
     """Two different users must get separate custom skill directories."""
     skills_root = tmp_path / "skills"
     config = _make_config(skills_root)
-    monkeypatch.setattr("deerflow.config.get_app_config", lambda: config)
-    monkeypatch.setattr("deerflow.skills.security_scanner.get_app_config", lambda: config)
-    from deerflow.config.paths import Paths
+    monkeypatch.setattr("operix.config.get_app_config", lambda: config)
+    monkeypatch.setattr("operix.skills.security_scanner.get_app_config", lambda: config)
+    from operix.config.paths import Paths
 
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
-    monkeypatch.setattr("deerflow.config.paths._paths", None)
+    monkeypatch.setattr("operix.config.paths.get_paths", lambda: Paths(base_dir=tmp_path))
+    monkeypatch.setattr("operix.config.paths._paths", None)
 
     async def _refresh(user_id: str):
         return None
@@ -458,7 +458,7 @@ def test_skill_manage_per_user_isolation(monkeypatch, tmp_path):
 
 
 # --- tracing wiring: the in-graph choke point (see the INVARIANT in
-# packages/harness/deerflow/agents/lead_agent/agent.py) ---
+# packages/harness/operix/agents/lead_agent/agent.py) ---
 
 
 def test_scan_or_raise_does_not_attach_model_tracing(monkeypatch, tmp_path):
@@ -471,7 +471,7 @@ def test_scan_or_raise_does_not_attach_model_tracing(monkeypatch, tmp_path):
     so the flag is pinned all the way to the model factory.
     """
     config = _make_config(tmp_path / "skills")
-    monkeypatch.setattr("deerflow.skills.security_scanner.get_app_config", lambda: config)
+    monkeypatch.setattr("operix.skills.security_scanner.get_app_config", lambda: config)
 
     create_kwargs = {}
 
@@ -483,7 +483,7 @@ def test_scan_or_raise_does_not_attach_model_tracing(monkeypatch, tmp_path):
         create_kwargs.update(kwargs)
         return FakeModel()
 
-    monkeypatch.setattr("deerflow.skills.security_scanner.create_chat_model", _fake_create_chat_model)
+    monkeypatch.setattr("operix.skills.security_scanner.create_chat_model", _fake_create_chat_model)
 
     result = anyio.run(
         lambda: skill_manage_module._scan_or_raise(

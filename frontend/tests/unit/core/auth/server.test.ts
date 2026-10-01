@@ -17,8 +17,8 @@ rs.mock("next/headers", () => ({
 }));
 
 const ENV_KEYS = [
-  "DEER_FLOW_AUTH_DISABLED",
-  "DEER_FLOW_ENV",
+  "OPERIX_AUTH_DISABLED",
+  "OPERIX_ENV",
   "ENVIRONMENT",
   "NEXT_PUBLIC_STATIC_WEBSITE_ONLY",
 ] as const;
@@ -60,8 +60,8 @@ describe("getServerSideUser", () => {
 
   beforeEach(() => {
     saved = snapshotEnv();
-    setEnv("DEER_FLOW_AUTH_DISABLED", undefined);
-    setEnv("DEER_FLOW_ENV", undefined);
+    setEnv("OPERIX_AUTH_DISABLED", undefined);
+    setEnv("OPERIX_ENV", undefined);
     setEnv("ENVIRONMENT", undefined);
     setEnv("NEXT_PUBLIC_STATIC_WEBSITE_ONLY", undefined);
   });
@@ -88,7 +88,7 @@ describe("getServerSideUser", () => {
   });
 
   test("bypasses gateway auth in auth-disabled mode", async () => {
-    setEnv("DEER_FLOW_AUTH_DISABLED", "1");
+    setEnv("OPERIX_AUTH_DISABLED", "1");
     const fetchSpy = rs.fn(() => {
       throw new Error("fetch should not be called in auth-disabled mode");
     });
@@ -104,8 +104,8 @@ describe("getServerSideUser", () => {
   });
 
   test("does not enable auth-disabled mode in explicit production environments", async () => {
-    setEnv("DEER_FLOW_AUTH_DISABLED", "1");
-    setEnv("DEER_FLOW_ENV", "production");
+    setEnv("OPERIX_AUTH_DISABLED", "1");
+    setEnv("OPERIX_ENV", "production");
 
     const { isAuthDisabledMode } =
       await import("@/core/auth/auth-disabled-user");
@@ -119,7 +119,7 @@ describe("getServerSideUser — gateway_unavailable contract (issue #3493)", () 
 
   beforeEach(() => {
     saved = snapshotEnv();
-    setEnv("DEER_FLOW_AUTH_DISABLED", undefined);
+    setEnv("OPERIX_AUTH_DISABLED", undefined);
     setEnv("NEXT_PUBLIC_STATIC_WEBSITE_ONLY", undefined);
   });
 

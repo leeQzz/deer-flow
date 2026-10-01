@@ -96,7 +96,7 @@ def render_notification_text(delivery: dict[str, Any]) -> str:
         # Do not forward raw error text to external IM: scheduled runs can
         # surface hostnames, paths, and token fragments in tracebacks. Users
         # can open the workspace for the full detail.
-        lines.append("See the DeerFlow workspace for error details.")
+        lines.append("See the Operix workspace for error details.")
     else:
         lines = ["**Scheduled task completed**", f"Task: `{task_label}`"]
         # The result summary belongs to a successful outcome only: on failed

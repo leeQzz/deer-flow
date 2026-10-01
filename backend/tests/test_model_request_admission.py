@@ -8,8 +8,8 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
-from deerflow.config.model_config import RequestAdmissionConfig
-from deerflow.models import request_admission as admission
+from operix.config.model_config import RequestAdmissionConfig
+from operix.models import request_admission as admission
 
 
 @pytest.fixture
@@ -136,21 +136,21 @@ def test_non_integer_inputs_remain_rejected(values):
 
 def test_env_substitution_reaches_request_admission_from_config_file(monkeypatch, tmp_path):
     """``config.example.yaml`` promises ``$VAR`` for every field; the two strict integers must honor it end to end."""
-    from deerflow.config.app_config import AppConfig
+    from operix.config.app_config import AppConfig
 
-    monkeypatch.setenv("DEER_FLOW_TEST_RPM", "60")
-    monkeypatch.setenv("DEER_FLOW_TEST_QUEUE", "512")
+    monkeypatch.setenv("OPERIX_TEST_RPM", "60")
+    monkeypatch.setenv("OPERIX_TEST_QUEUE", "512")
     path = tmp_path / "config.yaml"
     path.write_text(
         yaml.safe_dump(
             {
-                "sandbox": {"use": "deerflow.sandbox.local:LocalSandboxProvider"},
+                "sandbox": {"use": "operix.sandbox.local:LocalSandboxProvider"},
                 "models": [
                     {
                         "name": "paced",
                         "use": "langchain_openai:ChatOpenAI",
                         "model": "gpt-test",
-                        "request_admission": {"requests_per_minute": "$DEER_FLOW_TEST_RPM", "max_queue_size": "$DEER_FLOW_TEST_QUEUE"},
+                        "request_admission": {"requests_per_minute": "$OPERIX_TEST_RPM", "max_queue_size": "$OPERIX_TEST_QUEUE"},
                     }
                 ],
             }
@@ -220,13 +220,13 @@ def test_group_sharing_isolation_and_conflict(registry, clock):
 def make_model(monkeypatch, *, name="a", policy=None, provider=False):
     from langchain_core.language_models.fake_chat_models import FakeListChatModel
 
-    from deerflow.config.app_config import AppConfig
-    from deerflow.config.model_config import ModelConfig
-    from deerflow.config.sandbox_config import SandboxConfig
-    from deerflow.models import factory
+    from operix.config.app_config import AppConfig
+    from operix.config.model_config import ModelConfig
+    from operix.config.sandbox_config import SandboxConfig
+    from operix.models import factory
 
     model = ModelConfig(name=name, use="langchain_openai:ChatOpenAI", model="test", api_key="offline-test-key", request_admission=policy)
-    config = AppConfig(models=[model], sandbox=SandboxConfig(use="deerflow.sandbox.local:LocalSandboxProvider"))
+    config = AppConfig(models=[model], sandbox=SandboxConfig(use="operix.sandbox.local:LocalSandboxProvider"))
     if not provider:
         monkeypatch.setattr(factory, "resolve_class", lambda *args: FakeListChatModel)
     return factory.create_chat_model(name, app_config=config, attach_tracing=False, **({} if provider else {"responses": ["ok"]}))
@@ -276,9 +276,9 @@ def test_disabled_factory_preserves_default(monkeypatch, registry):
 
 
 def test_admission_failures_are_not_retried_as_provider_errors(monkeypatch):
-    from deerflow.agents.middlewares import llm_error_handling_middleware as errors
-    from deerflow.config.app_config import AppConfig
-    from deerflow.config.sandbox_config import SandboxConfig
+    from operix.agents.middlewares import llm_error_handling_middleware as errors
+    from operix.config.app_config import AppConfig
+    from operix.config.sandbox_config import SandboxConfig
 
     monkeypatch.setattr(errors, "_PROCESS_LIMITER", None)
     monkeypatch.setattr(errors, "_CAP_RESOLVED", False)

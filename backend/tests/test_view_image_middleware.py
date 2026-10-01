@@ -33,11 +33,11 @@ from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.language_models.fake_chat_models import FakeMessagesListChatModel
 from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage, ToolMessage
 
-from deerflow.agents.middlewares.view_image_middleware import (
+from operix.agents.middlewares.view_image_middleware import (
     _IMAGE_CONTEXT_MESSAGE_MARKER_KEY,
     ViewImageMiddleware,
 )
-from deerflow.config.paths import Paths
+from operix.config.paths import Paths
 
 
 def _view_image_call(call_id: str = "call_1", path: str = "/mnt/user-data/uploads/img.png") -> dict:
@@ -88,7 +88,7 @@ def _make_viewed_image(tmp_path, filename="img.png", mime_type="image/png", data
 
 def _authorized_host_view(tmp_path, monkeypatch):
     paths = Paths(tmp_path)
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: paths)
+    monkeypatch.setattr("operix.config.paths.get_paths", lambda: paths)
     outputs = paths.sandbox_outputs_dir("thread-test", user_id="user-test")
     outputs.mkdir(parents=True)
     virtual_path = "/mnt/user-data/outputs/img.png"
@@ -643,12 +643,12 @@ class TestGraphIntegration:
 
 def test_host_image_copy_is_scoped_to_current_user_and_thread(tmp_path, monkeypatch):
     """A stale viewed_images entry must not open another user's host copy."""
-    from deerflow.authz import sandbox_authz
+    from operix.authz import sandbox_authz
 
     monkeypatch.setattr(sandbox_authz, "authorize_sandbox_execution", lambda **kwargs: None)
     paths = Paths(tmp_path)
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: paths)
-    monkeypatch.setattr("deerflow.sandbox.sandbox_provider.get_sandbox_provider", lambda: SimpleNamespace(get=lambda sandbox_id: None))
+    monkeypatch.setattr("operix.config.paths.get_paths", lambda: paths)
+    monkeypatch.setattr("operix.sandbox.sandbox_provider.get_sandbox_provider", lambda: SimpleNamespace(get=lambda sandbox_id: None))
 
     image_bytes = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==")
     virtual_path = "/mnt/user-data/outputs/canary.png"
@@ -678,11 +678,11 @@ def test_host_image_copy_is_scoped_to_current_user_and_thread(tmp_path, monkeypa
 
 def _custom_base_view_request(tmp_path, monkeypatch):
     """Use the real tool to record a host copy under a non-global Paths base."""
-    from deerflow.authz import sandbox_authz
-    from deerflow.tools.builtins.view_image_tool import _view_image_authorized
+    from operix.authz import sandbox_authz
+    from operix.tools.builtins.view_image_tool import _view_image_authorized
 
     monkeypatch.setattr(sandbox_authz, "authorize_sandbox_execution", lambda **kwargs: None)
-    monkeypatch.setattr("deerflow.sandbox.sandbox_provider.get_sandbox_provider", lambda: SimpleNamespace(get=lambda sandbox_id: None))
+    monkeypatch.setattr("operix.sandbox.sandbox_provider.get_sandbox_provider", lambda: SimpleNamespace(get=lambda sandbox_id: None))
 
     paths = Paths(tmp_path / "custom-base")
     virtual_path = "/mnt/user-data/outputs/canary.png"

@@ -1,4 +1,4 @@
-# 🦌 DeerFlow - 2.0
+# ⚙ Operix - 2.0
 
 English | [中文](./README_zh.md) | [日本語](./README_ja.md) | [Français](./README_fr.md) | [Русский](./README_ru.md)
 
@@ -6,32 +6,31 @@ English | [中文](./README_zh.md) | [日本語](./README_ja.md) | [Français](.
 [![Node.js](https://img.shields.io/badge/Node.js-22%2B-339933?logo=node.js&logoColor=white)](./Makefile)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-<a href="https://trendshift.io/repositories/14699" target="_blank"><img src="https://trendshift.io/api/badge/repositories/14699" alt="bytedance%2Fdeer-flow | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
-> On February 28th, 2026, DeerFlow claimed the 🏆 #1 spot on GitHub Trending following the launch of version 2. Thanks a million to our incredible community — you made this happen! 💪🔥
+![Operix](docs/assets/operix-logo.jpg)
+> On February 28th, 2026, Operix claimed the 🏆 #1 spot on GitHub Trending following the launch of version 2. Thanks a million to our incredible community — you made this happen! 💪🔥
 
-DeerFlow (**D**eep **E**xploration and **E**fficient **R**esearch **Flow**) is an open-source **super agent harness** that orchestrates **sub-agents**, **memory**, and **sandboxes** to do almost anything — powered by **extensible skills**.
+**Operix** is an open-source **super agent harness** that orchestrates **sub-agents**, **memory**, and **sandboxes** to do almost anything — powered by **extensible skills**. Built on LangGraph and LangChain, it ships with everything an agent needs out of the box.
 
-https://github.com/user-attachments/assets/a8bcadc4-e040-4cf2-8fda-dd768b999c18
 
 > [!NOTE]
-> **DeerFlow 2.0 is a ground-up rewrite.** It shares no code with v1. If you're looking for the original Deep Research framework, it's maintained on the [`1.x` branch](https://github.com/bytedance/deer-flow/tree/main-1.x) — contributions there are still welcome. Active development has moved to 2.0.
+> **Operix 2.0 is a ground-up rewrite.** It shares no code with v1. If you're looking for the original Deep Research framework, it's maintained on the [`1.x` branch](https://github.com/bytedance/operix/tree/main-1.x) — contributions there are still welcome. Active development has moved to 2.0.
 
 ## Official Website
 
-Learn more and see **real demos** on our [**official website**](https://deerflow.tech).
+Learn more and see **real demos** on our [**official website**](https://operix.tech).
 The landing-page case studies open as allowlisted, read-only showcases without requiring a sign-in.
 
 ## Sister Projects
 
 <img width="446" height="280" alt="image" align="middle" src="https://github.com/user-attachments/assets/077edef4-d560-41af-bb0d-d0a5f14fcc20" />
 
-- [**LLM Space**](https://github.com/deer-flow/llm-space) - Meet our secret weapon behind DeerFlow — one desktop tool to prototype agent ideas, inspect each harness step, replay failures, and benchmark performance.
+- [**LLM Space**](https://github.com/operix/llm-space) - Meet our secret weapon behind Operix — one desktop tool to prototype agent ideas, inspect each harness step, replay failures, and benchmark performance.
 
 ## Coding Plan from ByteDance Volcengine
 
-- We strongly recommend using Doubao-Seed-2.0-Code, DeepSeek v3.2 and Kimi 2.5 to run DeerFlow
-- [Learn more](https://www.byteplus.com/en/activity/codingplan?utm_campaign=deer_flow&utm_content=deer_flow&utm_medium=devrel&utm_source=OWO&utm_term=deer_flow)
-- [中国大陆地区的开发者请点击这里](https://www.volcengine.com/activity/codingplan?utm_campaign=deer_flow&utm_content=deer_flow&utm_medium=devrel&utm_source=OWO&utm_term=deer_flow)
+- We strongly recommend using Doubao-Seed-2.0-Code, DeepSeek v3.2 and Kimi 2.5 to run Operix
+- [Learn more](https://www.byteplus.com/en/activity/codingplan?utm_campaign=operix&utm_content=operix&utm_medium=devrel&utm_source=OWO&utm_term=operix)
+- [中国大陆地区的开发者请点击这里](https://www.volcengine.com/activity/codingplan?utm_campaign=operix&utm_content=operix&utm_medium=devrel&utm_source=OWO&utm_term=operix)
 
 ## InfoQuest
 
@@ -39,7 +38,7 @@ InfoQuest reader, web search, and image search use a 30-second HTTP connect/read
 inactivity timeout. The crawl `timeout` and `navigation_timeout` settings remain
 separate server-side options; they do not control the local HTTP timeout.
 
-DeerFlow has newly integrated the intelligent search and crawling toolset independently developed by BytePlus--[InfoQuest (supports free online experience)](https://docs.byteplus.com/en/docs/InfoQuest/What_is_Info_Quest)
+Operix has newly integrated the intelligent search and crawling toolset independently developed by BytePlus--[InfoQuest (supports free online experience)](https://docs.byteplus.com/en/docs/InfoQuest/What_is_Info_Quest)
 
 <a href="https://docs.byteplus.com/en/docs/InfoQuest/What_is_Info_Quest" target="_blank">
   <img
@@ -51,7 +50,7 @@ DeerFlow has newly integrated the intelligent search and crawling toolset indepe
 
 ## Table of Contents
 
-- [🦌 DeerFlow - 2.0](#-deerflow---20)
+- [⚙ Operix - 2.0](#-operix---20)
   - [Official Website](#official-website)
   - [Coding Plan from ByteDance Volcengine](#coding-plan-from-bytedance-volcengine)
   - [InfoQuest](#infoquest)
@@ -104,7 +103,7 @@ DeerFlow has newly integrated the intelligent search and crawling toolset indepe
 If you use Claude Code, Codex, Cursor, Windsurf, or another coding agent, you can hand it the setup instructions in one sentence:
 
 ```text
-Help me clone DeerFlow if needed, then bootstrap it for local development by following https://raw.githubusercontent.com/bytedance/deer-flow/main/Install.md
+Help me clone Operix if needed, then bootstrap it for local development by following https://raw.githubusercontent.com/bytedance/operix/main/Install.md
 ```
 
 That prompt is intended for coding agents. It tells the agent to clone the repo if needed, choose Docker when available, and stop with the exact next command plus any missing config the user still needs to provide.
@@ -121,16 +120,16 @@ Optional per-model [`request_admission`](backend/docs/CONFIGURATION.md#model-req
 paces requests to help stay within provider request-per-minute limits.
 It is disabled by default; see the linked guide to enable it.
 
-1. **Clone the DeerFlow repository**
+1. **Clone the Operix repository**
 
    ```bash
-   git clone https://github.com/bytedance/deer-flow.git
-   cd deer-flow
+   git clone https://github.com/bytedance/operix.git
+   cd operix
    ```
 
 2. **Run the setup wizard**
 
-   From the project root directory (`deer-flow/`), run:
+   From the project root directory (`operix/`), run:
 
    ```bash
    make setup
@@ -147,7 +146,7 @@ It is disabled by default; see the linked guide to enable it.
    `make support-bundle`. The command prints reporter next steps, writes a
    `*-issue-summary.md` file to paste into the issue, a `*-issue-draft.md` file
    for AI-assisted issue filing, and an optional evidence zip under
-   `.deer-flow/support-bundles/`. If an AI assistant files the issue, start from
+   `.operix/support-bundles/`. If an AI assistant files the issue, start from
    the draft and replace every REQUIRED placeholder instead of inventing missing
    facts. Attach the zip only if a maintainer asks for it, or if the summary
    alone is not enough. Maintainers and AI triage tools can start with
@@ -158,7 +157,7 @@ It is disabled by default; see the linked guide to enable it.
    > **Advanced / manual configuration**: If you prefer to edit `config.yaml` directly, run `make config` instead to copy the full template. Optional dependency auto-detection accepts UTF-8 configuration files with or without a byte-order mark (BOM). See `config.example.yaml` for the complete reference including CLI-backed providers (Codex CLI, Claude Code OAuth), OpenRouter, Responses API, subagent runtime caps such as `subagents.max_total_per_run`, and more.
 
    Optional per-model pricing must use one currency across all priced models.
-   DeerFlow disables Console cost estimates when currencies are mixed rather
+   Operix disables Console cost estimates when currencies are mixed rather
    than presenting an invalid aggregate.
 
    Administrators can also open **Settings → Models** to add, edit, test, and
@@ -168,7 +167,7 @@ It is disabled by default; see the linked guide to enable it.
    tool-call request and may incur provider charges. It does not save the draft or
    verify image support; set image support and token limits from provider documentation.
    Official DeepSeek models at `https://api.deepseek.com` or
-   `https://api.deepseek.com/v1` (default HTTPS port) automatically use DeerFlow's
+   `https://api.deepseek.com/v1` (default HTTPS port) automatically use Operix's
    DeepSeek adapter, preserving reasoning content across tool calls and honoring
    output token limits. Chat uses the selected thinking mode; the connection test
    temporarily disables thinking because DeepSeek rejects forced tool selection
@@ -183,7 +182,7 @@ It is disabled by default; see the linked guide to enable it.
    and run from `backend/`:
 
    ```bash
-   DEER_FLOW_RUN_LIVE_TESTS=1 uv run --no-sync pytest tests/test_managed_deepseek_live.py -q
+   OPERIX_RUN_LIVE_TESTS=1 uv run --no-sync pytest tests/test_managed_deepseek_live.py -q
    ```
 
    These opt-in tests send short requests to DeepSeek and may incur charges;
@@ -201,7 +200,7 @@ It is disabled by default; see the linked guide to enable it.
    remain subject to the existing model authorization policy.
 
    The encrypted catalog and a generated local encryption key are stored in
-   `$DEER_FLOW_HOME/managed-models/` (default `.deer-flow/managed-models/`). Persist
+   `$OPERIX_HOME/managed-models/` (default `.operix/managed-models/`). Persist
    and back up the **whole directory**, restrict filesystem access, and share it
    across Gateway workers/replicas that should use the same catalog. The local key
    is protected by filesystem permissions; encryption does not protect against
@@ -245,7 +244,7 @@ It is disabled by default; see the linked guide to enable it.
 
      - name: qwen3-32b-vllm
        display_name: Qwen3 32B (vLLM)
-       use: deerflow.models.vllm_provider:VllmChatModel
+       use: operix.models.vllm_provider:VllmChatModel
        model: Qwen/Qwen3-32B
        api_key: $VLLM_API_KEY
        base_url: http://localhost:8000/v1
@@ -260,9 +259,9 @@ It is disabled by default; see the linked guide to enable it.
 
    To route OpenAI models through `/v1/responses`, keep using `langchain_openai:ChatOpenAI` and set `use_responses_api: true` with `output_version: responses/v1`.
 
-   Models whose provider contract differs from DeerFlow's generic thinking/effort assumptions can declare a per-model mapping-valued `reasoning:` block (thinking `unsupported`/`optional`/`required`, the accepted effort values with aliases and a default, the payload dialect, and the reasoning-history requirement). The setup wizard's Z.AI GLM-5.3-Flash profile uses it: thinking stays on for every foreground and background call, and the effort selector offers the model's own `low`/`high`/`max` levels. Ollama's existing boolean `reasoning: true` remains a native provider setting and is forwarded to ChatOllama. When migrating a profile to a custom effort `path`, remove any old `reasoning_effort` setting from the profile and thinking templates; configuration validation rejects the leftover key. The chat UI drops a remembered provider-specific effort when switching to a legacy model that does not advertise it. Profiles without the block keep their existing provider behavior. See `config.example.yaml` for the shape and the equivalent manual configuration.
+   Models whose provider contract differs from Operix's generic thinking/effort assumptions can declare a per-model mapping-valued `reasoning:` block (thinking `unsupported`/`optional`/`required`, the accepted effort values with aliases and a default, the payload dialect, and the reasoning-history requirement). The setup wizard's Z.AI GLM-5.3-Flash profile uses it: thinking stays on for every foreground and background call, and the effort selector offers the model's own `low`/`high`/`max` levels. Ollama's existing boolean `reasoning: true` remains a native provider setting and is forwarded to ChatOllama. When migrating a profile to a custom effort `path`, remove any old `reasoning_effort` setting from the profile and thinking templates; configuration validation rejects the leftover key. The chat UI drops a remembered provider-specific effort when switching to a legacy model that does not advertise it. Profiles without the block keep their existing provider behavior. See `config.example.yaml` for the shape and the equivalent manual configuration.
 
-   For vLLM 0.19.0, use `deerflow.models.vllm_provider:VllmChatModel`. For Qwen-style reasoning models, DeerFlow toggles reasoning with `extra_body.chat_template_kwargs.enable_thinking` and preserves vLLM's non-standard `reasoning` field across multi-turn tool-call conversations. Legacy `thinking` configs are normalized automatically for backward compatibility. If the endpoint reports a cumulative usage snapshot on every streaming chunk, set `cumulative_stream_usage: true` so DeerFlow converts those snapshots into per-chunk deltas; the option is disabled by default and leaves usage unchanged when a stable completion id is unavailable. Reasoning models may also require the server to be started with `--reasoning-parser ...`. If your local vLLM deployment accepts any non-empty API key, you can still set `VLLM_API_KEY` to a placeholder value.
+   For vLLM 0.19.0, use `operix.models.vllm_provider:VllmChatModel`. For Qwen-style reasoning models, Operix toggles reasoning with `extra_body.chat_template_kwargs.enable_thinking` and preserves vLLM's non-standard `reasoning` field across multi-turn tool-call conversations. Legacy `thinking` configs are normalized automatically for backward compatibility. If the endpoint reports a cumulative usage snapshot on every streaming chunk, set `cumulative_stream_usage: true` so Operix converts those snapshots into per-chunk deltas; the option is disabled by default and leaves usage unchanged when a stable completion id is unavailable. Reasoning models may also require the server to be started with `--reasoning-parser ...`. If your local vLLM deployment accepts any non-empty API key, you can still set `VLLM_API_KEY` to a placeholder value.
 
    CLI-backed provider examples:
 
@@ -270,14 +269,14 @@ It is disabled by default; see the linked guide to enable it.
    models:
      - name: gpt-5.4
        display_name: GPT-5.4 (Codex CLI)
-       use: deerflow.models.openai_codex_provider:CodexChatModel
+       use: operix.models.openai_codex_provider:CodexChatModel
        model: gpt-5.4
        supports_thinking: true
        supports_reasoning_effort: true
 
      - name: claude-sonnet-4.6
        display_name: Claude Sonnet 4.6 (Claude Code OAuth)
-       use: deerflow.models.claude_provider:ClaudeChatModel
+       use: operix.models.claude_provider:ClaudeChatModel
        model: claude-sonnet-4-6
        max_tokens: 4096
        supports_thinking: true
@@ -303,7 +302,7 @@ It is disabled by default; see the linked guide to enable it.
        auto_approve_permissions: false
    ```
 
-   `mcode` must be on the Gateway process's `PATH`; installing it only on the Docker host does not make it available inside the Gateway container. DeerFlow invokes it through `invoke_acp_agent` in a per-thread ACP workspace and forwards enabled MCP servers. Keep `auto_approve_permissions: false` for untrusted tasks; enable it only when MCode must edit files or run commands and you trust the task.
+   `mcode` must be on the Gateway process's `PATH`; installing it only on the Docker host does not make it available inside the Gateway container. Operix invokes it through `invoke_acp_agent` in a per-thread ACP workspace and forwards enabled MCP servers. Keep `auto_approve_permissions: false` for untrusted tasks; enable it only when MCode must edit files or run commands and you trust the task.
    - On macOS, export Claude Code auth explicitly if needed:
 
    ```bash
@@ -323,7 +322,7 @@ It is disabled by default; see the linked guide to enable it.
 
 #### Deployment Sizing
 
-Use the table below as a practical starting point when choosing how to run DeerFlow:
+Use the table below as a practical starting point when choosing how to run Operix:
 
 | Deployment target | Starting point | Recommended | Notes |
 |---------|-----------|------------|-------|
@@ -331,7 +330,7 @@ Use the table below as a practical starting point when choosing how to run DeerF
 | Docker development / `make docker-start` | 4 vCPU, 8 GB RAM, 25 GB free SSD | 8 vCPU, 16 GB RAM | Image builds, bind mounts, and sandbox containers need more headroom than pure local dev. |
 | Long-running server / `make up` | 8 vCPU, 16 GB RAM, 40 GB free SSD | 16 vCPU, 32 GB RAM | Preferred for shared use, multi-agent runs, report generation, or heavier sandbox workloads. |
 
-- These numbers cover DeerFlow itself. If you also host a local LLM, size that service separately.
+- These numbers cover Operix itself. If you also host a local LLM, size that service separately.
 - Linux plus Docker is the recommended deployment target for a persistent server. macOS and Windows are best treated as development or evaluation environments.
 - If CPU or memory usage stays pinned, reduce concurrent runs first, then move to the next sizing tier.
 
@@ -349,7 +348,7 @@ make docker-start   # Start services (auto-detects sandbox mode from config.yaml
 make docker-logs    # View logs
 ```
 
-`make docker-start` starts `provisioner` only when `config.yaml` uses provisioner mode (`sandbox.use: deerflow.community.aio_sandbox:AioSandboxProvider` with `provisioner_url`).
+`make docker-start` starts `provisioner` only when `config.yaml` uses provisioner mode (`sandbox.use: operix.community.aio_sandbox:AioSandboxProvider` with `provisioner_url`).
 
 Docker builds use the upstream `uv` registry by default. If you need faster mirrors in restricted networks, export `UV_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple` and `NPM_REGISTRY=https://registry.npmmirror.com` before running `make docker-init` or `make docker-start`.
 
@@ -364,12 +363,12 @@ Gateway runs use the top-level `recursion_limit` in `config.yaml` when an API
 request does not provide one. The default is `100`; valid per-request values
 take precedence, and `max_recursion_limit` (default `1000`) caps both. Changes
 apply to the next run without restarting the Gateway. This top-level setting
-applies to Gateway API runs; IM channel and embedded `DeerFlowClient` runs
+applies to Gateway API runs; IM channel and embedded `OperixClient` runs
 retain their own defaults and per-call override paths.
 The checkpoint storage settings `database.checkpoint_channel_mode` and
 `database.checkpoint_delta.snapshot_frequency` (default `10`) are exceptions:
 both are frozen when the process first builds an agent (including through
-`DeerFlowClient`) and require a process restart to change safely.
+`OperixClient`) and require a process restart to change safely.
 
 The optional `database.checkpoint_cache` section (delta channel mode only)
 caches materialized checkpoint histories: `type` is `memory` (default) or
@@ -399,7 +398,7 @@ or installs Python dependencies at container startup.
 
 For persistent deployments, configure `database.backend` as `sqlite` or
 `postgres`. The selected backend is shared by the LangGraph checkpointer,
-LangGraph Store, and DeerFlow application data. The deprecated `checkpointer`
+LangGraph Store, and Operix application data. The deprecated `checkpointer`
 section, when present, overrides the first two for backward compatibility.
 
 Gateway startup automatically repairs the missing run-change schema affecting
@@ -415,9 +414,9 @@ The unified nginx endpoint is same-origin by default and does not emit browser C
 
 When fine-grained authorization is enabled, Live Browser connections require `threads:write` as well as ownership of the thread, even when only viewing frames: the same connection can control the browser. Permission checks run when connecting. Restart Gateway after upgrading to disconnect sessions admitted by older code.
 
-Browser login uses `HttpOnly` session cookies. The login page offers a "keep me signed in" option that extends the browser session when the request is HTTPS (including trusted `X-Forwarded-Proto: https`) or localhost HTTP. The localhost exception uses the direct request `Host` and ignores forwarded host headers. Public HTTP deployments, including many temporary sandbox URLs, fall back to session cookies by default. DeerFlow never stores the password in browser storage; the UI may remember only the email address.
+Browser login uses `HttpOnly` session cookies. The login page offers a "keep me signed in" option that extends the browser session when the request is HTTPS (including trusted `X-Forwarded-Proto: https`) or localhost HTTP. The localhost exception uses the direct request `Host` and ignores forwarded host headers. Public HTTP deployments, including many temporary sandbox URLs, fall back to session cookies by default. Operix never stores the password in browser storage; the UI may remember only the email address.
 
-DeerFlow still uses `Forwarded` / `X-Forwarded-*` headers to recover the browser-facing scheme and origin behind a proxy. The bundled nginx sets `X-Forwarded-Proto`, but preserves an upstream HTTPS value and does not overwrite every forwarded header. Configure the outer trusted proxy to replace or strip client-supplied forwarding headers before traffic reaches DeerFlow.
+Operix still uses `Forwarded` / `X-Forwarded-*` headers to recover the browser-facing scheme and origin behind a proxy. The bundled nginx sets `X-Forwarded-Proto`, but preserves an upstream HTTPS value and does not overwrite every forwarded header. Configure the outer trusted proxy to replace or strip client-supplied forwarding headers before traffic reaches Operix.
 
 > [!IMPORTANT]
 > The Gateway still owns active run tasks in process, so production defaults to a single Gateway worker (`GATEWAY_WORKERS=1`). Multi-worker deployments require Postgres, the Redis stream bridge (`stream_bridge.type: redis`), `run_ownership.heartbeat_enabled: true`, and `run_events.backend: db`; process-local memory/JSONL event stores cannot enforce singleton delivery receipts across workers. The bridge shares SSE delivery and bounded `Last-Event-ID` replay across workers. When a valid reconnect cursor has been trimmed, or a subscriber that already established an empty-stream wait falls behind before its first delivery, Memory and Redis emit a machine-readable SSE `gap` event instead of silently returning a partial replay; the Web UI reloads durable thread/event state and resumes from the retained tail. Lease reconciliation marks runs from dead workers as errors, persists their delivery receipts, publishes the terminal stream marker, schedules retained-stream cleanup, and updates the affected thread status. SSE, `/wait`, and internal stream consumers use `stream_bridge.heartbeat_interval_seconds` (default `15`) for idle liveness checks; changing it requires a Gateway restart. Malformed Redis reconnect IDs live-tail new events instead of replaying the retained buffer, and the rolling retained-buffer TTL (`stream_ttl_seconds`) remains a cleanup safety net rather than a run timeout. IM channel state and other process-local services still need their own multi-worker coordination.
@@ -449,7 +448,7 @@ for the commands for each mode.
 
 If you prefer running services locally:
 
-Prerequisite: complete the "Configuration" steps above first (`make setup`). `make dev` requires a valid `config.yaml` in the project root. Set `DEER_FLOW_PROJECT_ROOT` to define that root explicitly, or `DEER_FLOW_CONFIG_PATH` to point at a specific config file. Runtime state defaults to `.deer-flow` under the project root and can be moved with `DEER_FLOW_HOME`; skills default to `skills/` under the project root and can be moved with `DEER_FLOW_SKILLS_PATH`. Run `make doctor` to verify your setup before starting.
+Prerequisite: complete the "Configuration" steps above first (`make setup`). `make dev` requires a valid `config.yaml` in the project root. Set `OPERIX_PROJECT_ROOT` to define that root explicitly, or `OPERIX_CONFIG_PATH` to point at a specific config file. Runtime state defaults to `.operix` under the project root and can be moved with `OPERIX_HOME`; skills default to `skills/` under the project root and can be moved with `OPERIX_SKILLS_PATH`. Run `make doctor` to verify your setup before starting.
 On Windows, run the local development flow from Git Bash. Native `cmd.exe` and PowerShell shells are not supported for the bash-based service scripts, and WSL is not guaranteed because some scripts rely on Git for Windows utilities such as `cygpath`.
 
 The documented root `make` commands invoke repository `.sh` files through Bash
@@ -495,7 +494,7 @@ such a checkout, use `bash ./scripts/<name>.sh ...`.
    uv run python ../scripts/load_memory_sample.py --all-users
    ```
 
-   Bulk mode supports SQLite/PostgreSQL user registries, creates timestamped backups under `.deer-flow/memory-sample-backups/`, and rejects the non-persistent `database.backend: memory` mode. See [backend/docs/MEMORY_SETTINGS_REVIEW.md](backend/docs/MEMORY_SETTINGS_REVIEW.md) for the complete review flow.
+   Bulk mode supports SQLite/PostgreSQL user registries, creates timestamped backups under `.operix/memory-sample-backups/`, and rejects the non-persistent `database.backend: memory` mode. See [backend/docs/MEMORY_SETTINGS_REVIEW.md](backend/docs/MEMORY_SETTINGS_REVIEW.md) for the complete review flow.
 
 Local services always use their internal ports (`8001`, `3000`, and `2026`).
 The root `.env` variable `PORT` configures only the published Docker ingress;
@@ -503,7 +502,7 @@ it does not change the Next.js port used by `make dev`.
 
 #### Startup Modes
 
-DeerFlow runs the agent runtime inside the Gateway API. Development mode enables hot-reload; production mode uses a pre-built frontend.
+Operix runs the agent runtime inside the Gateway API. Development mode enables hot-reload; production mode uses a pre-built frontend.
 
 | | **Local Foreground** | **Local Daemon** | **Docker Dev** | **Docker Prod** |
 |---|---|---|---|---|
@@ -532,7 +531,7 @@ count. Restart Node after changing the token; no rebuild is needed.
 
 #### LangGraph Studio (Optional)
 
-The default `make dev` topology uses DeerFlow's Gateway-embedded runtime and
+The default `make dev` topology uses Operix's Gateway-embedded runtime and
 does not require LangGraph Studio. To inspect and test the registered lead-agent
 graph with the standalone development server, run the command from `backend/`
 so the CLI discovers `langgraph.json`:
@@ -543,22 +542,22 @@ uv run langgraph dev --allow-blocking
 ```
 
 The command prints the local API and Studio UI URLs. This in-memory server is
-for development and testing only. The flag permits DeerFlow's synchronous
+for development and testing only. The flag permits Operix's synchronous
 configuration and graph-factory setup during local Studio requests; it must not
 be treated as a production-server setting. Local Studio authentication is
 handled automatically, so the connection does not require custom headers. Use
-DeerFlow's documented production startup modes or a supported LangSmith
+Operix's documented production startup modes or a supported LangSmith
 deployment for production workloads. Assistant ownership and provenance in this
 standalone mode are server-owned: Studio can discover registered graphs and the
 assistants it creates, and normal assistant-version selection remains available.
-Before the locked local runtime loads its persisted development store, DeerFlow
+Before the locked local runtime loads its persisted development store, Operix
 repairs legacy assistant rows and version history so historical client metadata
 cannot restore server privileges or be discarded by the runtime's startup
 cleanup. Keep the backend dependencies synchronized with `uv sync`; this
 compatibility path requires the declared LangGraph runtime versions and logs a
 warning if the persisted-store contract no longer matches its expectations.
 The documented command uses LangGraph's file-based custom-app loader, which is
-also covered directly by DeerFlow's regression tests.
+also covered directly by Operix's regression tests.
 
 Standalone runs using `if_not_exists="create"` retain config and run metadata
 on the newly created thread, including searchable tags; run metadata takes
@@ -566,19 +565,19 @@ precedence for duplicate keys. Thread ownership and MCP incarnation remain
 server-owned, and later runs do not replace the thread's creation metadata.
 
 For workflows that invoke `backend/langgraph.json` through LangGraph Studio or
-a direct LangGraph Server, DeerFlow consumes the authenticated identity
+a direct LangGraph Server, Operix consumes the authenticated identity
 published by that runtime and uses it for custom-agent configuration/SOUL, user
 skills and skill policy, uploads, thread data, and memory reads/writes. This
 keeps authenticated runs out of the shared `default` filesystem bucket, and the
 server-owned identity takes precedence over ordinary client-supplied `user_id`
 values. External identities such as email addresses are mapped to stable,
-collision-resistant directory-safe user IDs before accessing DeerFlow storage.
-The default DeerFlow service topology remains the Gateway-embedded runtime
+collision-resistant directory-safe user IDs before accessing Operix storage.
+The default Operix service topology remains the Gateway-embedded runtime
 described above.
 
 Gateway runs automatically enforce native delivery for artifacts created or modified under `/mnt/user-data/outputs`: `present_files` must present at least one output produced by the current run, and the terminal `run.delivery` receipt must be durably recorded. Virtual artifact paths are resolved within the same authenticated user and thread scope that produced the output before the output-directory boundary is validated. Runs that do not produce output artifacts keep ordinary conversational behavior.
 
-DeerFlow's built-in custom events are available through both LangGraph streaming interfaces: native clients can continue subscribing to `stream_mode="custom"`, while callback-based integrations can consume the same payloads as `on_custom_event` records from `astream_events(version="v2")`. The callback event name matches the payload's `type` field.
+Operix's built-in custom events are available through both LangGraph streaming interfaces: native clients can continue subscribing to `stream_mode="custom"`, while callback-based integrations can consume the same payloads as `on_custom_event` records from `astream_events(version="v2")`. The callback event name matches the payload's `type` field.
 
 #### Docker Production Deployment
 
@@ -599,7 +598,7 @@ deploy.sh down
 ### Advanced
 #### Sandbox Mode
 
-DeerFlow supports multiple sandbox execution modes:
+Operix supports multiple sandbox execution modes:
 - **Local Execution** (runs sandbox code directly on the host machine)
 - **Docker Execution** (runs sandbox code in isolated Docker containers)
 - **Docker Execution with Kubernetes** (runs sandbox code in Kubernetes pods via provisioner service)
@@ -610,7 +609,7 @@ checkpoint, the runtime resolves the reference against the authenticated user
 and thread before a tool can reuse it. A missing runtime thread ID raises an
 error even when the referenced sandbox is cached.
 
-When host Bash is enabled for Local Execution, DeerFlow starts OS detection with `uname -s`, then uses `sw_vers` on Darwin. On Linux, it reads host system files such as `/etc/os-release` only when the active sandbox policy permits it. Host filesystem path checks still apply; after a blocked path, the agent is directed to use a permitted command-only probe or virtual path instead of repeating the rejected command.
+When host Bash is enabled for Local Execution, Operix starts OS detection with `uname -s`, then uses `sw_vers` on Darwin. On Linux, it reads host system files such as `/etc/os-release` only when the active sandbox policy permits it. Host filesystem path checks still apply; after a blocked path, the agent is directed to use a permitted command-only probe or virtual path instead of repeating the rejected command.
 
 For Docker development, service startup follows `config.yaml` sandbox mode. In Local/Docker modes, `provisioner` is not started.
 
@@ -635,7 +634,7 @@ already received by the browser, without an additional secret-redaction layer.
 
 Tool-produced paths and URLs can be retained as short artifact handles across context compaction (`tool_artifacts` in `config.yaml`). Handles distinguish separate tool-result occurrences, even when a provider reuses call IDs. Detected file URLs preserve their query strings and fragments. When PII redaction is enabled, model-visible artifact labels follow that policy; internal references stay intact for tool argument resolution. The configured registry limit retains the newest artifacts, while checkpointed processing identities prevent evicted results from being recaptured after restart. Resolution runs before authorization and write-safety checks; unknown or expired handles return an error without executing the tool. Small unknown structured results may be retained as complete JSON up to 4096 UTF-8 bytes; empty or oversized payloads are skipped. Handles are agent-local: task arguments resolve parent handles to concrete references, and delegated reports must return concrete references rather than child-local handles. A truncated model projection reports how many handles are omitted.
 
-DeerFlow supports configurable MCP servers and skills to extend its capabilities.
+Operix supports configurable MCP servers and skills to extend its capabilities.
 For HTTP/SSE MCP servers, OAuth token flows are supported (`client_credentials`, `refresh_token`).
 Durable HTTP/SSE task status and cancellation calls select configured `user_auth` credentials using the persisted task owner, including after restart; per-request secrets are not retained for background calls. If a request-scoped credential overrides submit authentication, both credentials must authorize access to the same remote task.
 For stdio MCP servers, per-tool call timeouts can be configured with `tool_call_timeout`; durable background-task calls honor the same setting for HTTP/SSE servers as well.
@@ -666,7 +665,7 @@ integration contract above for required fields, scopes, and feature boundaries.
 Plugin brand icons are bundled locally. When adding or editing one personal MCP plugin, users can upload a PNG, JPG, or WebP image (up to 2 MB), preview it, or restore the default icon. Changes take effect only after Save; custom icons persist across browsers as a normalized 128px PNG in the server entry's display-only `presentation.icon` metadata. They are not sent to the MCP transport.
 
 Capability Center > Plugins adds, replaces, and deletes one MCP server at a time through targeted mutations that preserve concurrent sibling changes; deletes use a bodyless URL-addressed request. An invalid stdio command on one server no longer blocks toggling another, while enabling that invalid server remains protected by the command allowlist and surfaces the backend validation message in the UI.
-Targeted updates accept both DeerFlow's `type` field and the MCP-spec `transport` field for SSE/HTTP servers.
+Targeted updates accept both Operix's `type` field and the MCP-spec `transport` field for SSE/HTTP servers.
 Runtime MCP and skill updates replace `extensions_config.json` atomically, so an interrupted write cannot leave the shared configuration truncated or partially written.
 The admin MCP cache reset advances a durable generation marker in the writable config directory. Every Gateway worker mounting that same directory retires its own cached tools and pooled sessions before the next lookup; replicas with independent filesystems are not implicitly covered. If no config path is available, the API reports a process-local reset instead.
 `extensions_config.json` accepts UTF-8 with or without a leading byte-order mark (BOM), including files saved as UTF-8 with BOM by an editor.
@@ -675,12 +674,12 @@ MCP routing hints can also prefer a specific MCP tool for matching requests with
 OpenViking users can register the official Streamable HTTP endpoint at `/mcp`
 with an owner-bound USER API key. The native `forget` tool is exposed for
 capability parity; deletion is irreversible, so it should be called only after
-explicit user confirmation. DeerFlow does not enforce that confirmation. This
+explicit user confirmation. Operix does not enforce that confirmation. This
 explicit, model-selected MCP tool path can run alongside the separate automatic
 OpenViking memory backend; it does not replace automatic turn capture or recall. See the
 [OpenViking MCP tools configuration](backend/docs/MCP_SERVER.md#openviking-mcp-tools).
 
-The Gateway can adapt an MCP server's ordinary `submit` / `status` / `cancel` tools into durable background tasks. The Agent sees only the configured submit tool and a DeerFlow-local task ID; remote IDs are persisted before the submit call returns, while status and cancel stay internal to the runtime. Polling uses cross-worker leases, exponential retry backoff, scoped MCP sessions, bounded result storage, and restart recovery. A status-tool `isError` is retained as a bounded diagnostic and retried; servers report a permanent remote-task outcome through a normal structured result with `status: "failed"`. Remote poll hints are finite positive numbers capped at 24 hours, artifact-reference JSON is limited to 64 KiB, and task/server identifiers are validated against their durable SQL column limits before persistence. Input-required and terminal updates wake the current chat through idempotent Agent runs, while `list_background_tasks` and `cancel_background_task` let the Agent manage tasks without asking users for remote handles. Current-thread tasks are available through `GET /api/threads/{thread_id}/mcp-tasks`, its detail endpoint, and `POST /api/threads/{thread_id}/mcp-tasks/{task_id}/cancel`; when the task runtime actually starts, the Web UI exposes the same safe local view from the chat header with live status refresh, cancellation, and on-demand result, artifact, input-request, status-error, and cancellation-retry details. Default-disabled and memory-backend deployments hide that UI and do not poll the task endpoints. A failed remote cancellation remains queued with backoff, and its latest bounded error and attempt count stay visible in the expanded task card. Enable `mcp_tasks` in `config.yaml`, configure `task_toolsets` with exact raw tool names in `extensions_config.json`, and use a SQL database backend (`sqlite` or `postgres`). Task-enabled server connection, authentication, interceptor, timeout, or binding changes require a Gateway restart so Agent tool discovery and background calls cannot use different configuration versions. `input_required` is notification-only for now: DeerFlow can display the request but cannot yet submit the user's answer back to the remote task.
+The Gateway can adapt an MCP server's ordinary `submit` / `status` / `cancel` tools into durable background tasks. The Agent sees only the configured submit tool and a Operix-local task ID; remote IDs are persisted before the submit call returns, while status and cancel stay internal to the runtime. Polling uses cross-worker leases, exponential retry backoff, scoped MCP sessions, bounded result storage, and restart recovery. A status-tool `isError` is retained as a bounded diagnostic and retried; servers report a permanent remote-task outcome through a normal structured result with `status: "failed"`. Remote poll hints are finite positive numbers capped at 24 hours, artifact-reference JSON is limited to 64 KiB, and task/server identifiers are validated against their durable SQL column limits before persistence. Input-required and terminal updates wake the current chat through idempotent Agent runs, while `list_background_tasks` and `cancel_background_task` let the Agent manage tasks without asking users for remote handles. Current-thread tasks are available through `GET /api/threads/{thread_id}/mcp-tasks`, its detail endpoint, and `POST /api/threads/{thread_id}/mcp-tasks/{task_id}/cancel`; when the task runtime actually starts, the Web UI exposes the same safe local view from the chat header with live status refresh, cancellation, and on-demand result, artifact, input-request, status-error, and cancellation-retry details. Default-disabled and memory-backend deployments hide that UI and do not poll the task endpoints. A failed remote cancellation remains queued with backoff, and its latest bounded error and attempt count stay visible in the expanded task card. Enable `mcp_tasks` in `config.yaml`, configure `task_toolsets` with exact raw tool names in `extensions_config.json`, and use a SQL database backend (`sqlite` or `postgres`). Task-enabled server connection, authentication, interceptor, timeout, or binding changes require a Gateway restart so Agent tool discovery and background calls cannot use different configuration versions. `input_required` is notification-only for now: Operix can display the request but cannot yet submit the user's answer back to the remote task.
 
 Notification launch and failed Agent-run deliveries use capped exponential backoff with a visible attempt count and stop after five failed attempts. When a bounded ordinary release exceeds its drain deadline, the service retains ownership until it settles. A permanently rejected target such as a deleted chat is dead-lettered immediately instead of retried forever or recreated. Cancellation endpoints return after durably recording the request; the background service owns the potentially slow remote MCP call and its retry schedule.
 
@@ -695,9 +694,9 @@ cleanup when migrating from legacy metadata credentials.
 
 #### IM Channels
 
-DeerFlow supports receiving tasks from messaging apps. Channels auto-start when configured — no public IP required for any of them.
+Operix supports receiving tasks from messaging apps. Channels auto-start when configured — no public IP required for any of them.
 
-DeerFlow can also expose user-owned IM channel connections in the workspace UI. When `channel_connections` is enabled, logged-in users can bind Telegram, Slack, Discord, Feishu/Lark, DingTalk, WeChat, WeCom, or Buzz from the sidebar / Settings > Channels. It reuses the existing outbound `channels.*` transports, so no public IP or provider callback URL is required. Incoming IM messages then run under the connected DeerFlow user account. See [IM Channel Connections](backend/docs/IM_CHANNEL_CONNECTIONS.md) for setup and security notes.
+Operix can also expose user-owned IM channel connections in the workspace UI. When `channel_connections` is enabled, logged-in users can bind Telegram, Slack, Discord, Feishu/Lark, DingTalk, WeChat, WeCom, or Buzz from the sidebar / Settings > Channels. It reuses the existing outbound `channels.*` transports, so no public IP or provider callback URL is required. Incoming IM messages then run under the connected Operix user account. See [IM Channel Connections](backend/docs/IM_CHANNEL_CONNECTIONS.md) for setup and security notes.
 
 | Channel | Transport | Difficulty |
 |---------|-----------|------------|
@@ -775,7 +774,7 @@ channels:
     polling_retry_delay: 5
     qrcode_poll_interval: 2
     qrcode_poll_timeout: 180
-    state_dir: ./.deer-flow/wechat/state
+    state_dir: ./.operix/wechat/state
     max_inbound_image_bytes: 20971520
     max_outbound_image_bytes: 20971520
     max_inbound_file_bytes: 52428800
@@ -808,10 +807,10 @@ channels:
 
 Notes:
 - `assistant_id: lead_agent` calls the default LangGraph assistant directly.
-- If `assistant_id` is set to a custom agent name, DeerFlow still routes through `lead_agent` and injects that value as `agent_name`, so the custom agent's SOUL/config takes effect for IM channels.
+- If `assistant_id` is set to a custom agent name, Operix still routes through `lead_agent` and injects that value as `agent_name`, so the custom agent's SOUL/config takes effect for IM channels.
 - IM channel workers call Gateway's LangGraph-compatible API internally and automatically attach process-local internal auth plus the CSRF cookie/header pair required for thread and run creation.
-- Inbound work is bounded to `inbound_queue_maxsize` pending messages plus `max_concurrency` active workers. When capacity is exhausted, socket/polling providers drop new messages before sending DeerFlow's working acknowledgment and emit a rate-limited warning. Buzz leaves its replay cursor unchanged and reconnects for relay replay; GitHub webhooks return `503`, marking the delivery failed for manual/API redelivery. Shutdown closes admission immediately, keeps channel transports available while accepted messages drain for up to `shutdown_grace_period_seconds`, then cancels and awaits active handlers before closing provider resources; the Gateway's outer timeout can cancel an incomplete shutdown without detaching those resources.
-- Feishu/Lark now queues rapid follow-up messages per mapped DeerFlow `thread_id` instead of immediately surfacing the generic busy reply, and topic replies keep a per-message card with a compact source-message preview across queued/running/final patches.
+- Inbound work is bounded to `inbound_queue_maxsize` pending messages plus `max_concurrency` active workers. When capacity is exhausted, socket/polling providers drop new messages before sending Operix's working acknowledgment and emit a rate-limited warning. Buzz leaves its replay cursor unchanged and reconnects for relay replay; GitHub webhooks return `503`, marking the delivery failed for manual/API redelivery. Shutdown closes admission immediately, keeps channel transports available while accepted messages drain for up to `shutdown_grace_period_seconds`, then cancels and awaits active handlers before closing provider resources; the Gateway's outer timeout can cancel an incomplete shutdown without detaching those resources.
+- Feishu/Lark now queues rapid follow-up messages per mapped Operix `thread_id` instead of immediately surfacing the generic busy reply, and topic replies keep a per-message card with a compact source-message preview across queued/running/final patches.
 
 Set the corresponding API keys in your `.env` file:
 
@@ -867,7 +866,7 @@ DINGTALK_CLIENT_SECRET=your_client_secret
 1. Enable the `wechat` channel in `config.yaml`.
 2. Either set `WECHAT_BOT_TOKEN` in `.env`, or set `qrcode_login_enabled: true` for first-time QR bootstrap.
 3. When `bot_token` is absent and QR bootstrap is enabled, watch backend logs for the QR content returned by iLink and complete the binding flow.
-4. After the QR flow succeeds, DeerFlow persists the acquired token under `state_dir` for later restarts.
+4. After the QR flow succeeds, Operix persists the acquired token under `state_dir` for later restarts.
 5. For Docker Compose deployments, keep `state_dir` on a persistent volume so the `get_updates_buf` cursor and saved auth state survive restarts.
 
 **WeCom Setup**
@@ -886,11 +885,11 @@ DINGTALK_CLIENT_SECRET=your_client_secret
 4. *(Optional)* To enable streaming AI Card replies (typewriter effect), create an **AI Card** template on the [DingTalk Card Platform](https://open.dingtalk.com/document/dingstart/typewriter-effect-streaming-ai-card), then set `card_template_id` in `config.yaml` to the template ID. You also need to apply for the `Card.Streaming.Write` and `Card.Instance.Write` permissions.
 
 
-When DeerFlow runs in Docker Compose, IM channels execute inside the `gateway` container. In that case, do not point `channels.langgraph_url` or `channels.gateway_url` at `localhost`; use container service names such as `http://gateway:8001/api` and `http://gateway:8001`, or set `DEER_FLOW_CHANNELS_LANGGRAPH_URL` and `DEER_FLOW_CHANNELS_GATEWAY_URL`.
+When Operix runs in Docker Compose, IM channels execute inside the `gateway` container. In that case, do not point `channels.langgraph_url` or `channels.gateway_url` at `localhost`; use container service names such as `http://gateway:8001/api` and `http://gateway:8001`, or set `OPERIX_CHANNELS_LANGGRAPH_URL` and `OPERIX_CHANNELS_GATEWAY_URL`.
 
 **Commands**
 
-Once a channel is connected, you can interact with DeerFlow directly from the chat:
+Once a channel is connected, you can interact with Operix directly from the chat:
 
 | Command | Description |
 |---------|-------------|
@@ -902,7 +901,7 @@ Once a channel is connected, you can interact with DeerFlow directly from the ch
 | `/agent use <name>` | Start a new conversation with a Custom Agent |
 | `/help` | Show help |
 
-> Messages without a command prefix are treated as regular chat — DeerFlow creates a thread and responds conversationally.
+> Messages without a command prefix are treated as regular chat — Operix creates a thread and responds conversationally.
 
 Agent selection is conversation-scoped: `/agent use <name>` starts a fresh conversation and pins that Custom Agent in the thread metadata. Existing conversations never switch agents midway, the selection survives a Gateway restart, and opening the IM-created thread in the Web UI continues through the same Custom Agent.
 Use `/agent use lead_agent` to return to the default agent in a new conversation.
@@ -916,7 +915,7 @@ configuration and cannot be turned off.
 
 The same id stays attached to work that outlives the HTTP response: the detached
 run task, any subagents it delegates to, and the background memory-update threads.
-It is recorded as `deerflow_trace_id` on the run record (visible in the runs API),
+It is recorded as `operix_trace_id` on the run record (visible in the runs API),
 in the thread's checkpoint metadata, and in Langfuse traces. Scheduled tasks, MCP
 task notification runs, and IM channel messages start outside HTTP and mint their
 own id per occurrence.
@@ -935,9 +934,9 @@ restart-required, so edit `config.yaml` and restart the Gateway. The setting
 affects log output only — the id, the response header, and the run metadata are
 unaffected.
 
-`deerflow_trace_id` is a DeerFlow correlation id: it is not a run id, and it is not
+`operix_trace_id` is a Operix correlation id: it is not a run id, and it is not
 a provider's native trace id. It is not a lookup key either — nothing resolves a
-thread or a run from it; use it to correlate log lines. A `deerflow_trace_id` sent
+thread or a run from it; use it to correlate log lines. A `operix_trace_id` sent
 in a run request's `metadata` or `config.context` is ignored and overwritten, so
 the response header, the logs, and the persisted run can never disagree. To pin a
 correlation id, send the `X-Trace-Id` header.
@@ -963,7 +962,7 @@ schemas, arguments, results, or catalog hash into the promotion event itself.
 
 #### LangSmith Tracing
 
-DeerFlow has built-in [LangSmith](https://smith.langchain.com) integration for observability. When enabled, all LLM calls, agent runs, and tool executions are traced and visible in the LangSmith dashboard.
+Operix has built-in [LangSmith](https://smith.langchain.com) integration for observability. When enabled, all LLM calls, agent runs, and tool executions are traced and visible in the LangSmith dashboard.
 
 Add the following to your `.env` file:
 
@@ -976,7 +975,7 @@ LANGSMITH_PROJECT=xxx
 
 #### Langfuse Tracing
 
-DeerFlow also supports [Langfuse](https://langfuse.com) observability for LangChain-compatible runs.
+Operix also supports [Langfuse](https://langfuse.com) observability for LangChain-compatible runs.
 
 Add the following to your `.env` file:
 
@@ -994,14 +993,14 @@ If you are using a self-hosted Langfuse instance, set `LANGFUSE_BASE_URL` to you
 - `session_id` = LangGraph `thread_id` — groups every trace of the same conversation
 - `user_id` = effective user from `get_effective_user_id()` (falls back to `default` in no-auth mode)
 - `trace_name` = assistant id (defaults to `lead-agent`)
-- `tags` = `[env:<DEER_FLOW_ENV>, model:<model_name>]` (built-in Gateway lead-agent and embedded client runs tag the selected model after default or fallback resolution; custom graph factories may only provide the requested model; the environment tag is omitted when unset)
-- `metadata.deerflow_trace_id` = DeerFlow request correlation id, matching `X-Trace-Id` when request trace correlation is enabled
+- `tags` = `[env:<OPERIX_ENV>, model:<model_name>]` (built-in Gateway lead-agent and embedded client runs tag the selected model after default or fallback resolution; custom graph factories may only provide the requested model; the environment tag is omitted when unset)
+- `metadata.operix_trace_id` = Operix request correlation id, matching `X-Trace-Id` when request trace correlation is enabled
 
-These are injected into `RunnableConfig.metadata` at the graph invocation root for both the gateway path (`runtime/runs/worker.py::run_agent`) and the embedded path (`client.py::DeerFlowClient.stream`), so any LangChain-compatible callback can read them. Set `DEER_FLOW_ENV` (or `ENVIRONMENT`) to tag traces by deployment environment.
+These are injected into `RunnableConfig.metadata` at the graph invocation root for both the gateway path (`runtime/runs/worker.py::run_agent`) and the embedded path (`client.py::OperixClient.stream`), so any LangChain-compatible callback can read them. Set `OPERIX_ENV` (or `ENVIRONMENT`) to tag traces by deployment environment.
 
 #### Monocle Tracing
 
-DeerFlow also supports [Monocle](https://github.com/monocle2ai/monocle), an OpenTelemetry-based tracer for agentic applications. It records each run end-to-end: LLM calls, agent steps, and tool and MCP invocations, with their inputs, outputs, timings, and token counts.
+Operix also supports [Monocle](https://github.com/monocle2ai/monocle), an OpenTelemetry-based tracer for agentic applications. It records each run end-to-end: LLM calls, agent steps, and tool and MCP invocations, with their inputs, outputs, timings, and token counts.
 
 Add the following to your `.env` file:
 
@@ -1017,7 +1016,7 @@ Traces capture span inputs and outputs verbatim — prompts, tool arguments, and
 
 #### Using Multiple Providers
 
-LangSmith and Langfuse attach as LangChain callbacks, so you can enable both and DeerFlow reports each run to both. If an enabled provider is missing required credentials or fails to initialize, DeerFlow fails fast and names it. Monocle uses a global OpenTelemetry provider rather than a callback; Langfuse shares that provider, so all three can run together. Because both span processors sit on the same shared provider, Monocle's exporters also see Langfuse's spans when both are enabled.
+LangSmith and Langfuse attach as LangChain callbacks, so you can enable both and Operix reports each run to both. If an enabled provider is missing required credentials or fails to initialize, Operix fails fast and names it. Monocle uses a global OpenTelemetry provider rather than a callback; Langfuse shares that provider, so all three can run together. Because both span processors sit on the same shared provider, Monocle's exporters also see Langfuse's spans when both are enabled.
 
 For Docker deployments, tracing is disabled by default. Set `LANGSMITH_TRACING=true` and `LANGSMITH_API_KEY` in your `.env` to enable it.
 
@@ -1055,13 +1054,13 @@ reference: [API Reference — Personal Access Tokens](backend/docs/API.md#person
 
 ## From Deep Research to Super Agent Harness
 
-DeerFlow started as a Deep Research framework — and the community ran with it. Since launch, developers have pushed it far beyond research: building data pipelines, generating slide decks, spinning up dashboards, automating content workflows. Things we never anticipated.
+Operix started as a Deep Research framework — and the community ran with it. Since launch, developers have pushed it far beyond research: building data pipelines, generating slide decks, spinning up dashboards, automating content workflows. Things we never anticipated.
 
-That told us something important: DeerFlow wasn't just a research tool. It was a **harness** — a runtime that gives agents the infrastructure to actually get work done.
+That told us something important: Operix wasn't just a research tool. It was a **harness** — a runtime that gives agents the infrastructure to actually get work done.
 
 So we rebuilt it from scratch.
 
-DeerFlow 2.0 is no longer a framework you wire together. It's a super agent harness — batteries included, fully extensible. Built on LangGraph and LangChain, it ships with everything an agent needs out of the box: a filesystem, memory, skills, sandbox-aware execution, and the ability to plan and spawn sub-agents for complex, multi-step tasks.
+Operix 2.0 is no longer a framework you wire together. It's a super agent harness — batteries included, fully extensible. Built on LangGraph and LangChain, it ships with everything an agent needs out of the box: a filesystem, memory, skills, sandbox-aware execution, and the ability to plan and spawn sub-agents for complex, multi-step tasks.
 
 Use it as-is. Or tear it apart and make it yours.
 
@@ -1076,27 +1075,27 @@ view. Built-in and user-created/imported skills are listed separately. The
 Community tab supports importing `.skill` archives into My skills.
 General preferences remain in Settings.
 
-Skills are what make DeerFlow do *almost anything*.
+Skills are what make Operix do *almost anything*.
 
-A standard Agent Skill is a structured capability module — a Markdown file that defines a workflow, best practices, and references to supporting resources. DeerFlow ships with built-in skills for research, report generation, slide creation, web pages, image and video generation, and more. But the real power is extensibility: add your own skills, replace the built-in ones, or combine them into compound workflows.
+A standard Agent Skill is a structured capability module — a Markdown file that defines a workflow, best practices, and references to supporting resources. Operix ships with built-in skills for research, report generation, slide creation, web pages, image and video generation, and more. But the real power is extensibility: add your own skills, replace the built-in ones, or combine them into compound workflows.
 
-Skills are loaded progressively — only when the task needs them, not all at once. This keeps the context window lean and makes DeerFlow work well even with token-sensitive models.
+Skills are loaded progressively — only when the task needs them, not all at once. This keeps the context window lean and makes Operix work well even with token-sensitive models.
 
 When deferred skill discovery is enabled, `describe_skill` ranks installed skills by bounded, Unicode-normalized intent-term coverage across names and descriptions. Natural multi-term requests can therefore find a relevant skill without requiring one exact phrase, while exact `select:` and required-name `+prefix` lookups remain available. Ranked searches use up to 256 characters and return up to five results; exact `select:` lists are not truncated and return all requested catalog matches.
 
-A skill directory is a package boundary: once DeerFlow finds its `SKILL.md`, nested `SKILL.md` files under that package (for example evaluation fixtures) remain supporting data and are not registered as runtime skills. This applies to managed integration packs as well as public and custom skills. Namespace directories without their own `SKILL.md` can still group nested skills.
+A skill directory is a package boundary: once Operix finds its `SKILL.md`, nested `SKILL.md` files under that package (for example evaluation fixtures) remain supporting data and are not registered as runtime skills. This applies to managed integration packs as well as public and custom skills. Namespace directories without their own `SKILL.md` can still group nested skills.
 
 Discovery follows operator-managed directory symlinks, but skips links back to an ancestor directory so a cyclic namespace does not repeatedly rescan the same tree. Independent links to the same external skill tree remain supported.
 
 Skill Markdown and bundled text resources use UTF-8. Skill-creator CLI and review utilities read and write text explicitly as UTF-8 so localized skills behave consistently across operating systems.
 
-Users can explicitly activate an enabled skill for a single turn by starting the request with `/skill-name`, for example `/data-analysis analyze uploads/foo.csv`. DeerFlow loads that skill's `SKILL.md` as hidden current-turn context while leaving the base prompt limited to skill metadata. Slash activation respects disabled skills, custom-agent skill whitelists, and existing channel commands such as `/new` and `/help`.
+Users can explicitly activate an enabled skill for a single turn by starting the request with `/skill-name`, for example `/data-analysis analyze uploads/foo.csv`. Operix loads that skill's `SKILL.md` as hidden current-turn context while leaving the base prompt limited to skill metadata. Slash activation respects disabled skills, custom-agent skill whitelists, and existing channel commands such as `/new` and `/help`.
 
 After an answer loads skills, its toolbar includes **Skills used**. Hover over or click the icon to see the skills and their sources; hovering a skill name underlines it. Select a skill to inspect its `SKILL.md` in the resizable side panel (a drawer on mobile). The view uses snapshots captured during successful configured read-tool loads or explicit slash activation, so later edits or removal of a skill do not rewrite its history. Repeated loads appear once per run, in first-load order. Range reads and bounded snapshots are labeled as partial; older conversations without captured evidence do not show this menu. Copy returns the captured Markdown, including YAML frontmatter. Package-relative links and images remain readable references rather than navigating away from the conversation. Skill loads performed through other tools, such as shell commands, are not inferred from answer text.
 
 An enabled skill's `allowed-tools` policy applies only after that skill is explicitly slash-activated or captured in the agent's active skill context after a `read_file` load. Merely enabling, advertising, or listing a skill in a custom agent or subagent `skills` allowlist does not reduce that agent's normal toolset; subagents use the same progressive discovery and activation policy as the lead agent. During a slash-activated run, that explicit skill's policy is authoritative: reading another `SKILL.md` may provide instructions but cannot widen the slash skill's tools. Without slash activation, policies from skills actually loaded into active context retain their union semantics. Once active, the policy filters both model-visible tool schemas and tool execution. Framework discovery tools (`tool_search` and `describe_skill`) remain available so an allowed deferred tool or installed skill can still be discovered, but discovery and promotion never grant permission to execute a business tool omitted from `allowed-tools`. `task` is not framework-exempt; a restrictive skill must list it explicitly to delegate to a subagent. Per-step policy decisions are internal runtime context and are removed from observable or persisted context copies. Registry failures and an active set with no remaining valid skill fail closed to framework-safe tools; individual stale paths are ignored only when another valid active skill remains. This is best-effort behavioral scoping, not a hard security boundary: loading skill instructions through another tool is not captured, and active-skill entries can be evicted from bounded context.
 
-When you install `.skill` archives through the Gateway, DeerFlow accepts standard space-separated `allowed-tools`, optional frontmatter metadata, and the Claude-compatible `argument-hint` field instead of rejecting otherwise valid external skills. YAML lists remain supported for `allowed-tools` and preserve exact runtime names. Exact portable spellings such as `WebFetch`, `WebSearch`, `Glob`, `Grep`, and `Read` map to DeerFlow's `web_fetch`, `web_search`, `glob`, `grep`, and `read_file` tools; lowercase or otherwise unknown scalar names remain unchanged so custom and MCP tools keep their exact runtime spelling. Parenthesized entries such as `Bash(tvly *)` are tokenized as one literal entry, including spaces, quoted text, and escaped parentheses, but remain inactive because DeerFlow does not inspect tool arguments; declare `bash` only when the skill may use the full Bash tool.
+When you install `.skill` archives through the Gateway, Operix accepts standard space-separated `allowed-tools`, optional frontmatter metadata, and the Claude-compatible `argument-hint` field instead of rejecting otherwise valid external skills. YAML lists remain supported for `allowed-tools` and preserve exact runtime names. Exact portable spellings such as `WebFetch`, `WebSearch`, `Glob`, `Grep`, and `Read` map to Operix's `web_fetch`, `web_search`, `glob`, `grep`, and `read_file` tools; lowercase or otherwise unknown scalar names remain unchanged so custom and MCP tools keep their exact runtime spelling. Parenthesized entries such as `Bash(tvly *)` are tokenized as one literal entry, including spaces, quoted text, and escaped parentheses, but remain inactive because Operix does not inspect tool arguments; declare `bash` only when the skill may use the full Bash tool.
 
 Disabling a skill also removes it from the sandbox filesystem view, so shell commands and structured file tools follow the same enabled state. Local, Docker/AIO, hostPath provisioner, and newly created E2B sandboxes source `/mnt/skills` from enabled-only projections that update when public, custom, legacy, or managed integration skills are toggled, edited, created, deleted, or installed. Structured `read_file` calls (including line ranges and read-before-write checks) use the sandbox provider's mount mapping, so the user identity captured when the sandbox was acquired remains authoritative. Managed integration packages remain shared, while their projected filesystem visibility follows each user's enabled state. Multi-worker Gateways re-read on-disk enable state while rebuilding user projections, so a toggle handled by one worker is honored by another worker's next sandbox acquire. Existing E2B sandboxes retain their creation-time snapshot until they are recreated. PVC-backed provisioner skills keep their configured PVC snapshot/layout for now; dynamic PVC materialization is tracked separately.
 
@@ -1106,10 +1105,10 @@ Managed integrations install shared read-only skill packs without mixing them
 into custom skills. The Lark/Feishu CLI integration is available under
 `Capability Center → Plugins → Lark / Feishu`; an administrator installs or
 upgrades the official `lark-*` pack once under
-`{DEER_FLOW_HOME}/integrations/skills/lark-cli`, and every user discovers that
+`{OPERIX_HOME}/integrations/skills/lark-cli`, and every user discovers that
 same pack with an independent enabled state. Each user's app configuration and
 OAuth data remain isolated under
-`{DEER_FLOW_HOME}/users/{user_id}/integrations/lark-cli/{config,data}`. These
+`{OPERIX_HOME}/users/{user_id}/integrations/lark-cli/{config,data}`. These
 secret directories are restricted to `0700`, regular credential files to
 `0600`, and symlinks are rejected.
 
@@ -1124,7 +1123,7 @@ or extend authorization. If an agent hits missing Lark authorization during a
 conversation, the managed `lark-shared` guidance points the user back to the
 same plugin configuration with `/workspace/capabilities?tab=plugins&plugin=lark`.
 
-Once configured, **Change Lark app** lets a user point their DeerFlow account at
+Once configured, **Change Lark app** lets a user point their Operix account at
 a different Lark/Feishu app without a reinstall — either by pasting an existing
 app's App ID / App Secret or by re-registering an app in the browser. Switching
 is per-user (it never touches another user's credentials), validates the new
@@ -1133,7 +1132,7 @@ the active app, and revokes/removes the previous app's OAuth tokens. A rejected
 credential change does not supersede an in-progress setup or authorization flow.
 The previous OAuth data is cleared before the CLI stores the replacement app,
 so the new file-backed keychain secret remains available during reconnection.
-DeerFlow then immediately opens browser authorization for the newly bound app so
+Operix then immediately opens browser authorization for the newly bound app so
 the switch ends in a usable connection.
 
 Installing the Lark skill pack resolves the latest official `larksuite/cli`
@@ -1142,11 +1141,11 @@ Gateway needs outbound internet access for that step (it falls back to a
 bottom-line pinned version if the release lookup fails). The settings page shows
 the installed version and, when available, the newest published version so an
 admin can reinstall to upgrade. Air-gapped deployments can pre-stage the archive
-and point `DEER_FLOW_LARK_CLI_SKILLS_ARCHIVE` at the local file. Integrity does
+and point `OPERIX_LARK_CLI_SKILLS_ARCHIVE` at the local file. Integrity does
 not depend on a pinned archive byte hash (GitHub does not guarantee stable
 source-archive bytes); instead the download is restricted to the official GitHub
 host, every archive member passes structural safety guards, and a content hash
-of the effective installed skill tree (including DeerFlow's injected shared
+of the effective installed skill tree (including Operix's injected shared
 guidance) is recorded so content changes are auditable across reinstalls.
 
 When `sandbox.use` selects the AIO provider, the same install also downloads the
@@ -1156,7 +1155,7 @@ the resulting runtime read-only at `/mnt/integrations/lark-cli/runtime`. An
 architecture-selecting launcher in that mount makes `lark-cli` available in the
 sandbox `PATH`. Air-gapped AIO deployments can pre-stage a symlink-free runtime
 tree containing `bin/lark-cli` plus both `linux-{amd64,arm64}/lark-cli` files and
-set `DEER_FLOW_LARK_CLI_SANDBOX_RUNTIME_DIR` to that directory.
+set `OPERIX_LARK_CLI_SANDBOX_RUNTIME_DIR` to that directory.
 
 > **Sandbox trust boundary:** the browser never receives the Lark app secret, but
 > agent conversations run `lark-cli` inside the sandbox, so the per-user
@@ -1194,20 +1193,20 @@ executing the command, and broker execution logs omit argument values. See the
 [broker image guide](docker/lark-cli-broker/README.md) for timeout settings and
 image rebuild requirements.
 
-If a trusted operator manages the configured skills directory through an external mount such as MinIO, NFS, or CSI, an administrator can call `POST /api/skills/reload` after changing files. This invalidates skill prompt caches for the current Gateway process and waits up to the bounded refresh timeout so subsequent runs rescan the latest files; running tasks are unchanged. A loader-level filesystem failure returns a generic server error and preserves the last successfully loaded process cache rather than publishing an empty catalog. Uvicorn workers and Kubernetes Pods must each be targeted separately. Direct mount writes bypass the validation, SkillScan, and history applied by DeerFlow's install/edit APIs, so only operator-controlled systems should have write access.
+If a trusted operator manages the configured skills directory through an external mount such as MinIO, NFS, or CSI, an administrator can call `POST /api/skills/reload` after changing files. This invalidates skill prompt caches for the current Gateway process and waits up to the bounded refresh timeout so subsequent runs rescan the latest files; running tasks are unchanged. A loader-level filesystem failure returns a generic server error and preserves the last successfully loaded process cache rather than publishing an empty catalog. Uvicorn workers and Kubernetes Pods must each be targeted separately. Direct mount writes bypass the validation, SkillScan, and history applied by Operix's install/edit APIs, so only operator-controlled systems should have write access.
 
 Skill installs and agent-managed skill edits run through **SkillScan**, a native deterministic safety scanner before the LLM-based skill scanner. Phase 1 runs offline with no Semgrep/OpenGrep dependency, blocks high-confidence `CRITICAL` findings such as private keys or shell execution, and passes warning findings to the LLM scanner for contextual review. Code files (anything under `scripts/`, a script suffix such as `.py`, `.sh`, or `.js`, or an extensionless file starting with `#!`) that are not NUL-free UTF-8 text raise a warning and are still analyzed over a lossy decode, so a single stray byte cannot hide them from `CRITICAL` checks. The moderation adapter normalizes both plain-text model responses and LangChain Responses API text blocks before parsing the required JSON decision. Python instance-client exfiltration checks follow a minimal same-scope evidence chain: a simple name bound to a known client constructor, optional name-to-name aliases, and an actual outbound method or context-manager use supported by that constructor. Constructor roots must be proven imports; bare canonical-looking names are not inferred as modules. Nested scopes do not inherit client handles and inherit only constructor import aliases that are never rebound in the enclosing scope. Comprehensions, walrus-bearing statements, annotations, complex binding targets, unsupported operations, and ambiguous branch flows produce no finding from this signal; skipped constructs conservatively invalidate every name they may bind so stale client state cannot create a finding. A deterministic work budget or recursion limit reached by this best-effort analysis does not discard findings already collected for the file. Set `skill_scan.enabled: false` in `config.yaml` to disable only the deterministic analyzers; safe archive extraction and the LLM scanner still run.
 
-DeerFlow also ships with **skill-reviewer**, a public skill for read-only skill quality review. It uses the built-in `review_skill_package` tool to inspect installed skills, local packages, archives, or pasted `SKILL.md` content without activating the target skill, binding its secrets, executing its scripts, or installing it. The tool returns a compact, tag-neutralized JSON payload to the model context and keeps the full raw review payload in the tool artifact for programmatic consumers. The deterministic review core reuses DeerFlow parsing and SkillScan facts, emits versioned JSON contracts under `contracts/skill_review/`, and can be run from the backend CLI:
+Operix also ships with **skill-reviewer**, a public skill for read-only skill quality review. It uses the built-in `review_skill_package` tool to inspect installed skills, local packages, archives, or pasted `SKILL.md` content without activating the target skill, binding its secrets, executing its scripts, or installing it. The tool returns a compact, tag-neutralized JSON payload to the model context and keeps the full raw review payload in the tool artifact for programmatic consumers. The deterministic review core reuses Operix parsing and SkillScan facts, emits versioned JSON contracts under `contracts/skill_review/`, and can be run from the backend CLI:
 
 ```bash
 cd backend
-uv run python -m deerflow.skills.review.cli ../skills/public/data-analysis --format text --fail-on error --fail-on-incomplete
+uv run python -m operix.skills.review.cli ../skills/public/data-analysis --format text --fail-on error --fail-on-incomplete
 ```
 
 Public-skill CI waivers are exact, expiring exceptions in `.github/skill-review-waivers.v1.json`. Because only the trusted base manifest can suppress a finding, a file-changing pull request can be preauthorized safely by first merging a manifest-only change that lists the reviewed future full-file SHA-256 in `preapproved_file_sha256s`; the file change can then land in a later pull request.
 
-Tools follow the same philosophy. DeerFlow comes with a core toolset — web search, web fetch, rendered web capture, file operations, bash execution — and supports custom tools via MCP servers and Python functions. The bundled DDG, Brave, Tavily, SearXNG, and Serper search providers accept an optional `time_range` of `day`, `week`, `month`, or `year`; omitting it preserves existing search behavior. For DDG recency searches, DeerFlow excludes DDGS backends that ignore time limits. Swap anything. Add anything.
+Tools follow the same philosophy. Operix comes with a core toolset — web search, web fetch, rendered web capture, file operations, bash execution — and supports custom tools via MCP servers and Python functions. The bundled DDG, Brave, Tavily, SearXNG, and Serper search providers accept an optional `time_range` of `day`, `week`, `month`, or `year`; omitting it preserves existing search behavior. For DDG recency searches, Operix excludes DDGS backends that ignore time limits. Swap anything. Add anything.
 
 For DDG web search and DDG image search, `max_results` in `config.yaml` can be a positive integer or an environment-variable reference such as `max_results: $DDG_MAX_RESULTS` with `DDG_MAX_RESULTS=5`. The configured value takes precedence over the tool call's `max_results` argument. Invalid values (for example, `abc`, an empty string, or `3.5`), zero, and negative counts produce a warning and fall back to the default of 5 results.
 
@@ -1253,7 +1252,7 @@ inline citations. When a tool-output budget applies, only complete evidence
 entries that fit remain citable; omitted sources are reported rather than
 retaining a source record for a cut-off excerpt.
 
-DeerFlow can optionally connect to a tenant-scoped RAGFlow deployment. The
+Operix can optionally connect to a tenant-scoped RAGFlow deployment. The
 `knowledge_search` Agent tool resolves the configured dataset scope, groups
 datasets by embedding model, and retrieves those groups in parallel so mixed
 embedding models do not cause a provider error. Dataset IDs and API keys are
@@ -1307,10 +1306,10 @@ selector snapshot wins; clients that omit it inherit the prior turn's accepted
 scope. Edit-and-regenerate follows the same fallback, and the file catalog is
 loaded only after a dataset is switched from all files to selected files.
 This release does not add an independent Knowledge item to the workspace
-sidebar or a DeerFlow knowledge-management page; create, upload, parse, and
+sidebar or a Operix knowledge-management page; create, upload, parse, and
 delete datasets and documents directly in RAGFlow.
 
-Each message can still select up to 1000 documents. When more than 100 documents are selected from a single dataset, DeerFlow validates them in batches of at most 100 while preserving the complete selection. If any batch contains an inaccessible or non-searchable document, retrieval is rejected.
+Each message can still select up to 1000 documents. When more than 100 documents are selected from a single dataset, Operix validates them in batches of at most 100 while preserving the complete selection. If any batch contains an inaccessible or non-searchable document, retrieval is rejected.
 
 Advanced deployments can enable pluggable authorization with `authorization.enabled` in `config.yaml`. A configured `AuthorizationProvider` filters denied tools before they reach the model or deferred-tool catalog, then the same provider is checked again before every business-tool execution through the existing guardrail middleware. Gateway `threads:*` and `runs:*` route permissions are derived from the same provider, while existing owner checks and admin-only management gates remain in force. Every HTTP route that starts or enables a future Agent run requires `runs:create`: this includes the stateless `POST /api/runs/stream` and `POST /api/runs/wait` endpoints plus scheduled-task create, update, resume, and manual-trigger mutations. Scheduled-task mutations retain their existing `threads:write` requirement, and the stateless routes separately enforce ownership when the optional thread ID is supplied in the request body. A generated `tool_search` may bypass the second tool check only when it fronts the current build's already-filtered deferred catalog. Model access follows the same provider: the Gateway `models` list is filtered per principal, `model:use` is enforced on model detail requests and again when the runtime resolves the agent's model, and a denied default model falls back to the first remaining candidate that also passes `model:use`. The built-in RBAC provider supports per-role `tools`, `routes`, `models`, `skills`, and `sandbox` allow/deny policies and validates that `default_role` names a configured role; authorization is disabled by default. See `config.example.yaml` and the [authorization RFC](docs/plans/2026-07-10-pluggable-authorization-rfc.md).
 
@@ -1318,9 +1317,9 @@ Follow-up suggestions also check `model:use` before calling the selected model, 
 
 For vision-capable agents, `view_image` and the subsequent model-context image read also require `sandbox:execute`. Allowing the tool name alone does not grant image-file access; a role denied sandbox execution cannot reread previously recorded image metadata after its permissions change. External run input and thread-state updates cannot set `viewed_images` or `thread_data`; when a saved image is read from a host copy, its path must resolve to the current user's thread and the recorded virtual image path.
 
-Advanced deployments can also extend the agent runtime itself by declaring `AgentMiddleware` classes under `extensions.middlewares` in `config.yaml` or `extensions_config.json`. Each entry is a `module.path:ClassName` string (zero-argument constructor) or an object `{class, kwargs}` whose `kwargs` are passed to the constructor. `kwargs` values must be JSON types (object, array, string, number, boolean, or null); YAML dates and timestamps are coerced to ISO strings so they match JSON. DeerFlow loads the same configured list into the lead-agent and subagent pipelines after their built-in runtime middlewares and loop/token guards, but before the terminal-response/safety/clarification tail, so enterprise forks can add domain guardrails, tool-call governance, or observability hooks without patching the built-in middleware builders. Missing packages, invalid classes, broken modules, and constructor errors fail loudly at agent creation. Treat `config.yaml` and `extensions_config.json` as trusted operator-controlled files: middleware paths are code execution, just like custom tool, model, sandbox, guardrail, MCP server, and MCP interceptor declarations. Gateway skill/MCP toggle endpoints preserve this field but do not expose an API write path for `extensions.middlewares`. Separate lead-only/subagent-only middleware lists are not supported yet.
+Advanced deployments can also extend the agent runtime itself by declaring `AgentMiddleware` classes under `extensions.middlewares` in `config.yaml` or `extensions_config.json`. Each entry is a `module.path:ClassName` string (zero-argument constructor) or an object `{class, kwargs}` whose `kwargs` are passed to the constructor. `kwargs` values must be JSON types (object, array, string, number, boolean, or null); YAML dates and timestamps are coerced to ISO strings so they match JSON. Operix loads the same configured list into the lead-agent and subagent pipelines after their built-in runtime middlewares and loop/token guards, but before the terminal-response/safety/clarification tail, so enterprise forks can add domain guardrails, tool-call governance, or observability hooks without patching the built-in middleware builders. Missing packages, invalid classes, broken modules, and constructor errors fail loudly at agent creation. Treat `config.yaml` and `extensions_config.json` as trusted operator-controlled files: middleware paths are code execution, just like custom tool, model, sandbox, guardrail, MCP server, and MCP interceptor declarations. Gateway skill/MCP toggle endpoints preserve this field but do not expose an API write path for `extensions.middlewares`. Separate lead-only/subagent-only middleware lists are not supported yet.
 
-For packaged and configurable runtime integrations, use DeerFlow's extension manager.
+For packaged and configurable runtime integrations, use Operix's extension manager.
 It accepts a Python package requirement, a public HTTPS Git URL, or a local directory, installs the
 package into the backend's dedicated `extensions` dependency group, updates
 `backend/uv.lock`, and adds an enabled entry to the startup-only top-level `plugins:` list
@@ -1328,17 +1327,17 @@ in `config.yaml`:
 
 ```bash
 # PyPI — pin a version for a reproducible deployment
-make extension-install SOURCE="deerflow-extension-acme==1.2.3"
+make extension-install SOURCE="operix-extension-acme==1.2.3"
 
 # Public HTTPS Git — pin an immutable commit
 make extension-install \
-  SOURCE="git+https://github.com/acme/deerflow-extension-acme.git@0123456789abcdef0123456789abcdef01234567"
+  SOURCE="git+https://github.com/acme/operix-extension-acme.git@0123456789abcdef0123456789abcdef01234567"
 
 # Local package — an absolute path avoids Make's backend-relative working directory
-make extension-install SOURCE="$PWD/examples/deerflow-extension-example"
+make extension-install SOURCE="$PWD/examples/operix-extension-example"
 
 make extension-list
-make extension-upgrade SOURCE="$PWD/examples/deerflow-extension-example"
+make extension-upgrade SOURCE="$PWD/examples/operix-extension-example"
 make extension-disable NAME=acme
 make extension-enable NAME=acme
 make extension-remove NAME=acme
@@ -1347,10 +1346,10 @@ make extension-remove NAME=acme
 Installation is interactive because package installation can execute Python build hooks,
 and the loaded extension later runs with Gateway privileges. For an already-reviewed
 source, automation can acknowledge that boundary explicitly with
-`cd backend && uv run --frozen --no-group extensions deerflow extensions install <source> --yes`.
+`cd backend && uv run --frozen --no-group extensions operix extensions install <source> --yes`.
 The manager requires uv 0.8.0 or newer; the provided Docker images pin uv 0.11.1.
 The other direct
-commands are `deerflow extensions upgrade SOURCE`, `list`, `enable NAME`, `disable NAME`, and `remove NAME`;
+commands are `operix extensions upgrade SOURCE`, `list`, `enable NAME`, `disable NAME`, and `remove NAME`;
 `NAME` may be the extension name, Python distribution, or `module:install` value. Do not
 put credentials in a source URL — a URL carrying embedded userinfo or a credential-looking
 query parameter is rejected before uv runs. Remote Git sources must use public HTTPS; SSH
@@ -1361,18 +1360,18 @@ credentials. Installing from a loopback URL is allowed for local tooling but war
 A managed package declares exactly one standard PEP 621 entry point:
 
 ```toml
-[project.entry-points."deerflow.extensions"]
-acme = "acme_deerflow_extension:install"
+[project.entry-points."operix.extensions"]
+acme = "acme_operix_extension:install"
 ```
 
-That callable uses the standalone `deerflow-extension-api` contract and can register several
+That callable uses the standalone `operix-extension-api` contract and can register several
 contribution kinds: isolated middleware at semantic lead/subagent model or tool positions,
-lead and subagent task-lifecycle hooks, observers for DeerFlow-owned model calls that are
+lead and subagent task-lifecycle hooks, observers for Operix-owned model calls that are
 not wrapped by middleware model-call hooks (goal, memory, title, and summarization),
 Gateway-lifetime services, and eager FastAPI HTTP routers. The contract package has no
 framework dependencies; extensions must declare FastAPI, LangChain, LangGraph, or other
 libraries they import.
-The [fetched-content screening example](examples/deerflow-extension-jev-screening/README.md)
+The [fetched-content screening example](examples/operix-extension-jev-screening/README.md)
 contributes one such middleware at the visible tool position. After operator opt-in it
 classifies the sanitized text a remote tool result shows the model, PII-redacted when
 `pii_redaction` is enabled, and adds an advisory warning through a lifecycle state
@@ -1381,7 +1380,7 @@ update; it imports only the extension contract.
 Full-stack contributions can additionally provide browser pages, conversation actions,
 authenticated backend operations and model tools through the
 [plugin APIs](docs/full-stack-plugins.md). The independent
-[bookmarks example](examples/deerflow-extension-bookmarks/README.md) demonstrates
+[bookmarks example](examples/operix-extension-bookmarks/README.md) demonstrates
 one package with persistent user data, its own sidebar page and a read-only search tool.
 Reopening a bookmark resolves the conversation's current agent through the host, so
 custom-agent conversations retain their original chat entry point, including older bookmarks.
@@ -1390,7 +1389,7 @@ information and status. Browser code runs as trusted same-origin code.
 The browser API and inline `BrowserModule.code` transport are experimental. The
 plugin guide describes an additive path to manifests and packaged static resources.
 
-DeerFlow allocates a task-scoped extension store only for middleware, lifecycle, or
+Operix allocates a task-scoped extension store only for middleware, lifecycle, or
 system-model observation. Services receive app-scoped runtime dependencies after Gateway
 persistence is ready and stop in reverse order after active runs drain. The optional
 `ExtensionRuntimeDeps.run_evidence_reader` is a stable, read-only interface for audit,
@@ -1415,7 +1414,7 @@ prefix list that extensions cannot enter, **every contributed endpoint requires 
 authenticated session** — there is currently no way for an extension to expose an
 unauthenticated route, so inbound provider webhooks and public status endpoints are out of
 scope for this release. Within that, an extension distinguishes an ordinary user from an
-administrator through `deerflow_extension_api.auth`: `resolve_principal(request)` returns
+administrator through `operix_extension_api.auth`: `resolve_principal(request)` returns
 the caller, `require_admin(request)` raises `PermissionError` for anyone else and fails
 closed when identity cannot be determined. Extensions receive a projection — user id, admin
 flag, internal flag, roles — never the host's auth context. Router startup/shutdown hooks,
@@ -1425,7 +1424,7 @@ authentication/Origin wrapper. Lifecycle and system-model callbacks use the Gate
 canonical notification loop, including subagents on isolated loops.
 
 User-facing extension routes can call
-`deerflow_extension_api.require_run_evidence_reader(request)` (extension API 0.2.2+).
+`operix_extension_api.require_run_evidence_reader(request)` (extension API 0.2.2+).
 The Gateway requires authenticated `runs:read` permission and fixes the reader's scope
 to that user, including administrators and internal callers. Caller-supplied IDs cannot
 change that scope. Invisible and missing runs return the same result; changed-run cursors
@@ -1488,7 +1487,7 @@ before enabling the extension: any local reference the stock image build cannot 
 rolls back the entire install or removal.
 Rebuild with `make up` after changing the managed extension set. See
 `config.example.yaml` and the
-[reference extension](examples/deerflow-extension-example/) for a complete example.
+[reference extension](examples/operix-extension-example/) for a complete example.
 
 Gateway-generated follow-up suggestions now normalize both plain-string model output and block/list-style rich content before parsing the JSON array response, so provider-specific content wrappers do not silently drop suggestions.
 
@@ -1500,7 +1499,7 @@ Unsent Web UI composer drafts survive page reloads and switching between convers
 
 The Web UI composer supports `@` references at the cursor or through the `@` button. Search enabled skills, documents in the current project, and other conversations in a grouped picker; selected references appear inline alongside the draft text and can be removed with normal editing. Multiple skills can be selected in one message (up to 16 unique skills); selecting a checked skill again removes it, with each selection checked against the current user registry and agent allowlist. Project files are attached only after ingestion succeeds; conversation references require the `read_conversation` capability and retain its per-run limit. If capability discovery fails, saved conversation references remain intact and sending waits for a successful retry. Polishing preserves complete reference labels when instructions are reordered. The file group also offers local uploads. `/goal`, `/compact`, and legacy `/skill-name` input remain supported.
 
-The Web UI composer also supports browser-based voice dictation when the browser exposes the Web Speech API. The microphone button transcribes speech into the local draft only; DeerFlow receives only the transcribed text, while audio handling is delegated to the browser or operating system speech-recognition service according to that environment's policy. Users can review or edit the text before sending.
+The Web UI composer also supports browser-based voice dictation when the browser exposes the Web Speech API. The microphone button transcribes speech into the local draft only; Operix receives only the transcribed text, while audio handling is delegated to the browser or operating system speech-recognition service according to that environment's policy. Users can review or edit the text before sending.
 
 The Web UI displays a localized AI-generated-content disclaimer below the composer in both standard and custom-agent conversations, reminding users to verify important
 information.
@@ -1517,7 +1516,7 @@ While a response streams, reasoning-only messages stay in the processing panel, 
 
 Literal `<think>` tags in fenced, indented, or inline code remain part of the answer and its copied text, rather than being moved into the reasoning disclosure. This includes fences opened on list-item lines: real reasoning after the code is still extracted. Unfinished inline code spans are preserved while streaming within a paragraph, but end at a blank line or an interrupting heading, list, thematic break or fence. Indented paragraph continuations do not start a code block.
 
-In the Web UI, the latest completed user turn can also be edited and rerun from the message toolbar. DeerFlow restores the conversation checkpoint before that user message, submits the edited text as a new user message, and hides the superseded turn once the replay is in progress or succeeds. This is a conversation-state replay only: files, memory updates, and external tool side effects are not undone.
+In the Web UI, the latest completed user turn can also be edited and rerun from the message toolbar. Operix restores the conversation checkpoint before that user message, submits the edited text as a new user message, and hides the superseded turn once the replay is in progress or succeeds. This is a conversation-state replay only: files, memory updates, and external tool side effects are not undone.
 
 Web UI chat links percent-encode custom thread identifiers before placing them in route segments, so reserved URL characters such as `#` and `?` do not change which conversation is opened.
 
@@ -1547,26 +1546,26 @@ API keys from the Gateway process.
 
 #### Exporting Custom Skills
 
-Administrators can export their own custom skills from **Capability Center → Skills → My skills → View details → Export**. Review the file list and declared environment requirements, then choose **Download .skill**. The archive contains the currently saved skill, including supporting files and empty directories; disabled skills can also be exported. If the skill changes after preview, refresh the file list before downloading. Import the archive on another DeerFlow instance with **Install .skill**; existing-name conflicts and normal installation security checks still apply.
+Administrators can export their own custom skills from **Capability Center → Skills → My skills → View details → Export**. Review the file list and declared environment requirements, then choose **Download .skill**. The archive contains the currently saved skill, including supporting files and empty directories; disabled skills can also be exported. If the skill changes after preview, refresh the file list before downloading. Import the archive on another Operix instance with **Install .skill**; existing-name conflicts and normal installation security checks still apply.
 
 Account settings, conversations and history outside the skill folder are excluded. Files inside the folder are preserved unchanged, including any credentials an author placed there; filename notices are advisory. Configure dependencies and credentials on the destination. Linked folders/files, hard links, unsupported executable binaries, nested `SKILL.md` files and nonportable paths cannot be exported. Export supports hosts with descriptor-relative no-follow filesystem APIs (Linux/macOS); unsupported hosts fail explicitly. Limits: 4096 ZIP entries, 64 MiB per file, 100 MiB total content/archive and 1 MiB frontmatter. YAML aliases and excessively complex declarations are not supported. Ordinary script executable semantics are preserved on POSIX import, without restoring special permissions. See [the export API contract](backend/docs/API.md#export-a-custom-skill).
 
 #### Claude Code Integration
 
-The `claude-to-deerflow` skill lets you interact with a running DeerFlow instance directly from [Claude Code](https://docs.anthropic.com/en/docs/claude-code). Send research tasks, check status, manage threads — all without leaving the terminal.
+The `claude-to-operix` skill lets you interact with a running Operix instance directly from [Claude Code](https://docs.anthropic.com/en/docs/claude-code). Send research tasks, check status, manage threads — all without leaving the terminal.
 
 **Install the skill**:
 
 ```bash
-npx skills add https://github.com/bytedance/deer-flow --skill claude-to-deerflow
+npx skills add https://github.com/bytedance/operix --skill claude-to-operix
 ```
 
-Then make sure DeerFlow is running (default at `http://localhost:2026`) and use the `/claude-to-deerflow` command in Claude Code.
+Then make sure Operix is running (default at `http://localhost:2026`) and use the `/claude-to-operix` command in Claude Code.
 
 **What you can do**:
-- Send messages to DeerFlow and get streaming responses
+- Send messages to Operix and get streaming responses
 - Choose execution modes: flash (fast), standard, pro (planning), ultra (sub-agents)
-- Check DeerFlow health, list models/skills/agents
+- Check Operix health, list models/skills/agents
 - Manage threads and conversation history
 - Upload files for analysis
 
@@ -1578,7 +1577,7 @@ DEERFLOW_GATEWAY_URL=http://localhost:2026    # Gateway API
 DEERFLOW_LANGGRAPH_URL=http://localhost:2026/api/langgraph  # LangGraph API
 ```
 
-See [`skills/public/claude-to-deerflow/SKILL.md`](skills/public/claude-to-deerflow/SKILL.md) for the full API reference.
+See [`skills/public/claude-to-operix/SKILL.md`](skills/public/claude-to-operix/SKILL.md) for the full API reference.
 
 ### Chat Archive
 
@@ -1590,7 +1589,7 @@ Archive and restore preserve the chat's activity time and pinned state. Archivin
 
 ### Session Goals
 
-Use `/goal <completion condition>` to attach one active completion condition to the current thread. The goal is thread-scoped state, not a skill activation, so it stays active across turns until DeerFlow determines it has been satisfied or you clear it. The agent sees the active goal on every model call, so it keeps working toward it after context compaction removes the message that stated it.
+Use `/goal <completion condition>` to attach one active completion condition to the current thread. The goal is thread-scoped state, not a skill activation, so it stays active across turns until Operix determines it has been satisfied or you clear it. The agent sees the active goal on every model call, so it keeps working toward it after context compaction removes the message that stated it.
 
 Supported commands:
 
@@ -1600,7 +1599,7 @@ Supported commands:
 /goal clear        # clear it
 ```
 
-After each Gateway-backed run, DeerFlow evaluates the visible conversation, including the assistant's tool calls and shortened tool results, against the active goal with a non-thinking evaluator model. A successful tool result alone does not satisfy a goal, and when the assistant had to guess missing or ambiguous information the evaluator reports `needs_user_input`. The evaluator must return a typed blocker (`missing_evidence`, `needs_user_input`, `run_failed`, `external_wait`, or `goal_not_met_yet`) plus visible evidence. DeerFlow only injects a hidden continuation when the latest assistant turn is durably checkpointed, the blocker is `goal_not_met_yet`, the thread did not change during evaluation, and the no-progress breaker has not fired. The safety cap defaults to 8 hidden continuations, and repeated identical non-progress evaluations stop after 2 attempts. `/goal clear` and any user-authored new input win over queued continuations. When the evaluator considers the goal satisfied, DeerFlow clears it after the run successfully finalizes and publishes the updated thread state. If required artifact delivery or its receipt persistence fails, the run reports an error and the goal remains active for a later retry; this does not start another hidden continuation.
+After each Gateway-backed run, Operix evaluates the visible conversation, including the assistant's tool calls and shortened tool results, against the active goal with a non-thinking evaluator model. A successful tool result alone does not satisfy a goal, and when the assistant had to guess missing or ambiguous information the evaluator reports `needs_user_input`. The evaluator must return a typed blocker (`missing_evidence`, `needs_user_input`, `run_failed`, `external_wait`, or `goal_not_met_yet`) plus visible evidence. Operix only injects a hidden continuation when the latest assistant turn is durably checkpointed, the blocker is `goal_not_met_yet`, the thread did not change during evaluation, and the no-progress breaker has not fired. The safety cap defaults to 8 hidden continuations, and repeated identical non-progress evaluations stop after 2 attempts. `/goal clear` and any user-authored new input win over queued continuations. When the evaluator considers the goal satisfied, Operix clears it after the run successfully finalizes and publishes the updated thread state. If required artifact delivery or its receipt persistence fails, the run reports an error and the goal remains active for a later retry; this does not start another hidden continuation.
 
 The Web UI shows the active goal above the composer. The same command is available from the TUI and supported IM channels. In the Web UI and supported IM channels, setting `/goal <completion condition>` also starts a run with the condition as the task; status and clear commands only manage goal state. Setting or clearing a goal is rejected while that thread has a run in flight, including a run owned by another Gateway worker, so the goal checkpoint cannot branch away from an active run's checkpoint lineage.
 
@@ -1618,7 +1617,7 @@ historical user messages do not grant current authorization. See
 Automatic and manual compaction exclude old todo reminder messages from both the
 summary input and retained context. The current todo list stays in thread state.
 In planning mode, if the original `write_todos` call is no longer visible,
-DeerFlow adds a reminder using the latest task statuses before the next model
+Operix adds a reminder using the latest task statuses before the next model
 call. Skipped or failed compaction leaves the existing messages unchanged.
 
 Optional `pii_redaction.enabled` redacts detected identifiers in user messages,
@@ -1634,7 +1633,7 @@ The Web UI preserves persisted message order when merging history with live upda
 
 Compaction keeps the current user request and summarizes older assistant/tool activity. When rescuing that request leaves an assistant/tool-only summary window, input trimming favors its most recent content. For mixed histories whose user-message anchor falls outside the trimming budget, compaction retains the existing final-message fallback. `summarization.trim_tokens_to_summarize` (4000 by default) controls trimming of the raw summary input; escaping and prompt formatting add overhead beyond that budget. Setting this option to `null` disables input trimming for the summary model; choose that only when the model can accept the full history being compacted.
 
-Use `/compact` in the Web UI composer to summarize older context for the current thread. DeerFlow keeps the full chat visible, but future model calls use the compacted summary plus recent messages. The command is ignored when there is not enough history to compact, and it is blocked while the thread has a run in flight, including when that run is owned by another Gateway worker. If a multi-worker reservation loses its lease, DeerFlow cancels the checkpoint writer before the replacing run proceeds and returns a retryable conflict after cleanup. Thread-title edits are serialized through the same state-write boundary and show a conflict without closing the rename dialog when a run is active.
+Use `/compact` in the Web UI composer to summarize older context for the current thread. Operix keeps the full chat visible, but future model calls use the compacted summary plus recent messages. The command is ignored when there is not enough history to compact, and it is blocked while the thread has a run in flight, including when that run is owned by another Gateway worker. If a multi-worker reservation loses its lease, Operix cancels the checkpoint writer before the replacing run proceeds and returns a retryable conflict after cleanup. Thread-title edits are serialized through the same state-write boundary and show a conflict without closing the rename dialog when a run is active.
 
 The chat header also shows a context-window gauge when the selected model has a positive `context_window` configured. It estimates the latest materialized checkpoint's message tokens and keeps the previous same-thread percentage visible while data refetches, independently of the cumulative token-usage setting.
 
@@ -1733,15 +1732,15 @@ Ordinary `task` delegation and explicit durable `batch_task` execution share the
 
 If an item's final lease expires after exhausting the retry budget, the batch reaches a terminal state once all items are terminal: `failed` when none succeeded, or `completed` when at least one succeeded. The item remains `failed` in both cases so partial results stay visible.
 
-Direct `create_deerflow_agent(...)` integrations can own the same boundary explicitly instead of relying on Gateway startup. Construct one `SubagentRuntime` and share it across every graph in that application; its `max_running`, ordinary per-run total, bound `task` tool, and optional durable-batch tools then use the same caller-owned snapshot and execution controller. A runtime with a batch repository owns a worker and must be started before graph construction and stopped during application shutdown:
+Direct `create_operix_agent(...)` integrations can own the same boundary explicitly instead of relying on Gateway startup. Construct one `SubagentRuntime` and share it across every graph in that application; its `max_running`, ordinary per-run total, bound `task` tool, and optional durable-batch tools then use the same caller-owned snapshot and execution controller. A runtime with a batch repository owns a worker and must be started before graph construction and stopped during application shutdown:
 
 ```python
-from deerflow.agents import RuntimeFeatures, create_deerflow_agent
-from deerflow.subagents import SubagentRuntime
+from operix.agents import RuntimeFeatures, create_operix_agent
+from operix.subagents import SubagentRuntime
 
 runtime = SubagentRuntime.from_app_config(app_config, batch_repository=batch_repository)
 async with runtime:
-    graph = create_deerflow_agent(
+    graph = create_operix_agent(
         model,
         features=RuntimeFeatures(subagent=True),
         subagent_runtime=runtime,
@@ -1767,7 +1766,7 @@ Remove leftovers during thread-data maintenance with all Gateway writers stopped
 or when deleting the corresponding inactive thread's data.
 
 `E2BSandboxProvider` uses `wait` as its default overflow policy. It waits for
-`acquire_timeout`, then fails the agent turn. DeerFlow does not retry the turn
+`acquire_timeout`, then fails the agent turn. Operix does not retry the turn
 automatically. Clients can use the structured error to schedule a retry.
 
 Use `burst` with `burst_limit` to permit bounded extra VMs. The `wait` and
@@ -1819,7 +1818,7 @@ Shutdown races retry remote cleanup after a transient kill failure.
 Reset destroys tracked active and warm E2B VMs. The old provider instance
 cannot accept new acquisitions.
 
-DeerFlow doesn't just *talk* about doing things. It has its own computer.
+Operix doesn't just *talk* about doing things. It has its own computer.
 
 Each task gets its own execution environment with a full filesystem view — skills, workspace, uploads, outputs. The agent reads, writes, and edits files. It can view images and, when configured safely, execute shell commands.
 
@@ -1839,9 +1838,9 @@ Outline titles are limited to 200 characters and fallback previews to 2,000
 characters per file, with truncation markers. Full uploaded files remain available
 for targeted reads.
 
-Image bytes loaded for a vision-model call are transient: DeerFlow removes the hidden base64 message after the model consumes it so later checkpoints do not keep duplicating that payload.
+Image bytes loaded for a vision-model call are transient: Operix removes the hidden base64 message after the model consumes it so later checkpoints do not keep duplicating that payload.
 
-After each run, DeerFlow records a workspace change summary for the run-owned `workspace` and `outputs` directories. The Web UI shows a compact "files changed" badge on the assistant turn; opening it reveals created, modified, and deleted files with text diffs when safe to display. Uploads are excluded because they are user inputs, not agent-generated changes, and stdio MCP temporary/debug files under the DeerFlow-owned `.mcp/` namespace are excluded because they are process-internal state (like `.git/` and `node_modules/`, any directory named `.mcp` is excluded at any depth). Large, binary, or sensitive-looking files are shown as metadata only.
+After each run, Operix records a workspace change summary for the run-owned `workspace` and `outputs` directories. The Web UI shows a compact "files changed" badge on the assistant turn; opening it reveals created, modified, and deleted files with text diffs when safe to display. Uploads are excluded because they are user inputs, not agent-generated changes, and stdio MCP temporary/debug files under the Operix-owned `.mcp/` namespace are excluded because they are process-internal state (like `.git/` and `node_modules/`, any directory named `.mcp` is excluded at any depth). Large, binary, or sensitive-looking files are shown as metadata only.
 
 Files presented through `present_files` remain part of the thread's artifact state, and the Web UI restores the artifact panel and selected document after a page refresh. When a completed response successfully presents between 2 and 50 files, its final file card also offers one ZIP download. Archive membership comes from the terminal delivery receipt rather than browser-supplied paths, and the ZIP contains the current file versions, which may have changed since the response. The currently selected formal artifact is refreshed once when the run finishes so edits become visible without a manual reload. Existing UTF-8 text artifacts under `/mnt/user-data/outputs` can also be edited and explicitly saved from the panel on Unix and Windows while the thread is idle; saves use content revisions to prevent overwriting agent changes. Source previews also recognize extensionless `Dockerfile` and `Makefile` artifacts by their file names. Unknown file types, including names such as `constructor` and `__proto__`, retain the download fallback.
 
@@ -1919,7 +1918,7 @@ This is the difference between a chatbot with tool access and an agent with an a
 Browser dependency auto-detection accepts `name`, `group`, and `use` in any
 order within a tool entry, with either indented or indentless YAML lists.
 
-Reading a page is not the same as *using* one. Alongside the read-only `web_fetch` and `web_capture` tools, DeerFlow ships an optional agentic browser tool group that keeps a live, per-conversation browser session so the agent can actually operate a page — navigate, read the interactive elements, click, type, submit forms, and follow multi-step flows on JavaScript-heavy sites.
+Reading a page is not the same as *using* one. Alongside the read-only `web_fetch` and `web_capture` tools, Operix ships an optional agentic browser tool group that keeps a live, per-conversation browser session so the agent can actually operate a page — navigate, read the interactive elements, click, type, submit forms, and follow multi-step flows on JavaScript-heavy sites.
 
 Each action returns a fresh snapshot of the page's interactive elements, each addressed by a stable `[ref]` number, so the agent acts on what it just observed instead of guessing selectors. Outbound URLs are SSRF-screened by default. It is powered by Playwright and shipped as an optional extra so the core install stays lean:
 
@@ -1929,7 +1928,7 @@ uv sync --extra browser
 uv run playwright install chromium
 ```
 
-Then uncomment the `group: browser` tool entries in `config.yaml` (`browser_navigate`, `browser_snapshot`, `browser_click`, `browser_type`, `browser_get_text`, `browser_back`, `browser_screenshot`, `browser_close`). `make dev` / Docker startup detects an enabled `browser_navigate` tool and preserves the `browser` extra on dependency syncs. The Gateway fails startup if browser control is configured but Playwright is missing, and `/api/features` hides the Browser UI unless the backend can actually serve it. Keep `headless: true` and `allow_private_addresses: false` for anything but local, trusted debugging. Attaching to an existing Chrome with `cdp_url` cannot enforce DeerFlow's subresource/redirect SSRF guard and therefore fails closed unless `allow_unguarded_cdp: true` explicitly acknowledges that risk; use it only with a trusted local browser. Browser sessions are process-local; keep `GATEWAY_WORKERS=1` while this tool group is enabled because ordinary uvicorn worker dispatch does not provide thread affinity.
+Then uncomment the `group: browser` tool entries in `config.yaml` (`browser_navigate`, `browser_snapshot`, `browser_click`, `browser_type`, `browser_get_text`, `browser_back`, `browser_screenshot`, `browser_close`). `make dev` / Docker startup detects an enabled `browser_navigate` tool and preserves the `browser` extra on dependency syncs. The Gateway fails startup if browser control is configured but Playwright is missing, and `/api/features` hides the Browser UI unless the backend can actually serve it. Keep `headless: true` and `allow_private_addresses: false` for anything but local, trusted debugging. Attaching to an existing Chrome with `cdp_url` cannot enforce Operix's subresource/redirect SSRF guard and therefore fails closed unless `allow_unguarded_cdp: true` explicitly acknowledges that risk; use it only with a trusted local browser. Browser sessions are process-local; keep `GATEWAY_WORKERS=1` while this tool group is enabled because ordinary uvicorn worker dispatch does not provide thread affinity.
 
 Existing, non-mock Custom Agent chats expose the same Browser Live controls when browser control is available and the agent either leaves `tool_groups` unrestricted or includes the `browser` group. An explicit tool-group allowlist without `browser` keeps those controls hidden.
 
@@ -1942,11 +1941,11 @@ request the binary capability retain the legacy JSON/base64 frame protocol.
 
 **Isolated Sub-Agent Context**: Each sub-agent runs in its own isolated context. This means that the sub-agent will not be able to see the context of the main agent or other sub-agents. This is important to ensure that the sub-agent is able to focus on the task at hand and not be distracted by the context of the main agent or other sub-agents.
 
-**Summarization**: Within a session, DeerFlow manages context aggressively — summarizing completed sub-tasks, offloading intermediate results to the filesystem, compressing what's no longer immediately relevant. This lets it stay sharp across long, multi-step tasks without blowing the context window.
+**Summarization**: Within a session, Operix manages context aggressively — summarizing completed sub-tasks, offloading intermediate results to the filesystem, compressing what's no longer immediately relevant. This lets it stay sharp across long, multi-step tasks without blowing the context window.
 
-**Strict Tool-Call Recovery**: When a provider or middleware interrupts a tool-call loop, DeerFlow now strips provider-level raw tool-call metadata on forced-stop assistant messages and injects placeholder tool results for dangling calls before the next model invocation. This keeps OpenAI-compatible reasoning models that strictly validate `tool_call_id` sequences from failing with malformed history errors.
+**Strict Tool-Call Recovery**: When a provider or middleware interrupts a tool-call loop, Operix now strips provider-level raw tool-call metadata on forced-stop assistant messages and injects placeholder tool results for dangling calls before the next model invocation. This keeps OpenAI-compatible reasoning models that strictly validate `tool_call_id` sequences from failing with malformed history errors.
 
-**Visible Tool-Run Completion**: For interactive turns, DeerFlow retries an empty post-tool final response once, then surfaces a visible error instead of reporting a silent successful run.
+**Visible Tool-Run Completion**: For interactive turns, Operix retries an empty post-tool final response once, then surfaces a visible error instead of reporting a silent successful run.
 
 **Run History**: Image-only user input is recorded once per run, even when the agent makes multiple model calls. Its media content remains in history without requiring a text summary.
 
@@ -2002,7 +2001,7 @@ backend close plus a safety margin. The flush timeout does not bound `close()`:
 custom backends must make close quick or internally bounded, or shutdown can wait
 until the process is forcibly terminated.
 
-Most agents forget everything the moment a conversation ends. DeerFlow remembers.
+Most agents forget everything the moment a conversation ends. Operix remembers.
 
 DeerMem can optionally suppress near-duplicate extracted facts with
 `memory.backend_config.fact_dedup_enabled: true` and
@@ -2015,22 +2014,22 @@ correction replacements and facts proposed for removal are protected from
 near-duplicate merging. A merge does not count as user confirmation. The gate
 is off by default and does not affect targeted fact updates.
 
-DeerFlow also includes an optional `openviking` memory backend. It uses the
+Operix also includes an optional `openviking` memory backend. It uses the
 official `langchain-openviking` package to capture completed turns into stable
 OpenViking Sessions and recall memory for prompt injection while leaving
-DeerMem as the default. The initial integration supports one DeerFlow user with
+DeerMem as the default. The initial integration supports one Operix user with
 one credential-bound OpenViking USER API key in `memory.mode: middleware` and
 does not inherit arbitrary HTTP headers from `ovcli.conf`.
 See [OpenViking memory backend](docs/OPENVIKING.md) for its configuration,
 behavior, and current boundaries.
 
-Across sessions, DeerFlow builds a persistent memory of your profile, preferences, and accumulated knowledge. The more you use it, the better it knows you — your writing style, your technical stack, your recurring workflows. Memory is stored locally and stays under your control.
+Across sessions, Operix builds a persistent memory of your profile, preferences, and accumulated knowledge. The more you use it, the better it knows you — your writing style, your technical stack, your recurring workflows. Memory is stored locally and stays under your control.
 
 DeerMem remains the default local backend. An opt-in `mem0` backend is also
 available for the hosted mem0 Platform API or API-compatible self-hosted
 servers. Its token-bearing `base_url` must use HTTPS by default; plaintext HTTP
 requires an explicit local-development opt-in. See the
-[mem0 backend guide](backend/packages/harness/deerflow/agents/memory/backends/mem0/README.md).
+[mem0 backend guide](backend/packages/harness/operix/agents/memory/backends/mem0/README.md).
 
 An opt-in `honcho` backend is available for self-hosted or hosted Honcho (v3
 API). It builds user-model memory — long-term preferences and a cross-session
@@ -2038,7 +2037,7 @@ working representation — on Honcho's server side, so the backend makes no LLM
 calls locally. Each user gets an isolated workspace derived from `user_id`; a
 missing user id fails closed instead of falling back to a shared workspace.
 Fact CRUD and Settings-page fact editing are not available for this backend. See
-the [Honcho backend guide](backend/packages/harness/deerflow/agents/memory/backends/honcho/README.md).
+the [Honcho backend guide](backend/packages/harness/operix/agents/memory/backends/honcho/README.md).
 
 Memory updates now skip duplicate fact entries at apply time, so repeated preferences and context do not accumulate endlessly across sessions.
 Legacy memory files are normalized when read or imported, including recoverable fact metadata, so older local data remains usable as the schema evolves. Frontend and backend normalization use confidence `0.5` when missing or invalid, default blank sources to `unknown`, and trim fact content.
@@ -2065,7 +2064,7 @@ guaranteed/regular token budgets can still yield different final selections.
 
 Memory injection follows the configured operation mode. In `middleware` mode, DeerMem injects the user-global summaries and the selected agent's facts. Custom-agent bootstrap conversations use that agent's fact bucket as well, so setup details do not leak into the default agent's memory. In `tool` mode, the automatic `<memory>` block contains only the global `user` and `history` summaries; agent facts are retrieved explicitly through `memory_search`, avoiding duplicate automatic and tool-returned fact context. Setting `memory.injection_enabled: false` still disables the entire block in either mode.
 
-An individual Custom Agent can opt out of memory without changing the global setting. Add `memory_enabled: false` to that agent's `users/{user_id}/agents/{name}/config.yaml`. The agent still receives the current-date reminder, but DeerFlow does not inject recalled memory, queue passive or summarization-driven memory updates (including manual `/compact`), expose memory tools, or add memory-tool instructions for that agent. If an existing agent is switched off, its previously injected memory block is removed from checkpoint state before the next model call while its date reminder and conversation remain. Omitting the field (or setting it to `true`) preserves the existing global `memory` behavior.
+An individual Custom Agent can opt out of memory without changing the global setting. Add `memory_enabled: false` to that agent's `users/{user_id}/agents/{name}/config.yaml`. The agent still receives the current-date reminder, but Operix does not inject recalled memory, queue passive or summarization-driven memory updates (including manual `/compact`), expose memory tools, or add memory-tool instructions for that agent. If an existing agent is switched off, its previously injected memory block is removed from checkpoint state before the next model call while its date reminder and conversation remain. Omitting the field (or setting it to `true`) preserves the existing global `memory` behavior.
 
 Single-fact repository operations are genuinely incremental: an upsert/delete reads, journals, writes, and re-indexes only the addressed fact files, and returns an explicit incomplete delta rather than a cache-dependent fake full document. Summary change sets merge the supplied `user`/`history` child keys over the persisted sections so a partial update cannot erase omitted siblings; full imports normalize both sections to the complete compatibility schema before applying replacement values. Imports reject malformed fact lists or blank/non-text content with HTTP 400 before changing stored memory; recoverable legacy metadata still receives defaults. An explicit empty fact list remains an intentional clear. Manager/API compatibility methods materialize a fresh full document only when their public response contract requires one. Fact-level point operations use separate expected user-memory and fact revisions and may explicitly rebase when every addressed fact precondition still holds. Snapshot-derived operations such as scoped clear, capped create, consolidation, and trimming never replay stale delete/trim sets: a manifest conflict reloads the complete document and recomputes the operation, with a bounded retry. Fact paths use the first two hexadecimal characters of `SHA-256(fact_id)` so generated `fact_*` IDs distribute across shards. The cache token combines the shared JSON's nanosecond mtime, size, and persisted revision; this prevents coarse-mtime same-size writes from returning stale data without scanning fact files. Direct out-of-band Markdown edits require an explicit reload. Storage-specific conflicts and corruption are translated at the MemoryManager boundary; the Gateway returns conflict as HTTP 409 and a stable, non-sensitive corruption error as HTTP 500. Full-document `save()` remains a compatibility API and computes a diff before writing; malformed or missing `facts` can no longer silently erase an agent's Markdown files. Legacy migration preserves non-empty `user`/`history` before deleting an agent `memory.json`; conflicting summaries keep the legacy file and fail loudly instead of choosing a winner.
 
@@ -2075,16 +2074,16 @@ Legacy facts in `memory.json` migrate automatically into the reserved `__default
 PYTHONPATH=. python scripts/migrate_memory_markdown.py --all-users --dry-run
 PYTHONPATH=. python scripts/migrate_memory_markdown.py --all-users
 # A custom DeerMem root or original non-directory-safe identity can be explicit:
-PYTHONPATH=. python scripts/migrate_memory_markdown.py --storage-path /path/to/deerflow-home --user-id 'test@example.com'
+PYTHONPATH=. python scripts/migrate_memory_markdown.py --storage-path /path/to/operix-home --user-id 'test@example.com'
 ```
 
-The v1-to-v2 storage migration is one-way for a running application: pre-PR code does not read Markdown facts. Before upgrading a persistent deployment, stop DeerFlow and take a filesystem snapshot or full backup of the configured memory storage root. The migration also durably retains each destructive JSON source beside the original path as `{manifest_filename}.v1.bak` before writing v2 data; an existing mismatched backup or a backup-write failure stops migration without modifying the v1 source. This local backup preserves pre-migration data but is not a substitute for a full snapshot and does not contain facts created after the upgrade.
+The v1-to-v2 storage migration is one-way for a running application: pre-PR code does not read Markdown facts. Before upgrading a persistent deployment, stop Operix and take a filesystem snapshot or full backup of the configured memory storage root. The migration also durably retains each destructive JSON source beside the original path as `{manifest_filename}.v1.bak` before writing v2 data; an existing mismatched backup or a backup-write failure stops migration without modifying the v1 source. This local backup preserves pre-migration data but is not a substitute for a full snapshot and does not contain facts created after the upgrade.
 
 `--user-id` may be repeated. `--all-users` discovers the existing directory-safe buckets below the selected storage root; standalone integrations that passed raw IDs containing characters such as `@` should use the original value with `--user-id`. A failed user's migration is reported without hiding the rest of the audit, and the command exits non-zero when any user fails. The automatic first-read path remains enabled, so running this CLI is not required for startup.
 
 ## Recommended Models
 
-DeerFlow is model-agnostic — it works with any LLM that implements the OpenAI-compatible API. That said, it performs best with models that support:
+Operix is model-agnostic — it works with any LLM that implements the OpenAI-compatible API. That said, it performs best with models that support:
 
 - **Long context windows** (100k+ tokens) for deep research and multi-step tasks
 - **Reasoning capabilities** for adaptive planning and complex decomposition
@@ -2093,32 +2092,32 @@ DeerFlow is model-agnostic — it works with any LLM that implements the OpenAI-
 
 ## Embedded Python Client
 
-For `DeerFlowClient(agent_name="researcher")`, the named agent's `mcp_plugins`
+For `OperixClient(agent_name="researcher")`, the named agent's `mcp_plugins`
 selection applies to both the lead agent and its `task` / `batch_task`
 delegations: `null` inherits all enabled MCP plugins, `[]` selects none, and
 installation IDs select only those plugins. Call `client.reset_agent()` after
 editing the saved agent configuration to refresh the selection.
 
-`DeerFlowClient.stream()` includes `summary_text` in each `values` event. This is the current compacted context summary, or `None` when absent. Consumers can record changes without reading checkpoint internals; repeated snapshots may carry the same summary, and an initial snapshot may already contain one from an earlier turn.
+`OperixClient.stream()` includes `summary_text` in each `values` event. This is the current compacted context summary, or `None` when absent. Consumers can record changes without reading checkpoint internals; repeated snapshots may carry the same summary, and an initial snapshot may already contain one from an earlier turn.
 
-DeerFlow can be used as an embedded Python library without running the full HTTP services. The `DeerFlowClient` provides direct in-process access to all agent and Gateway capabilities, returning the same response schemas as the HTTP Gateway API. The HTTP Gateway also exposes `DELETE /api/threads/{thread_id}` to remove DeerFlow-managed local thread data after the LangGraph thread itself has been deleted:
+Operix can be used as an embedded Python library without running the full HTTP services. The `OperixClient` provides direct in-process access to all agent and Gateway capabilities, returning the same response schemas as the HTTP Gateway API. The HTTP Gateway also exposes `DELETE /api/threads/{thread_id}` to remove Operix-managed local thread data after the LangGraph thread itself has been deleted:
 
 Thread IDs may be supplied by callers and do not have to be UUIDs. Explicit
 IDs must contain 1–64 ASCII letters, digits, hyphens, or underscores
-(`^[A-Za-z0-9_-]{1,64}$`). DeerFlow generates a UUID only when `thread_id` is
+(`^[A-Za-z0-9_-]{1,64}$`). Operix generates a UUID only when `thread_id` is
 omitted or `None`; an explicitly supplied empty string is invalid.
 Existing route-addressable threads created under older, looser rules remain
 readable and deletable, but cannot start new runs or create new filesystem or
 sandbox state. Legacy deletion skips local path cleanup when the ID is not
 safe under the canonical contract. For canonical legacy threads whose
-conversation exists only in LangGraph checkpoints, DeerFlow seeds an empty
+conversation exists only in LangGraph checkpoints, Operix seeds an empty
 run-event feed from the checkpoint before the first new run so
 `/messages/page` keeps both the old and new turns.
 
 ```python
-from deerflow.client import DeerFlowClient
+from operix.client import OperixClient
 
-client = DeerFlowClient()
+client = OperixClient()
 
 # Chat
 response = client.chat("Analyze this paper for me", thread_id="my-thread")
@@ -2146,7 +2145,7 @@ When continuing a thread, `values` still contains the full conversation state, w
 
 The HTTP Gateway accepts `values`, `messages-tuple`, `updates`, `debug`, `tasks`, `checkpoints`, and `custom` stream modes. Unsupported modes such as `messages` and `events`, unsupported non-default run options such as webhooks, delayed execution, or `multitask_strategy="enqueue"`, and undeclared SDK options such as checkpoint durability overrides return `422` before execution instead of being silently ignored or downgraded.
 
-All dict-returning methods are validated against Gateway Pydantic response models in CI (`TestGatewayConformance`), ensuring the embedded client stays in sync with the HTTP API schemas. See `backend/packages/harness/deerflow/client.py` for full API documentation.
+All dict-returning methods are validated against Gateway Pydantic response models in CI (`TestGatewayConformance`), ensuring the embedded client stays in sync with the HTTP API schemas. See `backend/packages/harness/operix/client.py` for full API documentation.
 
 ## Projects
 
@@ -2230,7 +2229,7 @@ Deleting a project moves its entire shelf to trash in the same step.
 
 ## Scheduled Tasks
 
-DeerFlow now includes a first-class scheduled-task MVP in the workspace.
+Operix now includes a first-class scheduled-task MVP in the workspace.
 
 Editing a one-time task's title or prompt preserves its original execution time, including seconds and the selected occurrence during a daylight-saving clock rollback. Changing its date, time, or timezone recalculates the execution time. Switching tasks while editing loads the selected task's own title, prompt, and schedule.
 
@@ -2243,12 +2242,12 @@ Current MVP capabilities:
 - Duplicate an existing task into the create form as an editable draft without copying its run history
 - Support `once`, `cron`, and `interval` schedules
 - Editing or duplicating an interval task preserves its saved cadence until the interval is explicitly changed, including sub-minute intervals allowed by the operator's scheduler configuration
-- Run background scheduled executions as non-interactive DeerFlow runs (`ask_clarification` is not exposed there)
+- Run background scheduled executions as non-interactive Operix runs (`ask_clarification` is not exposed there)
 - Persist a due execution as `queued` when its reused thread or the global execution budget is busy, then launch it when capacity is available; queued occurrences survive Gateway restarts and fail after `scheduler.queue_timeout_seconds`
 - Freeze a task's definition while an occurrence is `queued`, `launching`, or `running`, so a durable occurrence cannot silently pick up a different prompt, thread, or schedule; transitioning a task to paused or deleting it cancels an existing waiting occurrence, while `launching`/`running` work must finish before those mutations are retried and an explicit manual trigger may still wait and run without resuming a paused schedule
 - Pause, resume, trigger, inspect history, and delete tasks
 - Search task titles or prompts, combined with status/type filters and the current thread scope.
-- Execute scheduled work through the normal DeerFlow run lifecycle
+- Execute scheduled work through the normal Operix run lifecycle
 - When `channel_connections.enabled: true`, push a summary to the task owner's connected IM identities when a scheduled run finishes as success or failed (outbox + delivery worker). Manual "run now" and interrupts stay silent, and so do occurrences that end without a finished run (launch error, queue timeout, restart recovery). Channel/transport outages park deliveries without exhausting retries, for up to about a day; platform rejections retry for roughly 15 minutes before settling as `failed`. An identity you disconnect while a delivery is waiting is never pushed to: the row is dropped as `failed`. Proactive push is currently implemented for WeCom; other connected providers enqueue but fail until they grow a `send_notification` path.
 - Browse execution history in pages of 50; older pages pause automatic refresh, with an explicit return to the latest runs. Counts appear only after a successful read; loading and failed reads are not reported as zero runs.
 
@@ -2291,7 +2290,7 @@ The response contains normalized `cron`, `timezone`, the effective UTC `start_at
 
 ## Terminal Workbench (TUI)
 
-`deerflow` is a terminal-native workbench for people who live in the shell. It runs **embedded** over `DeerFlowClient` — no Gateway, frontend, nginx, or Docker required — while honoring the same `config.yaml`, checkpointer, skills, memory, MCP, and sandbox settings as the rest of DeerFlow.
+`operix` is a terminal-native workbench for people who live in the shell. It runs **embedded** over `OperixClient` — no Gateway, frontend, nginx, or Docker required — while honoring the same `config.yaml`, checkpointer, skills, memory, MCP, and sandbox settings as the rest of Operix.
 
 Parallel synchronous stdio MCP calls use independent sessions on their own event
 loops. They do not cancel each other's connections, but they do not share
@@ -2300,18 +2299,18 @@ server-side state; session reuse requires the same loop. See the
 Manually managed event loops must drain pending session owners before closing;
 the normal `asyncio.run()` path does this automatically.
 
-![DeerFlow TUI](docs/tui/tui-preview.svg)
+![Operix TUI](docs/tui/tui-preview.svg)
 
 ```bash
-uv pip install 'deerflow-harness[tui]'        # optional 'textual' dependency
+uv pip install 'operix-harness[tui]'        # optional 'textual' dependency
 
-deerflow                                      # launch the terminal UI (TTY required)
-deerflow --tui-transparent                    # use the terminal's default background
-deerflow --continue                           # resume the most recent thread
-deerflow --resume THREAD                      # resume a thread by id
-deerflow --print "summarize this repo"        # headless one-shot answer to stdout
-deerflow --json  "hello"                       # headless newline-delimited StreamEvents; failure -> one {"type": "error"} record, exit 1
-deerflow --recursion-limit 250 --print "task" # override the headless agent-loop limit
+operix                                      # launch the terminal UI (TTY required)
+operix --tui-transparent                    # use the terminal's default background
+operix --continue                           # resume the most recent thread
+operix --resume THREAD                      # resume a thread by id
+operix --print "summarize this repo"        # headless one-shot answer to stdout
+operix --json  "hello"                       # headless newline-delimited StreamEvents; failure -> one {"type": "error"} record, exit 1
+operix --recursion-limit 250 --print "task" # override the headless agent-loop limit
 ```
 
 Headless `--print` and `--json` exit with status `1` when the run fails, including provider errors returned as fallback messages. `--print` still writes the fallback text to stdout; `--json` appends a terminal error record.
@@ -2331,7 +2330,7 @@ See [backend/docs/TUI.md](backend/docs/TUI.md) for the full guide.
 
 ### Improper Deployment May Introduce Security Risks
 
-DeerFlow has key high-privilege capabilities including **system command execution, resource operations, and business logic invocation**, and is designed by default to be **deployed in a local trusted environment (accessible only via the 127.0.0.1 loopback interface)**. If you deploy the agent in untrusted environments — such as LAN networks, public cloud servers, or other multi-endpoint accessible environments — without strict security measures, it may introduce security risks, including:
+Operix has key high-privilege capabilities including **system command execution, resource operations, and business logic invocation**, and is designed by default to be **deployed in a local trusted environment (accessible only via the 127.0.0.1 loopback interface)**. If you deploy the agent in untrusted environments — such as LAN networks, public cloud servers, or other multi-endpoint accessible environments — without strict security measures, it may introduce security risks, including:
 
 - **Unauthorized illegal invocation**: Agent functionality could be discovered by unauthorized third parties or malicious internet scanners, triggering bulk unauthorized requests that execute high-risk operations such as system commands and file read/write, potentially causing serious security consequences.
 - **Compliance and legal risks**: If the agent is illegally invoked to conduct cyberattacks, data theft, or other illegal activities, it may result in legal liability and compliance risks.
@@ -2340,7 +2339,7 @@ DeerFlow has key high-privilege capabilities including **system command executio
 
 An admin can register stdio MCP servers, which run commands inside the Gateway
 container. The API restricts them to an allowlist (`npx`, `uvx` by default,
-extended via `DEER_FLOW_MCP_STDIO_COMMAND_ALLOWLIST`) and rejects arguments and
+extended via `OPERIX_MCP_STDIO_COMMAND_ALLOWLIST`) and rejects arguments and
 environment variables that would evaluate arbitrary code. That is defense in
 depth, not a boundary: these launchers exist to fetch and run remote packages,
 so **treat Gateway admin as equivalent to code execution on the host** and grant
@@ -2393,12 +2392,12 @@ immediately after starting any deployment that is not loopback-only.
 
 ### Security Recommendations
 
-**Note: We strongly recommend deploying DeerFlow in a local trusted network environment.** If you need cross-device or cross-network deployment, you must implement strict security measures, such as:
+**Note: We strongly recommend deploying Operix in a local trusted network environment.** If you need cross-device or cross-network deployment, you must implement strict security measures, such as:
 
 - **IP allowlist**: Use `iptables`, or deploy hardware firewalls / switches with Access Control Lists (ACL), to **configure IP allowlist rules** and deny access from all other IP addresses.
 - **Authentication gateway**: Configure a reverse proxy (e.g., nginx) and **enable strong pre-authentication**, blocking any unauthenticated access.
 - **Network isolation**: Where possible, place the agent and trusted devices in the **same dedicated VLAN**, isolated from other network devices.
-- **Stay updated**: Continue to follow DeerFlow's security feature updates.
+- **Stay updated**: Continue to follow Operix's security feature updates.
 
 ## Contributing
 
@@ -2406,16 +2405,16 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deve
 
 Backend `make test` excludes live external-API and blocking-I/O coverage.
 Run `cd backend && make test-blocking-io` for strict blocking-I/O checks.
-Maintainers can run the real `DeerFlowClient` suite with `cd backend && make test-live`.
+Maintainers can run the real `OperixClient` suite with `cd backend && make test-live`.
 This command requires a valid root `config.yaml` and API credentials.
 It can incur API costs and create local sandboxes, artifacts, or files.
-Direct pytest runs additionally require `DEER_FLOW_RUN_LIVE_TESTS=1`.
+Direct pytest runs additionally require `OPERIX_RUN_LIVE_TESTS=1`.
 
 Regression coverage includes Docker sandbox mode detection and provisioner kubeconfig-path handling tests in `backend/tests/`.
 Backend blocking-IO diagnostics are available from the repository root with
 `make detect-blocking-io`: it statically scans backend business code for
 blocking IO that may run on the backend event loop, prints a concise summary,
-and writes complete JSON findings to `.deer-flow/blocking-io-findings.json`.
+and writes complete JSON findings to `.operix/blocking-io-findings.json`.
 The JSON includes compact review records with `priority`, `location`,
 `blocking_call`, `event_loop_exposure`, `reason`, and `code`.
 Gateway artifact serving now forces active web content types (`text/html` and XML documents such as `.xml`, `.xhtml`, and `.svg`) to download as attachments instead of inline rendering, reducing XSS risk for generated artifacts.
@@ -2432,24 +2431,24 @@ This project is open source and available under the [MIT License](./LICENSE).
 
 ## Acknowledgments
 
-DeerFlow is built upon the incredible work of the open-source community. We are deeply grateful to all the projects and contributors whose efforts have made DeerFlow possible. Truly, we stand on the shoulders of giants.
+Operix is built upon the incredible work of the open-source community. We are deeply grateful to all the projects and contributors whose efforts have made Operix possible. Truly, we stand on the shoulders of giants.
 
 We would like to extend our sincere appreciation to the following projects for their invaluable contributions:
 
 - **[LangChain](https://github.com/langchain-ai/langchain)**: Their exceptional framework powers our LLM interactions and chains, enabling seamless integration and functionality.
-- **[LangGraph](https://github.com/langchain-ai/langgraph)**: Their innovative approach to multi-agent orchestration has been instrumental in enabling DeerFlow's sophisticated workflows.
+- **[LangGraph](https://github.com/langchain-ai/langgraph)**: Their innovative approach to multi-agent orchestration has been instrumental in enabling Operix's sophisticated workflows.
 
 These projects exemplify the transformative power of open-source collaboration, and we are proud to build upon their foundations.
 
 ### Key Contributors
 
-A heartfelt thank you goes out to the core authors of `DeerFlow`, whose vision, passion, and dedication have brought this project to life:
+A heartfelt thank you goes out to the core authors of `Operix`, whose vision, passion, and dedication have brought this project to life:
 
 - **[Daniel Walnut](https://github.com/hetaoBackend/)**
 - **[Henry Li](https://github.com/magiccube/)**
 
-Your unwavering commitment and expertise have been the driving force behind DeerFlow's success. We are honored to have you at the helm of this journey.
+Your unwavering commitment and expertise have been the driving force behind Operix's success. We are honored to have you at the helm of this journey.
 
 ## Star History
 
-[![Star History Chart](https://star-history.dera.page/svg?repos=bytedance/deer-flow&type=Date)](https://star-history.dera.page/#bytedance/deer-flow&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=bytedance/operix&type=Date)](https://star-history.dera.page/#bytedance/operix&Date)

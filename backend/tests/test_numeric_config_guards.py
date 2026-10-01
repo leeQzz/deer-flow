@@ -13,12 +13,12 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from deerflow.config.app_config import CircuitBreakerConfig
-from deerflow.config.extensions_config import McpOAuthConfig, McpServerConfig
-from deerflow.config.model_config import ModelConfig
-from deerflow.config.run_events_config import RunEventsConfig
-from deerflow.config.sandbox_config import SandboxConfig, SandboxOwnershipConfig
-from deerflow.config.summarization_config import SummarizationConfig
+from operix.config.app_config import CircuitBreakerConfig
+from operix.config.extensions_config import McpOAuthConfig, McpServerConfig
+from operix.config.model_config import ModelConfig
+from operix.config.run_events_config import RunEventsConfig
+from operix.config.sandbox_config import SandboxConfig, SandboxOwnershipConfig
+from operix.config.summarization_config import SummarizationConfig
 
 
 class TestCircuitBreakerGuards:

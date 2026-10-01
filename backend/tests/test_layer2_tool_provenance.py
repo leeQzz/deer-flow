@@ -15,10 +15,10 @@ from unittest.mock import MagicMock
 
 from langchain_core.tools import StructuredTool
 
-from deerflow.authz.adapter import GuardrailAuthorizationAdapter
-from deerflow.authz.provider import AuthzDecision, AuthzReason, Principal
-from deerflow.guardrails.middleware import GuardrailMiddleware
-from deerflow.tools.tool_provenance import DECLARED_TOOL_SOURCE_METADATA_KEY, tag_plugin_tool
+from operix.authz.adapter import GuardrailAuthorizationAdapter
+from operix.authz.provider import AuthzDecision, AuthzReason, Principal
+from operix.guardrails.middleware import GuardrailMiddleware
+from operix.tools.tool_provenance import DECLARED_TOOL_SOURCE_METADATA_KEY, tag_plugin_tool
 
 
 def _tool(name: str) -> StructuredTool:
@@ -57,7 +57,7 @@ class _CapturingProvider:
 
 class TestProvenanceForwarding:
     def test_plugin_tool_provenance_reaches_the_authz_context(self):
-        from deerflow.extensions.plugin_tools import plugin_tool_name
+        from operix.extensions.plugin_tools import plugin_tool_name
 
         tool = _tool(plugin_tool_name("acme.search", "web_query"))
         tag_plugin_tool(tool, namespace="acme.search", declaration="web_query", installation="acme:1.0.0", operation="query")

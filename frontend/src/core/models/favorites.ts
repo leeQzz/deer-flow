@@ -1,6 +1,6 @@
 import { type Model } from "./types";
 
-const FAVORITES_KEY_PREFIX = "deerflow.model-favorites.v1:";
+const FAVORITES_KEY_PREFIX = "operix.model-favorites.v1:";
 
 interface FavoriteNamesPayload {
   version: 1;

@@ -10,18 +10,18 @@ import yaml
 from sqlalchemy import create_engine
 
 from app.gateway.deps import _validate_agent_storage
-from deerflow.config.agent_storage_config import AgentStorageConfig
-from deerflow.config.app_config import reset_app_config
-from deerflow.config.database_config import DatabaseConfig
-from deerflow.persistence.agents import get_agent_store, make_agent_store
-from deerflow.persistence.agents.file import FileAgentStore
-from deerflow.persistence.agents.model import AgentRow
-from deerflow.persistence.agents.sql import SqlAgentStore
-from deerflow.persistence.base import Base
-from deerflow.persistence.managed_subagents.base import ManagedSubagentDefinition
-from deerflow.persistence.managed_subagents.file import FileManagedSubagentStore
-from deerflow.persistence.managed_subagents.model import ManagedSubagentRow
-from deerflow.persistence.managed_subagents.sql import SqlManagedSubagentStore
+from operix.config.agent_storage_config import AgentStorageConfig
+from operix.config.app_config import reset_app_config
+from operix.config.database_config import DatabaseConfig
+from operix.persistence.agents import get_agent_store, make_agent_store
+from operix.persistence.agents.file import FileAgentStore
+from operix.persistence.agents.model import AgentRow
+from operix.persistence.agents.sql import SqlAgentStore
+from operix.persistence.base import Base
+from operix.persistence.managed_subagents.base import ManagedSubagentDefinition
+from operix.persistence.managed_subagents.file import FileManagedSubagentStore
+from operix.persistence.managed_subagents.model import ManagedSubagentRow
+from operix.persistence.managed_subagents.sql import SqlManagedSubagentStore
 
 
 def _cfg(agent_backend: str, db_backend: str, sqlite_dir: str = "/tmp/agent-store-test") -> SimpleNamespace:
@@ -76,9 +76,9 @@ def test_validation_warns_on_file_under_multiworker_postgres(monkeypatch, caplog
 
 @pytest.fixture()
 def file_home(tmp_path, monkeypatch):
-    """Root file stores at a temp DEER_FLOW_HOME with seeded definitions."""
-    monkeypatch.setenv("DEER_FLOW_HOME", str(tmp_path))
-    from deerflow.config import paths as paths_module
+    """Root file stores at a temp OPERIX_HOME with seeded definitions."""
+    monkeypatch.setenv("OPERIX_HOME", str(tmp_path))
+    from operix.config import paths as paths_module
 
     monkeypatch.setattr(paths_module, "_paths", None)
     fs = FileAgentStore()
@@ -111,7 +111,7 @@ def _patch_importer(monkeypatch, cfg):
     engine.dispose()
 
     monkeypatch.setattr(importer, "get_app_config", lambda: cfg)
-    monkeypatch.setattr("deerflow.persistence.engine.init_engine_from_config", _noop_init)
+    monkeypatch.setattr("operix.persistence.engine.init_engine_from_config", _noop_init)
     return importer
 
 
@@ -156,8 +156,8 @@ def test_importer_dry_run_writes_nothing(file_home, monkeypatch):
 
 
 def test_importer_runs_when_only_managed_subagents_exist(tmp_path, monkeypatch):
-    monkeypatch.setenv("DEER_FLOW_HOME", str(tmp_path))
-    from deerflow.config import paths as paths_module
+    monkeypatch.setenv("OPERIX_HOME", str(tmp_path))
+    from operix.config import paths as paths_module
 
     monkeypatch.setattr(paths_module, "_paths", None)
     FileManagedSubagentStore().create(
@@ -185,9 +185,9 @@ def test_read_free_functions_dispatch_to_db_backend(file_home, monkeypatch):
     are visible everywhere."""
     cfg = _cfg("db", "sqlite", str(file_home / "db"))
     _patch_importer(monkeypatch, cfg)  # creates the schema
-    monkeypatch.setattr("deerflow.config.app_config.get_app_config", lambda: cfg)
+    monkeypatch.setattr("operix.config.app_config.get_app_config", lambda: cfg)
 
-    from deerflow.config.agents_config import list_custom_agents, load_agent_config, load_agent_soul
+    from operix.config.agents_config import list_custom_agents, load_agent_config, load_agent_soul
 
     # The file store seeded 'reviewer'/'planner' on disk; the db is empty, so
     # the free functions (now db-backed) do not see them.
@@ -209,10 +209,10 @@ def test_file_create_race_maps_file_exists_to_agent_exists(tmp_path, monkeypatch
     # generic 500 — matching SqlAgentStore's IntegrityError path.
     import pathlib
 
-    from deerflow.persistence.agents.base import AgentExistsError
+    from operix.persistence.agents.base import AgentExistsError
 
-    monkeypatch.setenv("DEER_FLOW_HOME", str(tmp_path))
-    from deerflow.config import paths as paths_module
+    monkeypatch.setenv("OPERIX_HOME", str(tmp_path))
+    from operix.config import paths as paths_module
 
     monkeypatch.setattr(paths_module, "_paths", None)
 
@@ -232,7 +232,7 @@ def test_file_create_race_maps_file_exists_to_agent_exists(tmp_path, monkeypatch
 def _write_min_config(path, extra: dict) -> None:
     """Minimal but valid config.yaml (sandbox + models are the only hard requirements)."""
     doc = {
-        "sandbox": {"use": "deerflow.sandbox.local:LocalSandboxProvider"},
+        "sandbox": {"use": "operix.sandbox.local:LocalSandboxProvider"},
         "models": [{"name": "m", "use": "langchain_openai:ChatOpenAI", "model": "gpt-test"}],
         **extra,
     }
@@ -251,7 +251,7 @@ def test_get_agent_store_resolves_db_backend_from_on_disk_config(tmp_path, monke
     """
     cfg_path = tmp_path / "config.yaml"
     _write_min_config(cfg_path, {"agent_storage": {"backend": "db"}, "database": {"backend": "sqlite", "sqlite_dir": str(tmp_path / "db")}})
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(cfg_path))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(cfg_path))
     try:
         reset_app_config()  # force a fresh read from the on-disk file
         assert isinstance(get_agent_store(), SqlAgentStore)
@@ -263,9 +263,9 @@ def test_get_agent_store_falls_back_to_file_without_config(tmp_path, monkeypatch
     """The ``except -> file`` fallback is for genuinely unresolvable config only
     (CLI/tests); it must not fire when a config exists — that asymmetry is what
     keeps a misconfigured graph process from silently downgrading db to file."""
-    monkeypatch.delenv("DEER_FLOW_CONFIG_PATH", raising=False)
-    monkeypatch.setenv("DEER_FLOW_PROJECT_ROOT", str(tmp_path))
-    from deerflow.config import app_config
+    monkeypatch.delenv("OPERIX_CONFIG_PATH", raising=False)
+    monkeypatch.setenv("OPERIX_PROJECT_ROOT", str(tmp_path))
+    from operix.config import app_config
 
     monkeypatch.setattr(app_config, "_legacy_config_candidates", lambda: ())
     try:
@@ -277,10 +277,10 @@ def test_get_agent_store_falls_back_to_file_without_config(tmp_path, monkeypatch
 
 def test_get_agent_store_does_not_fallback_when_explicit_config_is_missing(tmp_path, monkeypatch):
     """An explicit config path is an operator assertion and must fail closed."""
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(tmp_path / "does-not-exist.yaml"))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(tmp_path / "does-not-exist.yaml"))
     try:
         reset_app_config()
-        with pytest.raises(FileNotFoundError, match="DEER_FLOW_CONFIG_PATH"):
+        with pytest.raises(FileNotFoundError, match="OPERIX_CONFIG_PATH"):
             get_agent_store()
     finally:
         reset_app_config()
@@ -288,7 +288,7 @@ def test_get_agent_store_does_not_fallback_when_explicit_config_is_missing(tmp_p
 
 def test_get_agent_store_does_not_hide_invalid_config(monkeypatch):
     """Only missing config falls back; config errors must reach the caller."""
-    from deerflow.config import app_config
+    from operix.config import app_config
 
     def raise_invalid_config():
         raise ValueError("invalid config")
@@ -302,7 +302,7 @@ def test_get_agent_store_propagates_invalid_on_disk_config(tmp_path, monkeypatch
     """A present config with an invalid backend must fail instead of falling back."""
     cfg_path = tmp_path / "config.yaml"
     _write_min_config(cfg_path, {"agent_storage": {"backend": "invalid"}})
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(cfg_path))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(cfg_path))
     try:
         reset_app_config()
         with pytest.raises(ValueError, match="agent_storage.backend"):
@@ -315,7 +315,7 @@ def test_get_agent_store_propagates_malformed_yaml(tmp_path, monkeypatch):
     """An unparseable config.yaml must surface the parse error, not fall back to file."""
     cfg_path = tmp_path / "config.yaml"
     cfg_path.write_text("agent_storage: [oops\n", encoding="utf-8")
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(cfg_path))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(cfg_path))
     try:
         reset_app_config()
         with pytest.raises(yaml.YAMLError):  # ParserError/ScannerError, previously swallowed
@@ -334,8 +334,8 @@ def test_get_agent_store_does_not_fallback_when_extensions_config_is_missing(tmp
             "database": {"backend": "sqlite", "sqlite_dir": str(tmp_path / "db")},
         },
     )
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(cfg_path))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(tmp_path / "missing-extensions.json"))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(cfg_path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(tmp_path / "missing-extensions.json"))
     try:
         reset_app_config()
         with pytest.raises(FileNotFoundError, match="Extensions config"):

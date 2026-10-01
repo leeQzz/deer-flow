@@ -1,4 +1,4 @@
-"""Tests for ``deerflow.utils.llm_text``."""
+"""Tests for ``operix.utils.llm_text``."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import time
 
 import pytest
 
-from deerflow.utils.llm_text import (
+from operix.utils.llm_text import (
     extract_response_text,
     strip_markdown_code_fence,
     strip_think_blocks,

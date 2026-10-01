@@ -118,7 +118,7 @@ for (const source of ["default", "custom-toolbar", "custom-sidebar"]) {
         "access-control-allow-credentials": "true",
         "access-control-allow-methods": "GET, POST, OPTIONS",
         "access-control-allow-headers":
-          "content-type, x-deerflow-plugin-viewer, x-csrf-token",
+          "content-type, x-operix-plugin-viewer, x-csrf-token",
       };
       if (route.request().method() === "OPTIONS") {
         await route.fulfill({ status: 204, headers: cors });

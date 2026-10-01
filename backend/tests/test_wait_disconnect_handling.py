@@ -28,9 +28,9 @@ import anyio
 import pytest
 from _router_auth_helpers import call_unwrapped
 
-from deerflow.runtime import ORPHAN_RECOVERY_STOP_REASON, CancelOutcome, RunManager, RunRecord, RunStatus
-from deerflow.runtime.runs.schemas import DisconnectMode
-from deerflow.runtime.stream_bridge.memory import MemoryStreamBridge
+from operix.runtime import ORPHAN_RECOVERY_STOP_REASON, CancelOutcome, RunManager, RunRecord, RunStatus
+from operix.runtime.runs.schemas import DisconnectMode
+from operix.runtime.stream_bridge.memory import MemoryStreamBridge
 
 THREAD_ID = "thread-wait-3265"
 
@@ -453,7 +453,7 @@ class TestWaitForRunCompletion:
     def test_sse_consumer_preserves_tail_events_after_durable_terminal_status(self) -> None:
         """A durable terminal row must not overtake delayed error and END events."""
         from app.gateway.services import sse_consumer
-        from deerflow.runtime.runs.store.memory import MemoryRunStore
+        from operix.runtime.runs.store.memory import MemoryRunStore
 
         async def run() -> None:
             store = MemoryRunStore()
@@ -495,7 +495,7 @@ class TestWaitForRunCompletion:
     def test_wait_preserves_tail_events_after_durable_terminal_status(self) -> None:
         """The wait path must remain blocked until the real END is published."""
         from app.gateway.services import wait_for_run_completion
-        from deerflow.runtime.runs.store.memory import MemoryRunStore
+        from operix.runtime.runs.store.memory import MemoryRunStore
 
         async def run() -> None:
             store = MemoryRunStore()
@@ -533,7 +533,7 @@ class TestWaitForRunCompletion:
     ) -> None:
         """A recovered orphan may synthesize END when its publisher is gone."""
         from app.gateway.services import sse_consumer
-        from deerflow.runtime.runs.store.memory import MemoryRunStore
+        from operix.runtime.runs.store.memory import MemoryRunStore
 
         async def run() -> None:
             store = MemoryRunStore()
@@ -565,7 +565,7 @@ class TestWaitForRunCompletion:
     def test_wait_uses_explicit_orphan_recovery_liveness_boundary(self) -> None:
         """The non-streaming consumer shares the recovered-orphan boundary."""
         from app.gateway.services import wait_for_run_completion
-        from deerflow.runtime.runs.store.memory import MemoryRunStore
+        from operix.runtime.runs.store.memory import MemoryRunStore
 
         async def run() -> None:
             store = MemoryRunStore()

@@ -1,6 +1,6 @@
 """Tests for user-facing IM channel connection configuration."""
 
-from deerflow.config.channel_connections_config import ChannelConnectionsConfig
+from operix.config.channel_connections_config import ChannelConnectionsConfig
 
 
 def test_channel_connections_disabled_by_default():
@@ -23,7 +23,7 @@ def test_enabled_channel_connections_do_not_require_public_url_or_encryption_key
             "enabled": True,
             "telegram": {
                 "enabled": True,
-                "bot_username": "deerflow_bot",
+                "bot_username": "operix_bot",
             },
             "slack": {"enabled": True},
             "discord": {"enabled": True},

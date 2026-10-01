@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from deerflow.extensions.isolation import IsolatedMiddleware
-from deerflow.extensions.ordering import OrderingConstraint, assert_ordering
+from operix.extensions.isolation import IsolatedMiddleware
+from operix.extensions.ordering import OrderingConstraint, assert_ordering
 
 
 class _Outer:
@@ -91,22 +91,22 @@ def test_every_duplicate_participant_must_satisfy_the_constraint():
 
 
 def test_core_constraints_are_declared():
-    from deerflow.agents.middlewares.skill_tool_policy_middleware import SkillToolPolicyMiddleware
-    from deerflow.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
-    from deerflow.agents.middlewares.tool_progress_middleware import ToolProgressMiddleware
-    from deerflow.agents.middlewares.tool_promotion_audit_middleware import DeferredToolPromotionAuditMiddleware
-    from deerflow.extensions.ordering import core_ordering_constraints
+    from operix.agents.middlewares.skill_tool_policy_middleware import SkillToolPolicyMiddleware
+    from operix.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
+    from operix.agents.middlewares.tool_progress_middleware import ToolProgressMiddleware
+    from operix.agents.middlewares.tool_promotion_audit_middleware import DeferredToolPromotionAuditMiddleware
+    from operix.extensions.ordering import core_ordering_constraints
 
     core_ordering_constraints.cache_clear()  # Prior wiring tests temporarily replace middleware modules.
     pairs = {(c.outer, c.inner) for c in core_ordering_constraints()}
     assert (ToolProgressMiddleware, ToolErrorHandlingMiddleware) in pairs
     assert (DeferredToolPromotionAuditMiddleware, SkillToolPolicyMiddleware) in pairs
 
-    from deerflow.agents.middlewares.artifact_resolution_middleware import ArtifactResolutionMiddleware
-    from deerflow.agents.middlewares.read_before_write_middleware import ReadBeforeWriteMiddleware
-    from deerflow.agents.middlewares.sandbox_audit_middleware import SandboxAuditMiddleware
-    from deerflow.agents.middlewares.tool_receipt_middleware import ToolReceiptMiddleware
-    from deerflow.guardrails.middleware import GuardrailMiddleware
+    from operix.agents.middlewares.artifact_resolution_middleware import ArtifactResolutionMiddleware
+    from operix.agents.middlewares.read_before_write_middleware import ReadBeforeWriteMiddleware
+    from operix.agents.middlewares.sandbox_audit_middleware import SandboxAuditMiddleware
+    from operix.agents.middlewares.tool_receipt_middleware import ToolReceiptMiddleware
+    from operix.guardrails.middleware import GuardrailMiddleware
 
     for policy in (GuardrailMiddleware, SandboxAuditMiddleware, ReadBeforeWriteMiddleware, ToolProgressMiddleware):
         assert (ArtifactResolutionMiddleware, policy) in pairs
@@ -124,7 +124,7 @@ def test_core_constraints_are_a_plain_tuple():
     very tuples tests substitute for it — while iteration yielded the real
     constraints.
     """
-    from deerflow.extensions.ordering import core_ordering_constraints
+    from operix.extensions.ordering import core_ordering_constraints
 
     constraints = core_ordering_constraints()
     iterated = list(constraints)
@@ -157,8 +157,8 @@ def test_resolution_stays_deferred_until_first_use():
     env = {**os.environ, "PYTHONPATH": os.pathsep.join([str(backend_root), str(backend_root / "packages" / "harness"), os.environ.get("PYTHONPATH", "")])}
     probe = (
         "import sys\n"
-        "from deerflow.extensions import ordering\n"
-        "targets = ('deerflow.agents.middlewares.tool_progress_middleware', 'deerflow.agents.middlewares.tool_error_handling_middleware')\n"
+        "from operix.extensions import ordering\n"
+        "targets = ('operix.agents.middlewares.tool_progress_middleware', 'operix.agents.middlewares.tool_error_handling_middleware')\n"
         "print('after_import', [t for t in targets if t in sys.modules])\n"
         "ordering.core_ordering_constraints()\n"
         "print('after_call', sorted(t for t in targets if t in sys.modules))\n"
@@ -167,4 +167,4 @@ def test_resolution_stays_deferred_until_first_use():
 
     assert result.returncode == 0, result.stderr
     assert "after_import []" in result.stdout, "importing extensions.ordering must not load the middleware layer"
-    assert "after_call ['deerflow.agents.middlewares.tool_error_handling_middleware', 'deerflow.agents.middlewares.tool_progress_middleware']" in result.stdout
+    assert "after_call ['operix.agents.middlewares.tool_error_handling_middleware', 'operix.agents.middlewares.tool_progress_middleware']" in result.stdout

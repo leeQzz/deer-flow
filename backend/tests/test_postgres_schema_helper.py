@@ -7,7 +7,7 @@ from urllib.parse import parse_qs, urlsplit
 
 import pytest
 
-from deerflow.persistence.postgres_schema import (
+from operix.persistence.postgres_schema import (
     build_asyncpg_connect_args,
     build_psycopg_options,
     create_schema_sql,
@@ -19,7 +19,7 @@ from deerflow.persistence.postgres_schema import (
 
 class TestBuildAsyncpgConnectArgs:
     def test_sets_search_path_for_schema(self):
-        assert build_asyncpg_connect_args("deerflow") == {"server_settings": {"search_path": "deerflow"}}
+        assert build_asyncpg_connect_args("operix") == {"server_settings": {"search_path": "operix"}}
 
     def test_empty_schema_returns_empty_dict(self):
         assert build_asyncpg_connect_args("") == {}
@@ -27,7 +27,7 @@ class TestBuildAsyncpgConnectArgs:
 
 class TestBuildPsycopgOptions:
     def test_builds_libpq_options(self):
-        assert build_psycopg_options("deerflow") == "-c search_path=deerflow"
+        assert build_psycopg_options("operix") == "-c search_path=operix"
 
     def test_empty_schema_returns_none(self):
         assert build_psycopg_options("") is None
@@ -35,12 +35,12 @@ class TestBuildPsycopgOptions:
 
 class TestCreateSchemaSql:
     def test_builds_create_schema_statement(self):
-        assert create_schema_sql("deerflow") == 'CREATE SCHEMA IF NOT EXISTS "deerflow"'
+        assert create_schema_sql("operix") == 'CREATE SCHEMA IF NOT EXISTS "operix"'
 
     def test_empty_schema_returns_none(self):
         assert create_schema_sql("") is None
 
-    @pytest.mark.parametrize("schema", ['a"; DROP SCHEMA public; --', "MySchema", "a b", "deerflow\n"])
+    @pytest.mark.parametrize("schema", ['a"; DROP SCHEMA public; --', "MySchema", "a b", "operix\n"])
     def test_rejects_non_plain_identifier(self, schema):
         # Defense-in-depth: the SQL-emitting boundary re-validates so a caller
         # that bypasses the pydantic config validator cannot inject.
@@ -55,21 +55,21 @@ class TestDsnWithSearchPath:
 
     def test_appends_options_query_encoded(self):
         dsn = "postgresql://u:p@h:5432/db"
-        out = dsn_with_search_path(dsn, "deerflow")
+        out = dsn_with_search_path(dsn, "operix")
         # libpq only decodes %XX in URI query values; '+' is NOT treated as a
         # space. The space MUST therefore be encoded as %20, never as '+'.
         assert "+" not in out
-        assert "options=-c%20search_path%3Ddeerflow" in out
+        assert "options=-c%20search_path%3Doperix" in out
         parts = urlsplit(out)
         query = parse_qs(parts.query)
-        assert query["options"] == ["-c search_path=deerflow"]
+        assert query["options"] == ["-c search_path=operix"]
 
     def test_merges_with_existing_query(self):
         dsn = "postgresql://u:p@h:5432/db?sslmode=require"
-        out = dsn_with_search_path(dsn, "deerflow")
+        out = dsn_with_search_path(dsn, "operix")
         query = parse_qs(urlsplit(out).query)
         assert query["sslmode"] == ["require"]
-        assert query["options"] == ["-c search_path=deerflow"]
+        assert query["options"] == ["-c search_path=operix"]
 
     @staticmethod
     def _raw_query(out: str) -> dict[str, str]:
@@ -82,73 +82,73 @@ class TestDsnWithSearchPath:
         # into '%20' silently changes the value the server receives: 'web+app'
         # would arrive as 'web app'.
         dsn = "postgresql://u:p@h:5432/db?application_name=web+app"
-        out = dsn_with_search_path(dsn, "deerflow")
+        out = dsn_with_search_path(dsn, "operix")
         assert self._raw_query(out)["application_name"] == "web+app"
-        assert parse_qs(urlsplit(out).query)["options"] == ["-c search_path=deerflow"]
+        assert parse_qs(urlsplit(out).query)["options"] == ["-c search_path=operix"]
 
     def test_preserves_plus_in_existing_options_value(self):
         dsn = "postgresql://u:p@h:5432/db?options=-c%20timezone%3DUTC+8"
-        out = dsn_with_search_path(dsn, "deerflow")
-        assert self._raw_query(out)["options"] == "-c%20timezone%3DUTC%2B8%20-c%20search_path%3Ddeerflow"
-        assert parse_qs(urlsplit(out).query, keep_blank_values=True)["options"] == ["-c timezone=UTC+8 -c search_path=deerflow"]
+        out = dsn_with_search_path(dsn, "operix")
+        assert self._raw_query(out)["options"] == "-c%20timezone%3DUTC%2B8%20-c%20search_path%3Doperix"
+        assert parse_qs(urlsplit(out).query, keep_blank_values=True)["options"] == ["-c timezone=UTC+8 -c search_path=operix"]
 
     def test_does_not_double_encode_an_existing_percent_escape(self):
         dsn = "postgresql://u:p@h:5432/db?application_name=web%2Bapp"
-        out = dsn_with_search_path(dsn, "deerflow")
+        out = dsn_with_search_path(dsn, "operix")
         assert self._raw_query(out)["application_name"] == "web%2Bapp"
 
     def test_replaces_existing_options_query(self):
         dsn = "postgresql://u:p@h:5432/db?options=-c%20search_path%3Dpublic"
-        out = dsn_with_search_path(dsn, "deerflow")
+        out = dsn_with_search_path(dsn, "operix")
         query = parse_qs(urlsplit(out).query)
-        assert query["options"] == ["-c search_path=deerflow"]
+        assert query["options"] == ["-c search_path=operix"]
 
     def test_preserves_existing_options_query(self):
         dsn = "postgresql://u:p@h:5432/db?options=-c%20statement_timeout%3D5000"
-        out = dsn_with_search_path(dsn, "deerflow")
+        out = dsn_with_search_path(dsn, "operix")
         query = parse_qs(urlsplit(out).query)
-        assert query["options"] == ["-c statement_timeout=5000 -c search_path=deerflow"]
+        assert query["options"] == ["-c statement_timeout=5000 -c search_path=operix"]
 
     def test_replaces_only_existing_search_path_option(self):
         dsn = "postgresql://u:p@h:5432/db?options=-c%20statement_timeout%3D5000%20-c%20search_path%3Dpublic"
-        out = dsn_with_search_path(dsn, "deerflow")
+        out = dsn_with_search_path(dsn, "operix")
         query = parse_qs(urlsplit(out).query)
-        assert query["options"] == ["-c statement_timeout=5000 -c search_path=deerflow"]
+        assert query["options"] == ["-c statement_timeout=5000 -c search_path=operix"]
 
     def test_supports_keyword_dsn(self):
         pytest.importorskip("psycopg")
         from psycopg.conninfo import conninfo_to_dict
 
-        dsn = "host=localhost dbname=deerflow user=postgres"
-        out = dsn_with_search_path(dsn, "deerflow")
+        dsn = "host=localhost dbname=operix user=postgres"
+        out = dsn_with_search_path(dsn, "operix")
         assert conninfo_to_dict(out) == {
             "host": "localhost",
-            "dbname": "deerflow",
+            "dbname": "operix",
             "user": "postgres",
-            "options": "-c search_path=deerflow",
+            "options": "-c search_path=operix",
         }
 
     def test_preserves_keyword_dsn_options(self):
         pytest.importorskip("psycopg")
         from psycopg.conninfo import conninfo_to_dict
 
-        dsn = "host=localhost dbname=deerflow options='-c statement_timeout=5000'"
-        out = dsn_with_search_path(dsn, "deerflow")
-        assert conninfo_to_dict(out)["options"] == "-c statement_timeout=5000 -c search_path=deerflow"
+        dsn = "host=localhost dbname=operix options='-c statement_timeout=5000'"
+        out = dsn_with_search_path(dsn, "operix")
+        assert conninfo_to_dict(out)["options"] == "-c statement_timeout=5000 -c search_path=operix"
 
     def test_normalizes_sqlalchemy_driver_scheme(self):
         # DatabaseConfig.postgres_url may carry a +asyncpg suffix; the libpq DSN
         # produced for psycopg must drop the driver and still inject search_path.
         dsn = "postgresql+asyncpg://u:p@h:5432/db"
-        out = dsn_with_search_path(dsn, "deerflow")
+        out = dsn_with_search_path(dsn, "operix")
         parts = urlsplit(out)
         assert parts.scheme == "postgresql"
         query = parse_qs(parts.query)
-        assert query["options"] == ["-c search_path=deerflow"]
+        assert query["options"] == ["-c search_path=operix"]
 
     def test_rejects_non_postgres_url_scheme(self):
         try:
-            dsn_with_search_path("mysql://localhost/db", "deerflow")
+            dsn_with_search_path("mysql://localhost/db", "operix")
         except ValueError as exc:
             assert "Unsupported PostgreSQL DSN scheme" in str(exc)
         else:
@@ -156,7 +156,7 @@ class TestDsnWithSearchPath:
 
     def test_roundtrip_preserves_host_and_db(self):
         dsn = "postgresql://u:p@h:5432/db"
-        out = dsn_with_search_path(dsn, "deerflow")
+        out = dsn_with_search_path(dsn, "operix")
         parts = urlsplit(out)
         assert parts.hostname == "h"
         assert parts.port == 5432
@@ -167,28 +167,28 @@ class TestDsnWithSearchPath:
         # backslash-escaped. shlex.join would emit single-quotes, which libpq
         # treats as literal characters and would corrupt the option. A token
         # carrying a space must round-trip as a single backslash-escaped token.
-        from deerflow.persistence.postgres_schema import _merge_search_path_option
+        from operix.persistence.postgres_schema import _merge_search_path_option
 
-        merged = _merge_search_path_option(r"-c application_name=My\ App", "deerflow")
+        merged = _merge_search_path_option(r"-c application_name=My\ App", "operix")
         assert "'" not in merged
         assert r"application_name=My\ App" in merged
-        assert merged.endswith("-c search_path=deerflow")
+        assert merged.endswith("-c search_path=operix")
 
     def test_preserves_option_value_containing_tab(self):
         # Non-space whitespace (TAB/CR/LF) inside an existing escaped token must
         # also be re-escaped on re-join, otherwise libpq re-tokenizes on the bare
         # whitespace byte and the round-trip is lossy.
-        from deerflow.persistence.postgres_schema import (
+        from operix.persistence.postgres_schema import (
             _merge_search_path_option,
             _split_libpq_options,
         )
 
-        merged = _merge_search_path_option("-c application_name=My\\\tApp", "deerflow")
+        merged = _merge_search_path_option("-c application_name=My\\\tApp", "operix")
         assert "'" not in merged
         # The tab-bearing value must round-trip back to a single token.
         tokens = _split_libpq_options(merged)
         assert "application_name=My\tApp" in tokens
-        assert merged.endswith("-c search_path=deerflow")
+        assert merged.endswith("-c search_path=operix")
 
 
 class TestNormalizeLibpqDsn:
@@ -200,7 +200,7 @@ class TestNormalizeLibpqDsn:
         assert normalize_libpq_dsn(dsn) == dsn
 
     def test_leaves_keyword_dsn_unchanged(self):
-        dsn = "host=localhost dbname=deerflow"
+        dsn = "host=localhost dbname=operix"
         assert normalize_libpq_dsn(dsn) == dsn
 
     def test_rejects_non_postgres_scheme(self):
@@ -241,8 +241,8 @@ async def test_async_schema_close_drains_across_repeated_cancellation(monkeypatc
     try:
         task = asyncio.create_task(
             ensure_postgres_schema_async(
-                "postgresql://user:pass@localhost/deerflow",
-                "deerflow",
+                "postgresql://user:pass@localhost/operix",
+                "operix",
                 install_hint="install postgres extras",
             )
         )

@@ -13,9 +13,9 @@ exit, so tests never leak a provider into one another.
 import threading
 import time
 
-import deerflow.sandbox.sandbox_provider as sandbox_provider
-from deerflow.sandbox.sandbox import Sandbox
-from deerflow.sandbox.sandbox_provider import SandboxProvider
+import operix.sandbox.sandbox_provider as sandbox_provider
+from operix.sandbox.sandbox import Sandbox
+from operix.sandbox.sandbox_provider import SandboxProvider
 
 
 class SlowSandboxProvider(SandboxProvider):

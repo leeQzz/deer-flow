@@ -3,7 +3,7 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from deerflow.knowledge_scope import (
+from operix.knowledge_scope import (
     KNOWLEDGE_SCOPE_KEY,
     KnowledgeScope,
     canonicalize_knowledge_scope,

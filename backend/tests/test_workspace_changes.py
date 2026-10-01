@@ -5,12 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from deerflow.config.paths import Paths
-from deerflow.runtime.events.store.memory import MemoryRunEventStore
-from deerflow.runtime.runs.manager import RunManager
-from deerflow.runtime.runs.worker import RunContext, run_agent
-from deerflow.runtime.user_context import get_effective_user_id
-from deerflow.workspace_changes import (
+from operix.config.paths import Paths
+from operix.runtime.events.store.memory import MemoryRunEventStore
+from operix.runtime.runs.manager import RunManager
+from operix.runtime.runs.worker import RunContext, run_agent
+from operix.runtime.user_context import get_effective_user_id
+from operix.workspace_changes import (
     WorkspaceChangeLimits,
     WorkspaceRoot,
     capture_workspace_snapshot,
@@ -19,8 +19,8 @@ from deerflow.workspace_changes import (
     record_workspace_changes,
     scan_workspace_roots,
 )
-from deerflow.workspace_changes.api import get_workspace_changes_response
-from deerflow.workspace_changes.scanner import (
+from operix.workspace_changes.api import get_workspace_changes_response
+from operix.workspace_changes.scanner import (
     SAMPLE_BYTES,
     _normalize_symlink_target,
     is_sensitive_workspace_path,
@@ -190,7 +190,7 @@ def test_compare_snapshots_keeps_nul_bytes_classified_as_binary(tmp_path):
 
 
 def test_count_diff_lines_ignores_only_real_headers():
-    from deerflow.workspace_changes.diff import _count_diff_lines
+    from operix.workspace_changes.diff import _count_diff_lines
 
     lines = [
         "--- a/mnt/user-data/workspace/file.txt",
@@ -218,7 +218,7 @@ def test_count_diff_lines_counts_content_starting_with_dashes_or_pluses():
     """
     import difflib
 
-    from deerflow.workspace_changes.diff import _count_diff_lines
+    from operix.workspace_changes.diff import _count_diff_lines
 
     lines = list(
         difflib.unified_diff(
@@ -574,7 +574,7 @@ async def test_workspace_changes_response_is_empty_when_no_event_exists():
 
 @pytest.mark.anyio
 async def test_run_agent_records_workspace_changes_event(tmp_path, monkeypatch):
-    from deerflow.config import paths as paths_module
+    from operix.config import paths as paths_module
 
     monkeypatch.setattr(paths_module, "_paths", Paths(tmp_path))
 
@@ -627,7 +627,7 @@ async def test_run_agent_records_workspace_changes_event(tmp_path, monkeypatch):
 
 @pytest.mark.anyio
 async def test_record_workspace_changes_content_uses_total_changed_count(tmp_path, monkeypatch):
-    from deerflow.config import paths as paths_module
+    from operix.config import paths as paths_module
 
     monkeypatch.setattr(paths_module, "_paths", Paths(tmp_path))
     user_id = get_effective_user_id()
@@ -664,7 +664,7 @@ async def test_record_workspace_changes_content_uses_total_changed_count(tmp_pat
 
 @pytest.mark.anyio
 async def test_record_workspace_changes_uses_cached_baseline_for_modified_diff(tmp_path, monkeypatch):
-    from deerflow.config import paths as paths_module
+    from operix.config import paths as paths_module
 
     monkeypatch.setattr(paths_module, "_paths", Paths(tmp_path))
     user_id = get_effective_user_id()
@@ -733,7 +733,7 @@ async def test_workspace_changes_route_forwards_include_files_flag():
 
     class FakeRequest:
         app = FakeApp()
-        _deerflow_test_bypass_auth = True
+        _operix_test_bypass_auth = True
 
     response = await get_run_workspace_changes(
         thread_id="thread-1",

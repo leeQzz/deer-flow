@@ -37,12 +37,12 @@ class _TeardownFirstScopeLock:
 
 def test_local_sandbox_client_bypasses_environment_proxy():
     """Local sandbox API calls must not inherit HTTP_PROXY (#3441)."""
-    from deerflow.community.aio_sandbox.aio_sandbox import AioSandbox
+    from operix.community.aio_sandbox.aio_sandbox import AioSandbox
 
     sentinel_httpx = MagicMock()
     with (
-        patch("deerflow.community.aio_sandbox.aio_sandbox.httpx.Client", return_value=sentinel_httpx) as client_cls,
-        patch("deerflow.community.aio_sandbox.aio_sandbox.AioSandboxClient") as sdk_cls,
+        patch("operix.community.aio_sandbox.aio_sandbox.httpx.Client", return_value=sentinel_httpx) as client_cls,
+        patch("operix.community.aio_sandbox.aio_sandbox.AioSandboxClient") as sdk_cls,
     ):
         AioSandbox(id="test-sandbox", base_url="http://host.docker.internal:8080")
 
@@ -55,13 +55,13 @@ def test_local_sandbox_client_bypasses_environment_proxy():
 
 
 def test_local_sandbox_client_forwards_trusted_relay_headers():
-    from deerflow.community.aio_sandbox.aio_sandbox import AioSandbox
+    from operix.community.aio_sandbox.aio_sandbox import AioSandbox
 
     sentinel_httpx = MagicMock()
-    headers = {"X-DeerFlow-Relay-Token": "secret-token"}
+    headers = {"X-Operix-Relay-Token": "secret-token"}
     with (
-        patch("deerflow.community.aio_sandbox.aio_sandbox.httpx.Client", return_value=sentinel_httpx),
-        patch("deerflow.community.aio_sandbox.aio_sandbox.AioSandboxClient") as sdk_cls,
+        patch("operix.community.aio_sandbox.aio_sandbox.httpx.Client", return_value=sentinel_httpx),
+        patch("operix.community.aio_sandbox.aio_sandbox.AioSandboxClient") as sdk_cls,
     ):
         AioSandbox(
             id="test-sandbox",
@@ -87,11 +87,11 @@ def test_local_sandbox_client_forwards_trusted_relay_headers():
 )
 def test_external_sandbox_client_keeps_environment_proxy_support(base_url: str):
     """Externally hosted sandbox URLs retain the SDK's default proxy behavior."""
-    from deerflow.community.aio_sandbox.aio_sandbox import AioSandbox
+    from operix.community.aio_sandbox.aio_sandbox import AioSandbox
 
     with (
-        patch("deerflow.community.aio_sandbox.aio_sandbox.httpx.Client") as client_cls,
-        patch("deerflow.community.aio_sandbox.aio_sandbox.AioSandboxClient") as sdk_cls,
+        patch("operix.community.aio_sandbox.aio_sandbox.httpx.Client") as client_cls,
+        patch("operix.community.aio_sandbox.aio_sandbox.AioSandboxClient") as sdk_cls,
     ):
         AioSandbox(id="test-sandbox", base_url=base_url)
 
@@ -102,8 +102,8 @@ def test_external_sandbox_client_keeps_environment_proxy_support(base_url: str):
 @pytest.fixture()
 def sandbox():
     """Create an AioSandbox with a mocked client."""
-    with patch("deerflow.community.aio_sandbox.aio_sandbox.AioSandboxClient"):
-        from deerflow.community.aio_sandbox.aio_sandbox import AioSandbox
+    with patch("operix.community.aio_sandbox.aio_sandbox.AioSandboxClient"):
+        from operix.community.aio_sandbox.aio_sandbox import AioSandbox
 
         sb = AioSandbox(id="test-sandbox", base_url="http://localhost:8080")
         return sb
@@ -156,7 +156,7 @@ def _execute_with_open_session_stdin(command, env=None, *, shell="/bin/sh", term
 @pytest.mark.parametrize("execution_path", ["shell", "scope", "env"])
 def test_command_preserves_transport_stdin_and_explicit_input(sandbox, tmp_path, input_kind, execution_path):
     """Model the actual AIO transports: shell PTY versus bash.exec's open pipe."""
-    from deerflow.integrations.lark_broker import LARK_BROKER_URL_ENV
+    from operix.integrations.lark_broker import LARK_BROKER_URL_ENV
 
     # The shim ignores terminal input, while explicit input is drained to EOF.
     reader = f"{shlex.quote(sys.executable)} -c 'import sys; print(\"tty\" if sys.stdin.isatty() else repr(sys.stdin.read()))'"
@@ -756,7 +756,7 @@ class TestErrorObservationRetry:
         ]
 
     def test_terminated_default_session_cleanup_failure_preserves_terminal_outcome(self, sandbox):
-        from deerflow.community.aio_sandbox.aio_sandbox import AioSandbox
+        from operix.community.aio_sandbox.aio_sandbox import AioSandbox
 
         executions = 0
         sandbox._default_shell_corrupted = True
@@ -1897,7 +1897,7 @@ class TestScopedShellSessions:
         client.shell.create_session.assert_not_called()
 
     def test_release_command_scope_uses_bounded_cleanup(self, sandbox):
-        from deerflow.community.aio_sandbox.aio_sandbox import _ScopedShellSession
+        from operix.community.aio_sandbox.aio_sandbox import _ScopedShellSession
 
         sandbox._scoped_shell_sessions["scope-a"] = _ScopedShellSession(session_id="session-a")
         sandbox._client.shell.cleanup_session = MagicMock()
@@ -2423,9 +2423,9 @@ class TestNoChangeTimeout:
         expected_hard_timeout,
         expected_request_timeout,
     ):
-        from deerflow.community.aio_sandbox.aio_sandbox import AioSandbox
+        from operix.community.aio_sandbox.aio_sandbox import AioSandbox
 
-        with patch("deerflow.community.aio_sandbox.aio_sandbox.AioSandboxClient"):
+        with patch("operix.community.aio_sandbox.aio_sandbox.AioSandboxClient"):
             configured_sandbox = AioSandbox(
                 id="configured-timeout-sandbox",
                 base_url="http://localhost:8080",
@@ -2444,9 +2444,9 @@ class TestNoChangeTimeout:
 
     @pytest.mark.parametrize("invalid_timeout", [float("nan"), float("inf"), float("-inf"), 0, -1])
     def test_default_command_timeout_must_be_positive_and_finite(self, invalid_timeout):
-        from deerflow.community.aio_sandbox.aio_sandbox import AioSandbox
+        from operix.community.aio_sandbox.aio_sandbox import AioSandbox
 
-        with patch("deerflow.community.aio_sandbox.aio_sandbox.AioSandboxClient"):
+        with patch("operix.community.aio_sandbox.aio_sandbox.AioSandboxClient"):
             with pytest.raises(ValueError, match="default_command_timeout must be positive"):
                 AioSandbox(
                     id="invalid-timeout-sandbox",
@@ -2534,7 +2534,7 @@ class TestNoChangeTimeout:
         sandbox._client.shell.cleanup_session.assert_not_called()
 
     def test_hard_timeout_keeps_scoped_session(self, sandbox):
-        from deerflow.community.aio_sandbox.aio_sandbox import _ScopedShellSession
+        from operix.community.aio_sandbox.aio_sandbox import _ScopedShellSession
 
         calls = []
         sandbox._scoped_shell_sessions["scope"] = _ScopedShellSession(session_id="scoped-session")
@@ -2881,7 +2881,7 @@ class TestClose:
         assert sandbox._client is None
 
     def test_close_scoped_session_cleanup_uses_bounded_request(self, sandbox):
-        from deerflow.community.aio_sandbox.aio_sandbox import _ScopedShellSession
+        from operix.community.aio_sandbox.aio_sandbox import _ScopedShellSession
 
         sandbox._scoped_shell_sessions["scope-a"] = _ScopedShellSession(session_id="session-a")
         cleanup_session = MagicMock()

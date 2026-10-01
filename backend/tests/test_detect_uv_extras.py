@@ -15,7 +15,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 DETECT_SCRIPT_PATH = REPO_ROOT / "scripts" / "detect_uv_extras.py"
 
 
-spec = importlib.util.spec_from_file_location("deerflow_detect_uv_extras", DETECT_SCRIPT_PATH)
+spec = importlib.util.spec_from_file_location("operix_detect_uv_extras", DETECT_SCRIPT_PATH)
 assert spec is not None and spec.loader is not None
 detect = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(detect)
@@ -26,8 +26,8 @@ def isolated_cwd(tmp_path, monkeypatch):
     """Isolate `find_config_file()` from the real repo by chdir + clearing env."""
     monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("UV_EXTRAS", raising=False)
-    monkeypatch.delenv("DEER_FLOW_CONFIG_PATH", raising=False)
-    monkeypatch.delenv("DEER_FLOW_STREAM_BRIDGE_REDIS_URL", raising=False)
+    monkeypatch.delenv("OPERIX_CONFIG_PATH", raising=False)
+    monkeypatch.delenv("OPERIX_STREAM_BRIDGE_REDIS_URL", raising=False)
     return tmp_path
 
 
@@ -158,7 +158,7 @@ def test_detect_from_config_postgres_via_checkpointer(tmp_path):
 
 def test_detect_from_config_sqlite_returns_no_extras(tmp_path):
     cfg = tmp_path / "config.yaml"
-    cfg.write_text("database:\n  backend: sqlite\n  sqlite_dir: .deer-flow/data\n")
+    cfg.write_text("database:\n  backend: sqlite\n  sqlite_dir: .operix/data\n")
     assert detect.detect_from_config(cfg) == []
 
 
@@ -171,7 +171,7 @@ def test_detect_from_config_redis_via_stream_bridge(tmp_path):
 def test_detect_from_config_browser_via_browser_navigate_tool(tmp_path):
     cfg = tmp_path / "config.yaml"
     cfg.write_text(
-        "tools:\n  - name: browser_navigate\n    group: browser\n    use: deerflow.community.browser_automation.tools:browser_navigate_tool\n",
+        "tools:\n  - name: browser_navigate\n    group: browser\n    use: operix.community.browser_automation.tools:browser_navigate_tool\n",
     )
     assert detect.detect_from_config(cfg) == ["browser"]
 
@@ -197,7 +197,7 @@ def test_detect_from_config_ignores_commented_browser_tool(tmp_path):
 def test_detect_browser_name_after_other_fields(tmp_path, indent, first_key):
     """A tool mapping's field order must not change its required extras."""
     fields = {
-        "use": "deerflow.community.browser_automation.tools:browser_navigate_tool",
+        "use": "operix.community.browser_automation.tools:browser_navigate_tool",
         "group": "browser",
     }
     second_key = "group" if first_key == "use" else "use"
@@ -351,7 +351,7 @@ def test_detect_from_config_ignores_use_in_nested_model_mapping(tmp_path):
     """
     cfg = tmp_path / "config.yaml"
     cfg.write_text(
-        "models:\n  - name: doubao\n    use: deerflow.models.patched_deepseek:PatchedChatDeepSeek\n    when_thinking_enabled:\n      use: langchain_ollama:ChatOllama\n",
+        "models:\n  - name: doubao\n    use: operix.models.patched_deepseek:PatchedChatDeepSeek\n    when_thinking_enabled:\n      use: langchain_ollama:ChatOllama\n",
     )
     assert detect.detect_from_config(cfg) == []
 
@@ -397,7 +397,7 @@ def test_detect_from_config_ignores_use_in_nested_indentless_sequence(tmp_path):
     """A `- use:` item inside a model option is not that model's provider."""
     cfg = tmp_path / "config.yaml"
     cfg.write_text(
-        "models:\n- name: x\n  use: deerflow.models.patched_deepseek:PatchedChatDeepSeek\n  fallbacks:\n  - use: langchain_ollama:ChatOllama\n",
+        "models:\n- name: x\n  use: operix.models.patched_deepseek:PatchedChatDeepSeek\n  fallbacks:\n  - use: langchain_ollama:ChatOllama\n",
     )
     assert detect.detect_from_config(cfg) == []
 
@@ -455,13 +455,13 @@ def test_resolve_extras_env_supports_multiple(isolated_cwd, monkeypatch):
 
 
 def test_resolve_extras_detects_redis_url_env_without_config(isolated_cwd, monkeypatch):
-    monkeypatch.setenv("DEER_FLOW_STREAM_BRIDGE_REDIS_URL", "redis://redis:6379/0")
+    monkeypatch.setenv("OPERIX_STREAM_BRIDGE_REDIS_URL", "redis://redis:6379/0")
     assert detect.resolve_extras() == ["redis"]
 
 
 def test_resolve_extras_combines_uv_extras_with_redis_url_env(isolated_cwd, monkeypatch):
     monkeypatch.setenv("UV_EXTRAS", "postgres")
-    monkeypatch.setenv("DEER_FLOW_STREAM_BRIDGE_REDIS_URL", "redis://redis:6379/0")
+    monkeypatch.setenv("OPERIX_STREAM_BRIDGE_REDIS_URL", "redis://redis:6379/0")
     assert detect.resolve_extras() == ["postgres", "redis"]
 
 
@@ -475,7 +475,7 @@ def test_resolve_extras_respects_explicit_config_path(tmp_path, monkeypatch):
     elsewhere = tmp_path / "elsewhere.yaml"
     elsewhere.write_text("database:\n  backend: postgres\n")
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(elsewhere))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(elsewhere))
 
     assert detect.resolve_extras() == ["postgres"]
 

@@ -4,8 +4,8 @@ import json
 
 from langchain_core.messages import ToolMessage
 
-from deerflow.agents.thread_state import merge_tool_artifacts
-from deerflow.tools.artifact_registry import (
+from operix.agents.thread_state import merge_tool_artifacts
+from operix.tools.artifact_registry import (
     _detect_refs_in_text,
     extract_artifacts_from_result,
     generate_handle,

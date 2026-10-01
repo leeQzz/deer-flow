@@ -8,13 +8,13 @@ from fastapi import HTTPException
 from langchain_core.messages import BaseMessage, HumanMessage
 from pydantic import ValidationError
 
-from deerflow.knowledge_scope import (
+from operix.knowledge_scope import (
     KNOWLEDGE_SCOPE_KEY,
     canonicalize_knowledge_scope,
     execution_scope,
 )
 
-RAGFLOW_KNOWLEDGE_SEARCH_PROVIDER = "deerflow.community.ragflow.tools:knowledge_search_tool"
+RAGFLOW_KNOWLEDGE_SEARCH_PROVIDER = "operix.community.ragflow.tools:knowledge_search_tool"
 
 
 def assistant_supports_knowledge_scope(

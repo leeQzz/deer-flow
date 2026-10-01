@@ -15,11 +15,11 @@ from pydantic import BaseModel, Field
 from app.gateway.authz import require_permission, try_acquire_sandbox_for_request
 from app.gateway.deps import get_config
 from app.gateway.upload_ingestion import ThreadUploadIngestionService, UnsafeFilenameError, UnsafeUploadDestinationError
-from deerflow.config.app_config import AppConfig
-from deerflow.config.paths import get_paths
-from deerflow.runtime.user_context import get_effective_user_id
-from deerflow.sandbox.sandbox_provider import SandboxProvider, get_sandbox_provider
-from deerflow.uploads.manager import (
+from operix.config.app_config import AppConfig
+from operix.config.paths import get_paths
+from operix.runtime.user_context import get_effective_user_id
+from operix.sandbox.sandbox_provider import SandboxProvider, get_sandbox_provider
+from operix.uploads.manager import (
     UPLOAD_STAGING_PREFIX,
     UPLOAD_STAGING_SUFFIX,
     PathTraversalError,
@@ -37,9 +37,9 @@ from deerflow.uploads.manager import (
     upload_virtual_path,
     validate_path_traversal,
 )
-from deerflow.utils.file_conversion import CONVERTIBLE_EXTENSIONS, convert_file_to_markdown
-from deerflow.utils.file_io import run_file_io
-from deerflow.utils.thread_id import ThreadId
+from operix.utils.file_conversion import CONVERTIBLE_EXTENSIONS, convert_file_to_markdown
+from operix.utils.file_io import run_file_io
+from operix.utils.thread_id import ThreadId
 
 logger = logging.getLogger(__name__)
 

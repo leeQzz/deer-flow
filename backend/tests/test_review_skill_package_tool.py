@@ -1,8 +1,8 @@
 import json
 from types import SimpleNamespace
 
-from deerflow.skills.storage.local_skill_storage import LocalSkillStorage
-from deerflow.tools.builtins.review_skill_package_tool import review_skill_package
+from operix.skills.storage.local_skill_storage import LocalSkillStorage
+from operix.tools.builtins.review_skill_package_tool import review_skill_package
 
 
 def _runtime() -> SimpleNamespace:
@@ -33,7 +33,7 @@ def test_review_skill_package_inline_returns_review_subject_metadata():
     assert "review_subject_entry" in message.additional_kwargs
     assert "skill_context_entry" not in message.additional_kwargs
     assert payload["artifacts"][0]["untrusted_review_data"] is True
-    assert message.artifact["facts"]["schema_version"] == "deerflow.skill-review.facts.v1"
+    assert message.artifact["facts"]["schema_version"] == "operix.skill-review.facts.v1"
     assert "markdown" not in payload
     assert "markdown" in message.artifact
 
@@ -44,7 +44,7 @@ def test_review_skill_package_installed_skill_uses_storage_without_activation(mo
     (public_dir / "SKILL.md").write_text(_skill_content(), encoding="utf-8")
     storage = LocalSkillStorage(host_path=str(tmp_path), container_path="/mnt/skills")
 
-    monkeypatch.setattr("deerflow.tools.builtins.review_skill_package_tool.get_or_new_user_skill_storage", lambda user_id: storage)
+    monkeypatch.setattr("operix.tools.builtins.review_skill_package_tool.get_or_new_user_skill_storage", lambda user_id: storage)
 
     command = review_skill_package.func(
         target="skill://public/demo-skill",

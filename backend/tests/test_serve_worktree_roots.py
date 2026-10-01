@@ -1,4 +1,4 @@
-"""``scripts/serve.sh`` must discover every deer-flow worktree root verbatim.
+"""``scripts/serve.sh`` must discover every operix worktree root verbatim.
 
 ``DEERFLOW_ROOTS`` is the set of checkout roots whose dev-port holders
 ``make stop`` / ``make dev`` may reclaim. It is built from
@@ -6,7 +6,7 @@
 quoted, so a root containing whitespace must be taken as the whole remainder
 of the line — ``awk '{print $2}'`` keeps only the first word, and a sibling
 worktree at ``.../deer flow two`` was recorded as ``.../deer``, which
-``_is_deerflow_pid`` can never match.
+``_is_operix_pid`` can never match.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ SERVE_SH = REPO_ROOT / "scripts" / "serve.sh"
 pytestmark = pytest.mark.skipif(os.name == "nt", reason="exercises git worktree paths through a POSIX shell")
 
 
-def _extract_deerflow_roots_block() -> str:
+def _extract_operix_roots_block() -> str:
     text = SERVE_SH.read_text(encoding="utf-8")
     start = text.index('DEERFLOW_ROOTS="$(')
     chunks: list[str] = []
@@ -41,7 +41,7 @@ def _git(*args: str, cwd: Path) -> None:
 
 
 def _repo_with_spaced_worktree(tmp_path: Path) -> tuple[Path, Path]:
-    main = tmp_path / "deer-flow"
+    main = tmp_path / "operix"
     main.mkdir()
     _git("init", "-q", cwd=main)
     _git("-c", "user.email=t@example.com", "-c", "user.name=t", "commit", "-q", "--allow-empty", "-m", "init", cwd=main)
@@ -50,11 +50,11 @@ def _repo_with_spaced_worktree(tmp_path: Path) -> tuple[Path, Path]:
     return main.resolve(), linked.resolve()
 
 
-def _deerflow_roots(repo_root: Path) -> list[str]:
+def _operix_roots(repo_root: Path) -> list[str]:
     bash = require_script_bash()
     script = f"""
 REPO_ROOT={shlex.quote(str(repo_root))}
-{_extract_deerflow_roots_block()}
+{_extract_operix_roots_block()}
 printf '%s\\n' "$DEERFLOW_ROOTS"
 """
     result = subprocess.run([bash, "-c", script], check=True, capture_output=True, text=True)
@@ -64,7 +64,7 @@ printf '%s\\n' "$DEERFLOW_ROOTS"
 def test_worktree_root_with_spaces_is_kept_whole(tmp_path):
     main, linked = _repo_with_spaced_worktree(tmp_path)
 
-    roots = _deerflow_roots(main)
+    roots = _operix_roots(main)
 
     assert str(linked) in roots
     assert all(Path(root).is_dir() for root in roots), roots  # no truncated fragment such as ".../deer"
@@ -74,7 +74,7 @@ def test_worktree_root_with_spaces_is_kept_whole(tmp_path):
 def test_repo_root_with_spaces_is_listed_once(tmp_path):
     main, linked = _repo_with_spaced_worktree(tmp_path)
 
-    roots = _deerflow_roots(linked)  # the checkout we run from is itself the spaced path
+    roots = _operix_roots(linked)  # the checkout we run from is itself the spaced path
 
     assert roots.count(str(linked)) == 1
     assert set(roots) == {str(main), str(linked)}  # and no truncated fragment alongside them

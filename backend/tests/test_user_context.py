@@ -11,8 +11,8 @@ import pytest
 from langchain_core.runnables import RunnableLambda
 from langgraph.runtime import Runtime, ServerInfo
 
-from deerflow.config.paths import Paths, make_safe_user_id
-from deerflow.runtime.user_context import (
+from operix.config.paths import Paths, make_safe_user_id
+from operix.runtime.user_context import (
     DEFAULT_USER_ID,
     CurrentUser,
     get_current_user,

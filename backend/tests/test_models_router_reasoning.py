@@ -9,17 +9,17 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.gateway.routers import models as models_router
-from deerflow.config.app_config import AppConfig
-from deerflow.config.authorization_config import AuthorizationConfig
-from deerflow.config.model_config import ModelConfig
-from deerflow.config.sandbox_config import SandboxConfig
-from deerflow.config.token_usage_config import TokenUsageConfig
+from operix.config.app_config import AppConfig
+from operix.config.authorization_config import AuthorizationConfig
+from operix.config.model_config import ModelConfig
+from operix.config.sandbox_config import SandboxConfig
+from operix.config.token_usage_config import TokenUsageConfig
 
 
 def _app_config(models: list[ModelConfig]) -> AppConfig:
     return AppConfig(
         models=models,
-        sandbox=SandboxConfig(use="deerflow.sandbox.local:LocalSandboxProvider"),
+        sandbox=SandboxConfig(use="operix.sandbox.local:LocalSandboxProvider"),
         token_usage=TokenUsageConfig(enabled=False),
         authorization=AuthorizationConfig(),
     )
@@ -33,7 +33,7 @@ def _contract_model() -> ModelConfig:
     return ModelConfig(
         name="glm-5.3-flash",
         model="glm-5.3-flash",
-        use="deerflow.models.patched_deepseek:PatchedChatDeepSeek",
+        use="operix.models.patched_deepseek:PatchedChatDeepSeek",
         reasoning={
             "thinking": "required",
             "dialect": "openai_extra_body",

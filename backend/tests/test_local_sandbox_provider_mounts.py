@@ -5,8 +5,8 @@ from unittest.mock import patch
 
 import pytest
 
-from deerflow.sandbox.local.local_sandbox import LocalSandbox, PathMapping
-from deerflow.sandbox.local.local_sandbox_provider import LocalSandboxProvider
+from operix.sandbox.local.local_sandbox import LocalSandbox, PathMapping
+from operix.sandbox.local.local_sandbox_provider import LocalSandboxProvider
 
 
 def _symlink_to(target, link, *, target_is_directory=False):
@@ -159,7 +159,7 @@ class TestReadOnlyPath:
         source.parent.mkdir(parents=True)
         view.parent.mkdir(parents=True)
         source.write_text("ORIGINAL\n", encoding="utf-8")
-        from deerflow.skills.projection import _copy_into_view
+        from operix.skills.projection import _copy_into_view
 
         _copy_into_view(str(source), str(view))
         assert view.stat().st_ino != source.stat().st_ino
@@ -593,8 +593,8 @@ class TestMultipleMounts:
                 captured["command"] = args[0]
             return original_popen(*args, **kwargs)
 
-        monkeypatch.setattr("deerflow.sandbox.local.local_sandbox.subprocess.Popen", mock_popen)
-        monkeypatch.setattr("deerflow.sandbox.local.local_sandbox.LocalSandbox._get_shell", lambda self: "/bin/sh")
+        monkeypatch.setattr("operix.sandbox.local.local_sandbox.subprocess.Popen", mock_popen)
+        monkeypatch.setattr("operix.sandbox.local.local_sandbox.LocalSandbox._get_shell", lambda self: "/bin/sh")
 
         sandbox.execute_command("cat /mnt/data/test.txt")
         # Verify the command received the resolved local path
@@ -694,19 +694,19 @@ class TestLocalSandboxProviderMounts:
         provider = LocalSandboxProvider.__new__(LocalSandboxProvider)
 
         with patch(
-            "deerflow.sandbox.local.local_sandbox_provider.is_host_bash_allowed",
+            "operix.sandbox.local.local_sandbox_provider.is_host_bash_allowed",
             return_value=False,
         ):
             assert provider.supports_agent_skill_isolation is True
 
         with patch(
-            "deerflow.sandbox.local.local_sandbox_provider.is_host_bash_allowed",
+            "operix.sandbox.local.local_sandbox_provider.is_host_bash_allowed",
             return_value=True,
         ):
             assert provider.supports_agent_skill_isolation is False
 
     def test_thread_mappings_mount_per_user_integration_projections(self, tmp_path):
-        from deerflow.config.paths import Paths
+        from operix.config.paths import Paths
 
         paths = Paths(base_dir=tmp_path / "home")
         skills_dir = tmp_path / "skills"
@@ -716,13 +716,13 @@ class TestLocalSandboxProviderMounts:
             skills=SimpleNamespace(
                 container_path="/mnt/skills",
                 get_skills_path=lambda: skills_dir,
-                use="deerflow.skills.storage.local_skill_storage:LocalSkillStorage",
+                use="operix.skills.storage.local_skill_storage:LocalSkillStorage",
             )
         )
 
         with (
-            patch("deerflow.config.get_app_config", return_value=config),
-            patch("deerflow.config.paths.get_paths", return_value=paths),
+            patch("operix.config.get_app_config", return_value=config),
+            patch("operix.config.paths.get_paths", return_value=paths),
         ):
             alice = LocalSandboxProvider._build_thread_path_mappings("thread-a", user_id="alice")
             bob = LocalSandboxProvider._build_thread_path_mappings("thread-b", user_id="bob")
@@ -743,20 +743,20 @@ class TestLocalSandboxProviderMounts:
         custom_dir = tmp_path / "custom"
         custom_dir.mkdir()
 
-        from deerflow.config.sandbox_config import SandboxConfig, VolumeMountConfig
+        from operix.config.sandbox_config import SandboxConfig, VolumeMountConfig
 
         sandbox_config = SandboxConfig(
-            use="deerflow.sandbox.local:LocalSandboxProvider",
+            use="operix.sandbox.local:LocalSandboxProvider",
             mounts=[
                 VolumeMountConfig(host_path=str(custom_dir), container_path="/custom-skills/nested", read_only=False),
             ],
         )
         config = SimpleNamespace(
-            skills=SimpleNamespace(container_path="/custom-skills", get_skills_path=lambda: skills_dir, use="deerflow.skills.storage.local_skill_storage:LocalSkillStorage"),
+            skills=SimpleNamespace(container_path="/custom-skills", get_skills_path=lambda: skills_dir, use="operix.skills.storage.local_skill_storage:LocalSkillStorage"),
             sandbox=sandbox_config,
         )
 
-        with patch("deerflow.config.get_app_config", return_value=config):
+        with patch("operix.config.get_app_config", return_value=config):
             provider = LocalSandboxProvider()
 
         # Public skills are the only static skills mount; custom skills are
@@ -771,20 +771,20 @@ class TestLocalSandboxProviderMounts:
         public_dir = skills_dir / "public"
         public_dir.mkdir()
 
-        from deerflow.config.sandbox_config import SandboxConfig, VolumeMountConfig
+        from operix.config.sandbox_config import SandboxConfig, VolumeMountConfig
 
         sandbox_config = SandboxConfig(
-            use="deerflow.sandbox.local:LocalSandboxProvider",
+            use="operix.sandbox.local:LocalSandboxProvider",
             mounts=[
                 VolumeMountConfig(host_path="relative/path", container_path="/mnt/data", read_only=False),
             ],
         )
         config = SimpleNamespace(
-            skills=SimpleNamespace(container_path="/mnt/skills", get_skills_path=lambda: skills_dir, use="deerflow.skills.storage.local_skill_storage:LocalSkillStorage"),
+            skills=SimpleNamespace(container_path="/mnt/skills", get_skills_path=lambda: skills_dir, use="operix.skills.storage.local_skill_storage:LocalSkillStorage"),
             sandbox=sandbox_config,
         )
 
-        with patch("deerflow.config.get_app_config", return_value=config):
+        with patch("operix.config.get_app_config", return_value=config):
             provider = LocalSandboxProvider()
 
         # Public skills mount is static; custom skills are per-thread.
@@ -798,20 +798,20 @@ class TestLocalSandboxProviderMounts:
         custom_dir = tmp_path / "custom"
         custom_dir.mkdir()
 
-        from deerflow.config.sandbox_config import SandboxConfig, VolumeMountConfig
+        from operix.config.sandbox_config import SandboxConfig, VolumeMountConfig
 
         sandbox_config = SandboxConfig(
-            use="deerflow.sandbox.local:LocalSandboxProvider",
+            use="operix.sandbox.local:LocalSandboxProvider",
             mounts=[
                 VolumeMountConfig(host_path=str(custom_dir), container_path="mnt/data", read_only=False),
             ],
         )
         config = SimpleNamespace(
-            skills=SimpleNamespace(container_path="/mnt/skills", get_skills_path=lambda: skills_dir, use="deerflow.skills.storage.local_skill_storage:LocalSkillStorage"),
+            skills=SimpleNamespace(container_path="/mnt/skills", get_skills_path=lambda: skills_dir, use="operix.skills.storage.local_skill_storage:LocalSkillStorage"),
             sandbox=sandbox_config,
         )
 
-        with patch("deerflow.config.get_app_config", return_value=config):
+        with patch("operix.config.get_app_config", return_value=config):
             provider = LocalSandboxProvider()
 
         assert [m.container_path for m in provider._path_mappings] == ["/mnt/skills/public"]
@@ -832,21 +832,21 @@ class TestLocalSandboxProviderMounts:
         public_dir.mkdir()
         missing_host_path = tmp_path / "does-not-exist"
 
-        from deerflow.config.sandbox_config import SandboxConfig, VolumeMountConfig
+        from operix.config.sandbox_config import SandboxConfig, VolumeMountConfig
 
         sandbox_config = SandboxConfig(
-            use="deerflow.sandbox.local:LocalSandboxProvider",
+            use="operix.sandbox.local:LocalSandboxProvider",
             mounts=[
                 VolumeMountConfig(host_path=str(missing_host_path), container_path="/mnt/knowledge", read_only=True),
             ],
         )
         config = SimpleNamespace(
-            skills=SimpleNamespace(container_path="/mnt/skills", get_skills_path=lambda: skills_dir, use="deerflow.skills.storage.local_skill_storage:LocalSkillStorage"),
+            skills=SimpleNamespace(container_path="/mnt/skills", get_skills_path=lambda: skills_dir, use="operix.skills.storage.local_skill_storage:LocalSkillStorage"),
             sandbox=sandbox_config,
         )
 
-        with caplog.at_level("ERROR", logger="deerflow.sandbox.local.local_sandbox_provider"):
-            with patch("deerflow.config.get_app_config", return_value=config):
+        with caplog.at_level("ERROR", logger="operix.sandbox.local.local_sandbox_provider"):
+            with patch("operix.config.get_app_config", return_value=config):
                 provider = LocalSandboxProvider()
 
         # Silent-skip behaviour is preserved (no breaking change for existing deployments).
@@ -1038,20 +1038,20 @@ class TestLocalSandboxProviderMounts:
         custom_dir = tmp_path / "custom"
         custom_dir.mkdir()
 
-        from deerflow.config.sandbox_config import SandboxConfig, VolumeMountConfig
+        from operix.config.sandbox_config import SandboxConfig, VolumeMountConfig
 
         sandbox_config = SandboxConfig(
-            use="deerflow.sandbox.local:LocalSandboxProvider",
+            use="operix.sandbox.local:LocalSandboxProvider",
             mounts=[
                 VolumeMountConfig(host_path=str(custom_dir), container_path="/mnt/data/", read_only=False),
             ],
         )
         config = SimpleNamespace(
-            skills=SimpleNamespace(container_path="/mnt/skills", get_skills_path=lambda: skills_dir, use="deerflow.skills.storage.local_skill_storage:LocalSkillStorage"),
+            skills=SimpleNamespace(container_path="/mnt/skills", get_skills_path=lambda: skills_dir, use="operix.skills.storage.local_skill_storage:LocalSkillStorage"),
             sandbox=sandbox_config,
         )
 
-        with patch("deerflow.config.get_app_config", return_value=config):
+        with patch("operix.config.get_app_config", return_value=config):
             provider = LocalSandboxProvider()
 
         assert [m.container_path for m in provider._path_mappings] == ["/mnt/skills/public", "/mnt/data"]
@@ -1066,26 +1066,26 @@ class TestLocalSandboxProviderResetClearsSingleton:
     """
 
     def _build_config(self, skills_dir, mounts):
-        from deerflow.config.sandbox_config import SandboxConfig
+        from operix.config.sandbox_config import SandboxConfig
 
         sandbox_config = SandboxConfig(
-            use="deerflow.sandbox.local:LocalSandboxProvider",
+            use="operix.sandbox.local:LocalSandboxProvider",
             mounts=mounts,
         )
         return SimpleNamespace(
             skills=SimpleNamespace(
                 container_path="/mnt/skills",
                 get_skills_path=lambda: skills_dir,
-                use="deerflow.skills.storage.local_skill_storage:LocalSkillStorage",
+                use="operix.skills.storage.local_skill_storage:LocalSkillStorage",
             ),
             sandbox=sandbox_config,
         )
 
     def test_reset_sandbox_provider_clears_local_singleton(self, tmp_path):
-        from deerflow.config.sandbox_config import VolumeMountConfig
-        from deerflow.sandbox import local as local_module
-        from deerflow.sandbox.local import local_sandbox_provider as lsp_module
-        from deerflow.sandbox.sandbox_provider import (
+        from operix.config.sandbox_config import VolumeMountConfig
+        from operix.sandbox import local as local_module
+        from operix.sandbox.local import local_sandbox_provider as lsp_module
+        from operix.sandbox.sandbox_provider import (
             get_sandbox_provider,
             reset_sandbox_provider,
         )
@@ -1111,7 +1111,7 @@ class TestLocalSandboxProviderResetClearsSingleton:
         reset_sandbox_provider()
 
         try:
-            with patch("deerflow.sandbox.sandbox_provider.get_app_config", return_value=first_cfg), patch("deerflow.config.get_app_config", return_value=first_cfg):
+            with patch("operix.sandbox.sandbox_provider.get_app_config", return_value=first_cfg), patch("operix.config.get_app_config", return_value=first_cfg):
                 provider = get_sandbox_provider()
                 provider.acquire()
 
@@ -1124,7 +1124,7 @@ class TestLocalSandboxProviderResetClearsSingleton:
             # The whole point of the regression: reset must drop the cached LocalSandbox.
             assert lsp_module._singleton is None
 
-            with patch("deerflow.sandbox.sandbox_provider.get_app_config", return_value=second_cfg), patch("deerflow.config.get_app_config", return_value=second_cfg):
+            with patch("operix.sandbox.sandbox_provider.get_app_config", return_value=second_cfg), patch("operix.config.get_app_config", return_value=second_cfg):
                 provider2 = get_sandbox_provider()
                 provider2.acquire()
 
@@ -1141,9 +1141,9 @@ class TestLocalSandboxProviderResetClearsSingleton:
         assert hasattr(local_module.local_sandbox_provider, "_singleton")
 
     def test_shutdown_sandbox_provider_clears_local_singleton(self, tmp_path):
-        from deerflow.config.sandbox_config import VolumeMountConfig
-        from deerflow.sandbox.local import local_sandbox_provider as lsp_module
-        from deerflow.sandbox.sandbox_provider import (
+        from operix.config.sandbox_config import VolumeMountConfig
+        from operix.sandbox.local import local_sandbox_provider as lsp_module
+        from operix.sandbox.sandbox_provider import (
             get_sandbox_provider,
             reset_sandbox_provider,
             shutdown_sandbox_provider,
@@ -1163,7 +1163,7 @@ class TestLocalSandboxProviderResetClearsSingleton:
         reset_sandbox_provider()
 
         try:
-            with patch("deerflow.sandbox.sandbox_provider.get_app_config", return_value=cfg), patch("deerflow.config.get_app_config", return_value=cfg):
+            with patch("operix.sandbox.sandbox_provider.get_app_config", return_value=cfg), patch("operix.config.get_app_config", return_value=cfg):
                 provider = get_sandbox_provider()
                 provider.acquire()
 
@@ -1177,8 +1177,8 @@ class TestLocalSandboxProviderResetClearsSingleton:
             reset_sandbox_provider()
 
     def test_provider_reset_method_is_idempotent(self, tmp_path):
-        from deerflow.sandbox.local import local_sandbox_provider as lsp_module
-        from deerflow.sandbox.local.local_sandbox_provider import LocalSandboxProvider
+        from operix.sandbox.local import local_sandbox_provider as lsp_module
+        from operix.sandbox.local.local_sandbox_provider import LocalSandboxProvider
 
         skills_dir = tmp_path / "skills"
         skills_dir.mkdir()
@@ -1187,7 +1187,7 @@ class TestLocalSandboxProviderResetClearsSingleton:
         lsp_module._singleton = None
 
         try:
-            with patch("deerflow.config.get_app_config", return_value=cfg):
+            with patch("operix.config.get_app_config", return_value=cfg):
                 provider = LocalSandboxProvider()
                 provider.acquire()
             assert lsp_module._singleton is not None

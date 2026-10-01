@@ -30,7 +30,7 @@ def _install_capture(out_path: Path) -> None:
     from langchain_core.messages import messages_to_dict
     from replay_provider import caller_identity, hash_messages, hash_replay_input
 
-    import deerflow.models.factory as factory_mod
+    import operix.models.factory as factory_mod
 
     class Capture(BaseCallbackHandler):
         def __init__(self) -> None:
@@ -107,10 +107,10 @@ def main() -> int:
     cfg = home / "config.yaml"
     cfg.write_text(build_config_yaml(model_block=real_model_block(model), home=home), encoding="utf-8")
     # Override (not setdefault): the recorder must be hermetic, so an outer
-    # DEER_FLOW_HOME can't leak in and shift prompt-affecting paths/skills.
-    os.environ["DEER_FLOW_HOME"] = str(home)
-    os.environ["DEER_FLOW_CONFIG_PATH"] = str(cfg)
-    os.environ["DEER_FLOW_EXTENSIONS_CONFIG_PATH"] = str(prepare_hermetic_extras(home))
+    # OPERIX_HOME can't leak in and shift prompt-affecting paths/skills.
+    os.environ["OPERIX_HOME"] = str(home)
+    os.environ["OPERIX_CONFIG_PATH"] = str(cfg)
+    os.environ["OPERIX_EXTENSIONS_CONFIG_PATH"] = str(prepare_hermetic_extras(home))
     os.environ.setdefault("AUTH_JWT_SECRET", "record-secret")
     os.environ["PYTHONPATH"] = os.pathsep.join(p for p in (str(_BACKEND), str(_BACKEND / "tests"), os.environ.get("PYTHONPATH", "")) if p)
 

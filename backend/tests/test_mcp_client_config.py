@@ -4,8 +4,8 @@ import logging
 
 import pytest
 
-from deerflow.config.extensions_config import ExtensionsConfig, McpServerConfig
-from deerflow.mcp.client import build_server_params, build_servers_config
+from operix.config.extensions_config import ExtensionsConfig, McpServerConfig
+from operix.mcp.client import build_server_params, build_servers_config
 
 
 def test_build_server_params_stdio_success():
@@ -154,7 +154,7 @@ def test_build_servers_config_drops_only_the_server_with_an_illegal_header(caplo
         }
     )
 
-    with caplog.at_level(logging.ERROR, logger="deerflow.mcp.client"):
+    with caplog.at_level(logging.ERROR, logger="operix.mcp.client"):
         servers_config = build_servers_config(config)
 
     # One bad server does not take the others down with it, and the log that
@@ -167,7 +167,7 @@ def test_build_servers_config_drops_only_the_server_with_an_illegal_header(caplo
 def test_mcp_server_config_accepts_transport_alias(transport: str):
     """The MCP-spec ``transport`` field should be accepted as an alias for ``type``.
 
-    Regression test for https://github.com/bytedance/deer-flow/issues/3238 — a
+    Regression test for https://github.com/bytedance/operix/issues/3238 — a
     remote MCP server configured with only ``transport: sse`` was previously
     misidentified as ``stdio`` (the default for ``type``).
     """
@@ -264,7 +264,7 @@ def test_parallel_search_example_is_explicitly_opt_in_and_uses_anonymous_http_tr
     assert parallel["enabled"] is False
     assert parallel["type"] == "http"
     assert parallel["url"] == "https://search.parallel.ai/mcp"
-    assert parallel["headers"] == {"User-Agent": "deer-flow"}
+    assert parallel["headers"] == {"User-Agent": "operix"}
 
     config = ExtensionsConfig.model_validate(example)
     assert "parallel-search" not in build_servers_config(config)
@@ -273,5 +273,5 @@ def test_parallel_search_example_is_explicitly_opt_in_and_uses_anonymous_http_tr
     assert build_servers_config(config)["parallel-search"] == {
         "transport": "http",
         "url": "https://search.parallel.ai/mcp",
-        "headers": {"User-Agent": "deer-flow"},
+        "headers": {"User-Agent": "operix"},
     }

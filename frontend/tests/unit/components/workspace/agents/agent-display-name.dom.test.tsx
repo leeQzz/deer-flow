@@ -54,12 +54,12 @@ describe("custom agent display names", () => {
     render(<AgentSettingsDialog agent={agent} open onOpenChange={rs.fn()} />);
     const input = screen.getByLabelText("Display name");
     expect(input.hasAttribute("maxlength")).toBe(false);
-    fireEvent.change(input, { target: { value: "🦌".repeat(100) } });
+    fireEvent.change(input, { target: { value: "⚙".repeat(100) } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() =>
       expect(mutateAsync).toHaveBeenCalledWith(
         expect.objectContaining({
-          request: expect.objectContaining({ display_name: "🦌".repeat(100) }),
+          request: expect.objectContaining({ display_name: "⚙".repeat(100) }),
         }),
       ),
     );
@@ -68,7 +68,7 @@ describe("custom agent display names", () => {
   it("rejects 101 code points before saving", () => {
     render(<AgentSettingsDialog agent={agent} open onOpenChange={rs.fn()} />);
     fireEvent.change(screen.getByLabelText("Display name"), {
-      target: { value: "🦌".repeat(101) },
+      target: { value: "⚙".repeat(101) },
     });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(mutateAsync).not.toHaveBeenCalled();
@@ -94,14 +94,14 @@ describe("custom agent display names", () => {
   it("saves a display name using the stable identifier", async () => {
     render(<AgentSettingsDialog agent={agent} open onOpenChange={rs.fn()} />);
     fireEvent.change(screen.getByLabelText("Display name"), {
-      target: { value: "审查员 🦌" },
+      target: { value: "审查员 ⚙" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() =>
       expect(mutateAsync).toHaveBeenCalledWith(
         expect.objectContaining({
           name: "reviewer",
-          request: expect.objectContaining({ display_name: "审查员 🦌" }),
+          request: expect.objectContaining({ display_name: "审查员 ⚙" }),
         }),
       ),
     );

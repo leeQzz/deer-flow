@@ -8,12 +8,12 @@ import pytest
 from langchain_core.messages import AIMessage, ToolMessage
 from langgraph.types import Command
 
-from deerflow.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
-from deerflow.agents.middlewares.tool_output_budget_middleware import ToolOutputBudgetMiddleware
-from deerflow.config.app_config import AppConfig
-from deerflow.config.sandbox_config import SandboxConfig
-from deerflow.config.tool_output_config import ToolOutputConfig
-from deerflow.sandbox.read_file_contract import READ_FILE_NO_CONTENT_RESULTS
+from operix.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
+from operix.agents.middlewares.tool_output_budget_middleware import ToolOutputBudgetMiddleware
+from operix.config.app_config import AppConfig
+from operix.config.sandbox_config import SandboxConfig
+from operix.config.tool_output_config import ToolOutputConfig
+from operix.sandbox.read_file_contract import READ_FILE_NO_CONTENT_RESULTS
 
 
 def read_result(content, *, path="/mnt/skills/custom/report/SKILL.md", status="success", args=None, asynchronous=False):
@@ -208,7 +208,7 @@ def test_skill_read_inside_command_records_post_budget_snapshot(asynchronous, me
 
 
 @pytest.mark.parametrize("asynchronous", [False, True])
-@pytest.mark.parametrize("content,kwargs", [('{"error":"permission denied"}', {}), ("denied", {"deerflow_tool_meta": {"status": "error"}})])
+@pytest.mark.parametrize("content,kwargs", [('{"error":"permission denied"}', {}), ("denied", {"operix_tool_meta": {"status": "error"}})])
 def test_structured_read_failures_never_register_usage(asynchronous, content, kwargs):
     recorded = []
     request = SimpleNamespace(
@@ -225,6 +225,6 @@ def test_structured_read_failures_never_register_usage(asynchronous, content, kw
         result = asyncio.run(middleware.awrap_tool_call(request, handler))
     else:
         result = middleware.wrap_tool_call(request, lambda _: message)
-    assert result.additional_kwargs["deerflow_tool_meta"]["status"] == "error"
+    assert result.additional_kwargs["operix_tool_meta"]["status"] == "error"
     assert "skill_usage" not in result.additional_kwargs
     assert recorded == []

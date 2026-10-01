@@ -396,8 +396,8 @@ def test_allowed_users_filter_blocks_non_whitelisted_sender():
 
 def test_connect_code_bypasses_allowed_users_filter(tmp_path: Path):
     from app.channels.wechat import WechatChannel
-    from deerflow.persistence.channel_connections import ChannelConnectionRepository, ChannelCredentialCipher
-    from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
+    from operix.persistence.channel_connections import ChannelConnectionRepository, ChannelCredentialCipher
+    from operix.persistence.engine import close_engine, get_session_factory, init_engine
 
     async def go():
         from datetime import UTC, datetime, timedelta
@@ -410,7 +410,7 @@ def test_connect_code_bypasses_allowed_users_filter(tmp_path: Path):
             )
             code = "wechat-bind-code"
             await repo.create_oauth_state(
-                owner_user_id="deerflow-user-1",
+                owner_user_id="operix-user-1",
                 provider="wechat",
                 state=code,
                 expires_at=datetime.now(UTC) + timedelta(minutes=5),
@@ -441,7 +441,7 @@ def test_connect_code_bypasses_allowed_users_filter(tmp_path: Path):
                 }
             )
 
-            connections = await repo.list_connections("deerflow-user-1")
+            connections = await repo.list_connections("operix-user-1")
             assert len(connections) == 1
             assert connections[0]["provider"] == "wechat"
             assert connections[0]["external_account_id"] == "blocked-user"

@@ -6,12 +6,12 @@ from unittest.mock import MagicMock
 from langchain_core.messages import AIMessage, ToolMessage
 from langgraph.graph.message import add_messages
 
-from deerflow.agents.middlewares.token_usage_middleware import (
+from operix.agents.middlewares.token_usage_middleware import (
     TOKEN_USAGE_ATTRIBUTION_KEY,
     TokenUsageMiddleware,
     _build_todo_actions,
 )
-from deerflow.subagents.status_contract import SUBAGENT_TOKEN_USAGE_KEY
+from operix.subagents.status_contract import SUBAGENT_TOKEN_USAGE_KEY
 
 
 def _make_runtime():
@@ -43,7 +43,7 @@ class TestTokenUsageMiddleware:
 
         with caplog.at_level(
             logging.INFO,
-            logger="deerflow.agents.middlewares.token_usage_middleware",
+            logger="operix.agents.middlewares.token_usage_middleware",
         ):
             result = middleware.after_model({"messages": [message]}, _make_runtime())
 
@@ -66,7 +66,7 @@ class TestTokenUsageMiddleware:
 
         with caplog.at_level(
             logging.INFO,
-            logger="deerflow.agents.middlewares.token_usage_middleware",
+            logger="operix.agents.middlewares.token_usage_middleware",
         ):
             result = middleware.after_model({"messages": [message]}, _make_runtime())
 
@@ -90,7 +90,7 @@ class TestTokenUsageMiddleware:
 
         with caplog.at_level(
             logging.INFO,
-            logger="deerflow.agents.middlewares.token_usage_middleware",
+            logger="operix.agents.middlewares.token_usage_middleware",
         ):
             result = middleware.after_model({"messages": [message]}, _make_runtime())
 

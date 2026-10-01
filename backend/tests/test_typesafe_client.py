@@ -1,4 +1,4 @@
-"""Tests for the shared ``deerflow.typesafe`` client.
+"""Tests for the shared ``operix.typesafe`` client.
 
 The three provider suites pin the tool gate's behaviour *through* the client;
 these pin what the client adds on its own:
@@ -23,9 +23,9 @@ from collections.abc import AsyncIterator, Iterator
 import httpx
 import pytest
 
-from deerflow.guardrails.provider import GuardrailRequest
-from deerflow.guardrails.typesafe import TypeSafeGuardrailError, TypeSafeGuardrailProvider
-from deerflow.typesafe.client import (
+from operix.guardrails.provider import GuardrailRequest
+from operix.guardrails.typesafe import TypeSafeGuardrailError, TypeSafeGuardrailProvider
+from operix.typesafe.client import (
     CATEGORY_LABEL,
     CATEGORY_MISSING,
     CATEGORY_PROBABILITY,
@@ -39,8 +39,8 @@ from deerflow.typesafe.client import (
     TypeSafeClient,
     wire_size,
 )
-from deerflow.typesafe.connection import resolve_connection
-from deerflow.typesafe.errors import CAUSE_DEADLINE, CAUSE_INVALID_RESPONSE, TypeSafeError
+from operix.typesafe.connection import resolve_connection
+from operix.typesafe.errors import CAUSE_DEADLINE, CAUSE_INVALID_RESPONSE, TypeSafeError
 
 _API_KEY = "shared-client-test-key"
 _FIRST = "first_question"

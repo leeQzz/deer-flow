@@ -11,21 +11,21 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
 from app.gateway.authz import require_permission
 from app.gateway.deps import get_config
 from app.gateway.knowledge_scope_admission import assistant_supports_knowledge_scope
-from deerflow.community.ragflow.client import (
+from operix.community.ragflow.client import (
     RAGFlowAPIError,
     RAGFlowConnectionError,
     RAGFlowProtocolError,
 )
-from deerflow.community.ragflow.tools import (
+from operix.community.ragflow.tools import (
     build_ragflow_retrieval_client as _build_retrieval_client,
 )
-from deerflow.community.ragflow.tools import (
+from operix.community.ragflow.tools import (
     resolve_ragflow_datasets,
     resolve_ragflow_retrieval_settings,
 )
-from deerflow.config.agents_config import load_agent_config
-from deerflow.config.app_config import AppConfig
-from deerflow.runtime.user_context import get_effective_user_id
+from operix.config.agents_config import load_agent_config
+from operix.config.app_config import AppConfig
+from operix.runtime.user_context import get_effective_user_id
 
 logger = logging.getLogger(__name__)
 

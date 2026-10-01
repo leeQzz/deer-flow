@@ -33,7 +33,7 @@ for (const { debug, content, status, label } of [
   test(`generic tool details: ${label}`, async ({ page }) => {
     await page.addInitScript((enabled) => {
       localStorage.setItem(
-        "deerflow.local-settings",
+        "operix.local-settings",
         JSON.stringify({
           tokenUsage: {
             headerTotal: true,

@@ -22,8 +22,8 @@ success; failures print Compose status and recent Gateway logs.
 `deploy.sh` never sources the repo-root `.env`; Compose reads it via
 `--env-file`, and shell exports outrank that file during interpolation (an
 exported-but-empty variable still wins). So `BETTER_AUTH_SECRET` and
-`DEER_FLOW_INTERNAL_AUTH_TOKEN` resolve shell → `.env` → persisted file under
-`DEER_FLOW_HOME` → freshly generated, and a `.env`-provided value is left
+`OPERIX_INTERNAL_AUTH_TOKEN` resolve shell → `.env` → persisted file under
+`OPERIX_HOME` → freshly generated, and a `.env`-provided value is left
 unexported so Compose parses it itself. Whether `.env` provides one is
 Compose's answer, not a `KEY=VALUE` grep: Compose also accepts `KEY: VALUE`
 lines and interpolates `${VAR}` inside values, so the script renders a stub
@@ -38,18 +38,18 @@ from `.env`: that shadows Compose's own dotenv parsing and re-creates the bug
 where `make up` replaced the operator's secret with a generated one.
 `backend/tests/test_deploy_dotenv_secrets.py` pins the order and the probe;
 its real-Compose cases run against the installed `docker` CLI and against any
-standalone binaries listed in `DEER_FLOW_TEST_COMPOSE_BINARIES`.
+standalone binaries listed in `OPERIX_TEST_COMPOSE_BINARIES`.
 
 `doctor.py` checks the config file the Gateway would load, not a fixed
 `<checkout>/config.yaml`. It mirrors how `serve.sh` hands the two
 config-location variables to the Gateway: `.env` values for
-`DEER_FLOW_CONFIG_PATH` / `DEER_FLOW_PROJECT_ROOT` override the shell (other
+`OPERIX_CONFIG_PATH` / `OPERIX_PROJECT_ROOT` override the shell (other
 keys stay shell-first), an unquoted leading `~` in them expands as `source`
 does (a quoted one stays literal), and an unset or empty
-`DEER_FLOW_PROJECT_ROOT` becomes the checkout. It then asks the harness
+`OPERIX_PROJECT_ROOT` becomes the checkout. It then asks the harness
 (`AppConfig.resolve_config_path`) instead of re-implementing its order. An
-override the Gateway would reject (`DEER_FLOW_CONFIG_PATH` missing,
-`DEER_FLOW_PROJECT_ROOT` not a directory) fails `config.yaml found` with the
+override the Gateway would reject (`OPERIX_CONFIG_PATH` missing,
+`OPERIX_PROJECT_ROOT` not a directory) fails `config.yaml found` with the
 Gateway's error, and the config-dependent checks skip. Any failure to import
 the harness is reported, never raised: doctor diagnoses broken environments.
 Pinned by `backend/tests/test_doctor.py::TestMainConfigResolution`.
@@ -59,9 +59,9 @@ need not be on `PATH`.
 
 `config-upgrade.sh` upgrades the file the Gateway loads by asking the harness
 (`AppConfig.resolve_config_path`) rather than copying its lookup order. It
-defaults `DEER_FLOW_PROJECT_ROOT` to the checkout, as `serve.sh` does, so
+defaults `OPERIX_PROJECT_ROOT` to the checkout, as `serve.sh` does, so
 `<checkout>/config.yaml` wins over a legacy `backend/config.yaml`. A missing
-`DEER_FLOW_CONFIG_PATH` or invalid project root is an error, never a fallback.
+`OPERIX_CONFIG_PATH` or invalid project root is an error, never a fallback.
 Only "no config anywhere" creates `<checkout>/config.yaml` from the example.
 `backend/tests/test_config_version.py::test_config_upgrade_*` pins this.
 
@@ -106,9 +106,9 @@ consumed digest to `file_sha256` and remove it from the preapproval list.
 ## Backend Static Analysis Commands
 
 The root `detect-thread-boundaries` target statically inventories execution
-boundaries under `backend/app/` and `backend/packages/harness/deerflow/`. It
+boundaries under `backend/app/` and `backend/packages/harness/operix/`. It
 prints a concise count by execution domain and writes the complete, versioned
-JSON payload to `.deer-flow/thread-boundary-inventory.json`. Every finding has
+JSON payload to `.operix/thread-boundary-inventory.json`. Every finding has
 a stable `boundary_kind`: `asyncio_default_executor`, `dedicated_executor`,
 `anyio_worker_thread`, `direct_event_loop_blocking`, `separate_event_loop`, or
 `unresolved_dynamic_boundary`.
@@ -126,7 +126,7 @@ To supplement the static scan with configured runtime types, run:
 ```bash
 python scripts/detect_thread_boundaries.py \
   --runtime-config config.yaml \
-  --json-output .deer-flow/thread-boundary-inventory.json
+  --json-output .operix/thread-boundary-inventory.json
 ```
 
 Runtime inspection imports configured tool objects and model classes so it can
@@ -137,12 +137,12 @@ models, or call external services; import failures remain in the JSON as
 coverage live in `tests/support/detectors/thread_boundaries.py` and
 `tests/test_detect_thread_boundaries.py`.
 
-The `detect-blocking-io` target parses `app/`, `packages/harness/deerflow/`,
+The `detect-blocking-io` target parses `app/`, `packages/harness/operix/`,
 and `scripts/` with AST. By default it reports only blocking IO candidates that
 are inside async code, reachable from async code in the same file, or reachable
 from sync-only `AgentMiddleware` before/after hooks that LangGraph can execute
 on the async graph path. It prints a concise summary and writes complete JSON
-findings to `.deer-flow/blocking-io-findings.json` at the repository root
+findings to `.operix/blocking-io-findings.json` at the repository root
 (both `make detect-blocking-io` from the repo root and `cd backend && make
 detect-blocking-io` resolve to the same repo-root path). JSON findings include
 `priority`, `location`, `blocking_call`, `event_loop_exposure`, `reason`, and
@@ -244,9 +244,9 @@ Regression tests related to Docker/provisioner behavior:
 
 Blocking-IO runtime gate (`tests/blocking_io/`):
 - Wraps every item under `tests/blocking_io/` with a strict Blockbuster
-  context scoped to `app.*` and `deerflow.*` (see
+  context scoped to `app.*` and `operix.*` (see
   `tests/support/detectors/blocking_io_runtime.py`). Any sync blocking IO
-  call whose stack passes through DeerFlow business code while running on
+  call whose stack passes through Operix business code while running on
   the asyncio event loop raises `BlockingError` and fails the test.
 - Regression anchors live there: `test_skills_load.py` (locks the
   `asyncio.to_thread` offload around `LocalSkillStorage.load_skills`, fix
@@ -285,7 +285,7 @@ Blocking-IO runtime gate (`tests/blocking_io/`):
   hard-fail.
 
 Boundary check (harness → app import firewall):
-- `tests/test_harness_boundary.py` — ensures `packages/harness/deerflow/` never imports from `app.*`
+- `tests/test_harness_boundary.py` — ensures `packages/harness/operix/` never imports from `app.*`
 
 Memory backend async boundary:
 - `MemoryMiddleware.aafter_agent` calls `MemoryManager.aadd`; network-backed

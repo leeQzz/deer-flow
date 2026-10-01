@@ -90,7 +90,7 @@ export function WorkspaceNavMenu() {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <a
-                    href="https://deerflow.tech/"
+                    href="https://operix.tech/"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -100,7 +100,7 @@ export function WorkspaceNavMenu() {
                     </DropdownMenuItem>
                   </a>
                   <a
-                    href="https://github.com/bytedance/deer-flow"
+                    href="https://github.com/bytedance/operix"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -111,7 +111,7 @@ export function WorkspaceNavMenu() {
                   </a>
                   <DropdownMenuSeparator />
                   <a
-                    href="https://github.com/bytedance/deer-flow/issues"
+                    href="https://github.com/bytedance/operix/issues"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -120,7 +120,7 @@ export function WorkspaceNavMenu() {
                       {t.workspace.reportIssue}
                     </DropdownMenuItem>
                   </a>
-                  <a href="mailto:support@deerflow.tech">
+                  <a href="mailto:support@operix.tech">
                     <DropdownMenuItem>
                       <MailIcon />
                       {t.workspace.contactUs}

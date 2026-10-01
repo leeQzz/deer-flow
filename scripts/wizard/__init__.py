@@ -1,1 +1,1 @@
-# DeerFlow Setup Wizard package
+# Operix Setup Wizard package

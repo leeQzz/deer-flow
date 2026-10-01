@@ -12,7 +12,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.outputs import ChatGeneration, LLMResult
 
-from deerflow.runtime.events.catalog import (
+from operix.runtime.events.catalog import (
     FIXED_RUN_EVENT_DEFINITIONS,
     JOURNAL_RUN_EVENT_DEFINITIONS,
     MIDDLEWARE_EVENT_PATTERN,
@@ -27,9 +27,9 @@ from deerflow.runtime.events.catalog import (
     RunEventDefinition,
     RunEventPattern,
 )
-from deerflow.runtime.events.store.memory import MemoryRunEventStore
-from deerflow.runtime.journal import RunJournal
-from deerflow.subagents.step_events import SUBAGENT_STEP_MAX_CHARS, capture_step_message, subagent_run_event
+from operix.runtime.events.store.memory import MemoryRunEventStore
+from operix.runtime.journal import RunJournal
+from operix.subagents.step_events import SUBAGENT_STEP_MAX_CHARS, capture_step_message, subagent_run_event
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONTRACT_PATH = REPO_ROOT / "contracts" / "run_event_stream_contract.json"
@@ -78,7 +78,7 @@ def _subagent_batch() -> list[dict]:
             "message": {
                 "type": "ai",
                 "content": "searching",
-                "tool_calls": [{"name": "web_search", "args": {"query": "deerflow"}}],
+                "tool_calls": [{"name": "web_search", "args": {"query": "operix"}}],
             },
             "message_index": 1,
         },
@@ -127,7 +127,7 @@ def test_contract_and_runtime_catalog_have_the_same_fixed_events():
     assert middleware_pattern["event_type_schema"]["maxLength"] == RUN_EVENT_TYPE_MAX_LENGTH
     assert middleware_pattern["tag_schema"]["maxLength"] == MIDDLEWARE_EVENT_TAG_MAX_LENGTH
 
-    from deerflow.persistence.models.run_event import RunEventRow
+    from operix.persistence.models.run_event import RunEventRow
 
     assert RunEventRow.__table__.c.event_type.type.length == RUN_EVENT_TYPE_MAX_LENGTH
     assert RunEventRow.__table__.c.category.type.length == RUN_EVENT_CATEGORY_MAX_LENGTH
@@ -156,12 +156,12 @@ def test_runtime_catalog_rejects_categories_that_do_not_fit_persistence(definiti
     ],
 )
 def test_lower_level_run_event_modules_do_not_import_runtime(relative_path):
-    module_path = REPO_ROOT / "backend" / "packages" / "harness" / "deerflow" / relative_path
+    module_path = REPO_ROOT / "backend" / "packages" / "harness" / "operix" / relative_path
     tree = ast.parse(module_path.read_text(encoding="utf-8"), filename=str(module_path))
     imports = [node.module for node in ast.walk(tree) if isinstance(node, ast.ImportFrom) and node.module is not None]
     imports.extend(alias.name for node in ast.walk(tree) if isinstance(node, ast.Import) for alias in node.names)
 
-    assert not [module for module in imports if module == "deerflow.runtime" or module.startswith("deerflow.runtime.")]
+    assert not [module for module in imports if module == "operix.runtime" or module.startswith("operix.runtime.")]
 
 
 def test_legacy_aliases_are_read_only_and_outside_the_current_catalog():
@@ -212,7 +212,7 @@ async def test_non_database_stores_return_contract_records(backend, tmp_path):
     if backend == "memory":
         store = MemoryRunEventStore()
     else:
-        from deerflow.runtime.events.store.jsonl import JsonlRunEventStore
+        from operix.runtime.events.store.jsonl import JsonlRunEventStore
 
         store = JsonlRunEventStore(base_dir=tmp_path / "events")
 
@@ -231,8 +231,8 @@ async def test_non_database_stores_return_contract_records(backend, tmp_path):
 
 @pytest.mark.anyio
 async def test_database_store_returns_contract_record_with_backend_fields(tmp_path):
-    from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-    from deerflow.runtime.events.store.db import DbRunEventStore
+    from operix.persistence.engine import close_engine, get_session_factory, init_engine
+    from operix.runtime.events.store.db import DbRunEventStore
 
     url = f"sqlite+aiosqlite:///{tmp_path / 'events.db'}"
     await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -256,9 +256,9 @@ async def test_database_store_returns_contract_record_with_backend_fields(tmp_pa
 
 @pytest.mark.anyio
 async def test_run_end_backend_storage_semantics_match_contract(tmp_path):
-    from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-    from deerflow.runtime.events.store.db import DbRunEventStore
-    from deerflow.runtime.events.store.jsonl import JsonlRunEventStore
+    from operix.persistence.engine import close_engine, get_session_factory, init_engine
+    from operix.runtime.events.store.db import DbRunEventStore
+    from operix.runtime.events.store.jsonl import JsonlRunEventStore
 
     contract_event = _contract_events()["run.end"]
     assert set(contract_event["storage_semantics"]) == {"memory", "jsonl", "database"}
@@ -398,7 +398,7 @@ def test_subagent_observed_events_exactly_match_its_catalog_and_payloads():
             "message": {
                 "type": "ai",
                 "content": "searching",
-                "tool_calls": [{"name": "web_search", "args": {"query": "deerflow"}}],
+                "tool_calls": [{"name": "web_search", "args": {"query": "operix"}}],
             },
             "message_index": 1,
         },
@@ -460,7 +460,7 @@ def test_captured_subagent_message_survives_task_running_conversion():
         AIMessage(
             content="searching",
             id="ai-step-1",
-            tool_calls=[{"id": "call-1", "name": "web_search", "args": {"query": "deerflow"}}],
+            tool_calls=[{"id": "call-1", "name": "web_search", "args": {"query": "operix"}}],
         ),
         captured,
         set(),
@@ -480,7 +480,7 @@ def test_captured_subagent_message_survives_task_running_conversion():
     assert event["content"]["task_id"] == "task-1"
     assert event["content"]["message_index"] == 0
     assert event["content"]["text"] == "searching"
-    assert event["content"]["tool_calls"] == [{"name": "web_search", "args": {"query": "deerflow"}}]
+    assert event["content"]["tool_calls"] == [{"name": "web_search", "args": {"query": "operix"}}]
     _assert_fixed_event_valid(event)
 
 
@@ -507,7 +507,7 @@ async def test_subagent_batch_round_trip_matches_contract_for_non_database_store
     if backend == "memory":
         store = MemoryRunEventStore()
     else:
-        from deerflow.runtime.events.store.jsonl import JsonlRunEventStore
+        from operix.runtime.events.store.jsonl import JsonlRunEventStore
 
         store = JsonlRunEventStore(base_dir=tmp_path / "subagent-events")
 
@@ -520,8 +520,8 @@ async def test_subagent_batch_round_trip_matches_contract_for_non_database_store
 
 @pytest.mark.anyio
 async def test_subagent_batch_round_trip_matches_contract_for_database_store(tmp_path):
-    from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
-    from deerflow.runtime.events.store.db import DbRunEventStore
+    from operix.persistence.engine import close_engine, get_session_factory, init_engine
+    from operix.runtime.events.store.db import DbRunEventStore
 
     url = f"sqlite+aiosqlite:///{tmp_path / 'subagent-events.db'}"
     await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -537,8 +537,8 @@ async def test_subagent_batch_round_trip_matches_contract_for_database_store(tmp
 
 @pytest.mark.anyio
 async def test_workspace_change_producer_matches_catalog_and_payload(monkeypatch, tmp_path):
-    from deerflow.workspace_changes import WorkspaceRoot, scan_workspace_roots
-    from deerflow.workspace_changes import recorder as recorder_module
+    from operix.workspace_changes import WorkspaceRoot, scan_workspace_roots
+    from operix.workspace_changes import recorder as recorder_module
 
     workspace = tmp_path / "workspace"
     outputs = tmp_path / "outputs"

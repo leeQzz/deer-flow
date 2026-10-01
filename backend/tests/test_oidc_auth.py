@@ -9,14 +9,14 @@ from fastapi import HTTPException
 from app.gateway.auth.models import User
 from app.gateway.auth.oidc import OIDCError, OIDCIdentity, OIDCMetadata, OIDCService, OIDCValidationError
 from app.gateway.auth.user_provisioning import get_or_provision_oidc_user
-from deerflow.config.auth_config import OIDCProviderConfig
+from operix.config.auth_config import OIDCProviderConfig
 
 
 def _provider_config(**overrides):
     return OIDCProviderConfig(
         display_name="Test SSO",
         issuer="https://issuer.example.com",
-        client_id="deer-flow",
+        client_id="operix",
         **overrides,
     )
 
@@ -131,10 +131,10 @@ async def test_oidc_validate_id_token_refreshes_jwks_once_on_kid_miss(monkeypatc
     monkeypatch.setattr("app.gateway.auth.oidc.jwt.get_unverified_header", lambda token: {"kid": "new-kid", "alg": "RS256"})
     monkeypatch.setattr(
         "app.gateway.auth.oidc.jwt.decode",
-        lambda *args, **kwargs: {"iss": metadata.issuer, "sub": "subject", "aud": "deer-flow", "exp": 9999999999},
+        lambda *args, **kwargs: {"iss": metadata.issuer, "sub": "subject", "aud": "operix", "exp": 9999999999},
     )
 
-    claims = await service.validate_id_token(metadata, "deer-flow", "id-token")
+    claims = await service.validate_id_token(metadata, "operix", "id-token")
 
     assert claims["sub"] == "subject"
     assert load_calls == [False, True]
@@ -168,7 +168,7 @@ async def test_oidc_validate_id_token_rejects_hmac_algorithms(monkeypatch):
     monkeypatch.setattr("app.gateway.auth.oidc.jwt.decode", decode)
 
     with pytest.raises(OIDCValidationError, match="unsupported algorithm"):
-        await service.validate_id_token(metadata, "deer-flow", "id-token")
+        await service.validate_id_token(metadata, "operix", "id-token")
 
     await service.close()
 
@@ -257,7 +257,7 @@ async def test_oidc_authenticate_callback_treats_string_false_email_verified_as_
     identity = await service.authenticate_callback(
         provider_id="keycloak",
         metadata=metadata,
-        client_id="deer-flow",
+        client_id="operix",
         client_secret=None,
         code="code",
         redirect_uri="https://app.example.com/callback",
@@ -417,7 +417,7 @@ def test_oidc_callback_rejects_non_ascii_state_as_mismatch(monkeypatch):
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
 
-    import deerflow.config.app_config as app_config_module
+    import operix.config.app_config as app_config_module
     from app.gateway.auth.config import AuthConfig, get_auth_config, set_auth_config
     from app.gateway.auth.oidc_state import OIDCStatePayload, _sign_state_payload
     from app.gateway.routers import auth as auth_router
@@ -461,7 +461,7 @@ def _service_with_signing_key() -> tuple[OIDCService, object]:
 def _id_token(private_key, nonce: str) -> str:
     now = int(time.time())
     return jwt.encode(
-        {"iss": "https://issuer.example.com", "aud": "deer-flow", "sub": "s1", "exp": now + 300, "iat": now, "nonce": nonce},
+        {"iss": "https://issuer.example.com", "aud": "operix", "sub": "s1", "exp": now + 300, "iat": now, "nonce": nonce},
         private_key,
         algorithm="RS256",
         headers={"kid": "k1"},
@@ -477,7 +477,7 @@ async def test_id_token_nonce_mismatch_with_non_ascii_is_rejected_not_a_type_err
     service, private_key = _service_with_signing_key()
 
     with pytest.raises(OIDCValidationError, match="nonce does not match"):
-        await service.validate_id_token(metadata=_metadata(), client_id="deer-flow", id_token=_id_token(private_key, "nònce-é"), nonce="expected")
+        await service.validate_id_token(metadata=_metadata(), client_id="operix", id_token=_id_token(private_key, "nònce-é"), nonce="expected")
 
 
 @pytest.mark.asyncio
@@ -485,7 +485,7 @@ async def test_id_token_nonce_match_with_non_ascii_is_accepted():
     """A matching non-ASCII nonce keeps its bytes: equality survives the comparison."""
     service, private_key = _service_with_signing_key()
 
-    claims = await service.validate_id_token(metadata=_metadata(), client_id="deer-flow", id_token=_id_token(private_key, "nònce-é"), nonce="nònce-é")
+    claims = await service.validate_id_token(metadata=_metadata(), client_id="operix", id_token=_id_token(private_key, "nònce-é"), nonce="nònce-é")
 
     assert claims["nonce"] == "nònce-é"
 
@@ -499,4 +499,4 @@ async def test_id_token_nonce_claim_of_non_string_type_is_rejected_not_an_attrib
     service, private_key = _service_with_signing_key()
 
     with pytest.raises(OIDCValidationError, match="nonce claim is not a string"):
-        await service.validate_id_token(metadata=_metadata(), client_id="deer-flow", id_token=_id_token(private_key, 12345), nonce="expected")
+        await service.validate_id_token(metadata=_metadata(), client_id="operix", id_token=_id_token(private_key, 12345), nonce="expected")

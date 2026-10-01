@@ -16,10 +16,10 @@ from pydantic import ValidationError
 
 from app.gateway.authz import AuthContext
 from app.gateway.run_models import RunCreateRequest
-from deerflow.config.app_config import AppConfig
-from deerflow.persistence.thread_meta.memory import MemoryThreadMetaStore
-from deerflow.runtime.events.store.memory import MemoryRunEventStore
-from deerflow.runtime.runs.manager import EditReplayVisibility
+from operix.config.app_config import AppConfig
+from operix.persistence.thread_meta.memory import MemoryThreadMetaStore
+from operix.runtime.events.store.memory import MemoryRunEventStore
+from operix.runtime.runs.manager import EditReplayVisibility
 
 
 def _setup(*, user_id="alice", permissions=("runs:read",), enabled=True, tool_output=None):
@@ -27,13 +27,13 @@ def _setup(*, user_id="alice", permissions=("runs:read",), enabled=True, tool_ou
 
     config = AppConfig.model_validate(
         {
-            "sandbox": {"use": "deerflow.sandbox.local:LocalSandboxProvider"},
-            "tools": [{"name": "read_conversation", "group": "conversation", "use": "deerflow.tools.conversation:read_conversation"}] if enabled else [],
+            "sandbox": {"use": "operix.sandbox.local:LocalSandboxProvider"},
+            "tools": [{"name": "read_conversation", "group": "conversation", "use": "operix.tools.conversation:read_conversation"}] if enabled else [],
             **({"tool_output": tool_output} if tool_output is not None else {}),
         }
     )
     user = SimpleNamespace(id=user_id, system_role="admin")
-    request = SimpleNamespace(state=SimpleNamespace(auth=AuthContext(user, list(permissions))), url="https://deerflow.example/api/threads/current/runs")
+    request = SimpleNamespace(state=SimpleNamespace(auth=AuthContext(user, list(permissions))), url="https://operix.example/api/threads/current/runs")
     events = MemoryRunEventStore()
     threads = MemoryThreadMetaStore(InMemoryStore())
     manager = AsyncMock()
@@ -69,10 +69,10 @@ def test_reference_field_is_explicit_and_bounded():
 def test_only_explicit_references_grant_access_and_urls_are_local_selectors():
     prepare, _, _, _, _ = _setup()
     assert prepare([]) is None
-    reader, ids = prepare(["https://deerflow.example/workspace/chats/source", "source"])
+    reader, ids = prepare(["https://operix.example/workspace/chats/source", "source"])
     assert callable(reader)
     assert ids == ("source",)
-    for bad in ("../source", "https://other.example/workspace/chats/source", "https://deerflow.example/not-a-chat/source", "file:///workspace/chats/source"):
+    for bad in ("../source", "https://other.example/workspace/chats/source", "https://operix.example/not-a-chat/source", "file:///workspace/chats/source"):
         with pytest.raises(HTTPException) as exc:
             prepare([bad])
         assert exc.value.status_code == 422
@@ -162,8 +162,8 @@ def test_start_run_installs_fresh_capability_without_persisting_it(monkeypatch):
     from test_gateway_services import _make_start_run_persistence_context
 
     from app.gateway import services
-    from deerflow.config.app_config import reset_app_config, set_app_config
-    from deerflow.runtime.user_context import reset_current_user, set_current_user
+    from operix.config.app_config import reset_app_config, set_app_config
+    from operix.runtime.user_context import reset_current_user, set_current_user
 
     async def exercise():
         request, _, threads = _make_start_run_persistence_context()
@@ -171,7 +171,7 @@ def test_start_run_installs_fresh_capability_without_persisting_it(monkeypatch):
         request.state.user = user
         request.state.auth = AuthContext(user, ["runs:create", "runs:read"])
         request.state.auth_source = "session"
-        request.url = "https://deerflow.example/api/threads/current/runs"
+        request.url = "https://operix.example/api/threads/current/runs"
         await threads.create("source", user_id="alice")
         captured = []
 
@@ -208,7 +208,7 @@ def test_start_run_installs_fresh_capability_without_persisting_it(monkeypatch):
             await services.start_run(body, "idempotent", request, idempotency_key="ref-key")
         assert conflict.value.status_code == 409
 
-    set_app_config(AppConfig.model_validate({"sandbox": {"use": "deerflow.sandbox.local:LocalSandboxProvider"}, "tools": [{"name": "read_conversation", "group": "conversation", "use": "deerflow.tools.conversation:read_conversation"}]}))
+    set_app_config(AppConfig.model_validate({"sandbox": {"use": "operix.sandbox.local:LocalSandboxProvider"}, "tools": [{"name": "read_conversation", "group": "conversation", "use": "operix.tools.conversation:read_conversation"}]}))
     user_token = set_current_user(SimpleNamespace(id="alice"))
     try:
         asyncio.run(exercise())

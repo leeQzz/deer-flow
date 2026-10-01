@@ -230,7 +230,7 @@ class TestResolveAttachments:
         (also used by the artifact editor) is exercised end to end.
         """
         from app.channels.manager import _resolve_attachments
-        from deerflow.config.paths import Paths
+        from operix.config.paths import Paths
 
         paths = Paths(tmp_path)
         outputs_dir = paths.sandbox_outputs_dir("t1", user_id="owner-1")
@@ -295,7 +295,7 @@ class TestInboundFileIngestion:
             files=[{"type": "file", "filename": "report.pdf", "_content": b"pdf bytes"}],
         )
 
-        with patch("deerflow.uploads.manager.ensure_uploads_dir", return_value=uploads_dir):
+        with patch("operix.uploads.manager.ensure_uploads_dir", return_value=uploads_dir):
             result = _run(manager._ingest_inbound_files("thread-1", msg))
 
         assert result == [
@@ -329,7 +329,7 @@ class TestInboundFileIngestion:
             return b"attacker data"
 
         with (
-            patch("deerflow.uploads.manager.ensure_uploads_dir", return_value=uploads_dir),
+            patch("operix.uploads.manager.ensure_uploads_dir", return_value=uploads_dir),
             patch.dict(manager.INBOUND_FILE_READERS, {"test-channel": fake_reader}, clear=False),
         ):
             result = _run(manager._ingest_inbound_files("thread-1", msg))
@@ -358,7 +358,7 @@ class TestInboundFileIngestion:
             return b"attacker data"
 
         with (
-            patch("deerflow.uploads.manager.ensure_uploads_dir", return_value=uploads_dir),
+            patch("operix.uploads.manager.ensure_uploads_dir", return_value=uploads_dir),
             patch.dict(manager.INBOUND_FILE_READERS, {"test-channel": fake_reader}, clear=False),
         ):
             result = _run(manager._ingest_inbound_files("thread-1", msg))
@@ -388,7 +388,7 @@ class TestInboundFileIngestion:
             return b"new attachment data"
 
         with (
-            patch("deerflow.uploads.manager.ensure_uploads_dir", return_value=uploads_dir),
+            patch("operix.uploads.manager.ensure_uploads_dir", return_value=uploads_dir),
             patch.dict(manager.INBOUND_FILE_READERS, {"test-channel": fake_reader}, clear=False),
         ):
             result = _run(manager._ingest_inbound_files("thread-1", msg))
@@ -559,7 +559,7 @@ class TestInboundFileSandboxPerms:
             files=[{"type": "image", "filename": "photo.jpg", "_content": b"\x89PNG data"}],
         )
 
-        with patch("deerflow.uploads.manager.ensure_uploads_dir", return_value=uploads_dir):
+        with patch("operix.uploads.manager.ensure_uploads_dir", return_value=uploads_dir):
             _run(manager._ingest_inbound_files("thread-1", msg))
 
         dest = uploads_dir / "photo.jpg"
@@ -573,7 +573,7 @@ class TestInboundFileSandboxPerms:
         from io import BytesIO
 
         from app.channels.feishu import FeishuChannel
-        from deerflow.config.paths import Paths
+        from operix.config.paths import Paths
 
         monkeypatch.setattr("app.channels.feishu.get_paths", lambda: Paths(str(tmp_path)))
         monkeypatch.setattr("app.channels.feishu.get_sandbox_provider", _MountedProvider)
@@ -617,7 +617,7 @@ class TestInboundFileSandboxPerms:
         from unittest.mock import AsyncMock
 
         from app.channels.dingtalk import DingTalkChannel
-        from deerflow.config.paths import Paths
+        from operix.config.paths import Paths
 
         monkeypatch.setattr("app.channels.dingtalk.get_paths", lambda: Paths(str(tmp_path)))
         monkeypatch.setattr("app.channels.dingtalk.get_sandbox_provider", _MountedProvider)
@@ -859,7 +859,7 @@ class TestManagerArtifactResolution:
 
         # Basic smoke test: empty artifacts returns empty list
         mock_paths = MagicMock()
-        with patch("deerflow.config.paths.get_paths", return_value=mock_paths):
+        with patch("operix.config.paths.get_paths", return_value=mock_paths):
             result = _resolve_attachments("t1", [])
         assert result == []
 
@@ -1144,7 +1144,7 @@ class TestWecomMediaUrlGate:
         import httpx
 
         from app.channels import manager
-        from deerflow.logging_config import UrlRedactionFilter, install_url_log_redaction
+        from operix.logging_config import UrlRedactionFilter, install_url_log_redaction
 
         class _AsyncBody(httpx.AsyncByteStream):
             async def __aiter__(self):
@@ -1183,7 +1183,7 @@ class TestWecomMediaUrlGate:
         import httpx
 
         from app.channels.wechat import WechatChannel
-        from deerflow.logging_config import install_url_log_redaction
+        from operix.logging_config import install_url_log_redaction
 
         class _AsyncBody(httpx.AsyncByteStream):
             async def __aiter__(self):
@@ -1242,7 +1242,7 @@ class TestWecomMediaUrlGate:
                     files=[{"url": secret_url}],
                 )
                 with (
-                    patch("deerflow.uploads.manager.ensure_uploads_dir", return_value=uploads_dir),
+                    patch("operix.uploads.manager.ensure_uploads_dir", return_value=uploads_dir),
                     patch.dict(manager.INBOUND_FILE_READERS, {"test-channel": reader}, clear=False),
                 ):
                     assert _run(manager._ingest_inbound_files("thread-1", msg)) == []
@@ -1293,7 +1293,7 @@ class TestWecomMediaUrlGate:
         )
 
         with caplog.at_level(_logging.WARNING, logger="app.channels.manager"):
-            with patch("deerflow.uploads.manager.ensure_uploads_dir", return_value=uploads_dir):
+            with patch("operix.uploads.manager.ensure_uploads_dir", return_value=uploads_dir):
                 assert _run(manager._ingest_inbound_files("thread-1", msg)) == []
 
         assert "BearerSecret" not in caplog.text

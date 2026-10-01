@@ -16,10 +16,10 @@ from app.gateway import services
 from app.gateway.auth.models import User
 from app.gateway.routers import thread_runs
 from app.gateway.run_models import RunCreateRequest
-from deerflow.config.app_config import AppConfig, reset_app_config, set_app_config
-from deerflow.runtime import DisconnectMode, RunManager, RunRecord, RunStatus
-from deerflow.runtime.events.store.memory import MemoryRunEventStore
-from deerflow.runtime.runs.store.memory import MemoryRunStore
+from operix.config.app_config import AppConfig, reset_app_config, set_app_config
+from operix.runtime import DisconnectMode, RunManager, RunRecord, RunStatus
+from operix.runtime.events.store.memory import MemoryRunEventStore
+from operix.runtime.runs.store.memory import MemoryRunStore
 
 
 def _user(email: str) -> User:
@@ -289,7 +289,7 @@ def test_wait_reused_completed_run_does_not_return_later_checkpoint(monkeypatch)
 @pytest.mark.anyio
 async def test_wait_original_request_keeps_checkpoint_when_retry_overlaps():
     """An overlapping retry must not suppress the original creating /wait result."""
-    from deerflow.runtime.stream_bridge.memory import MemoryStreamBridge
+    from operix.runtime.stream_bridge.memory import MemoryStreamBridge
 
     bridge = MemoryStreamBridge()
     record = RunRecord(
@@ -351,7 +351,7 @@ async def test_wait_original_request_keeps_checkpoint_when_retry_overlaps():
 @pytest.mark.anyio
 async def test_wait_peer_refreshes_status_after_owner_completes():
     """A cross-worker reuse must not keep admission-time running after END."""
-    from deerflow.runtime.stream_bridge.memory import MemoryStreamBridge
+    from operix.runtime.stream_bridge.memory import MemoryStreamBridge
 
     store = MemoryRunStore()
     owner = RunManager(store=store, worker_id="worker-a")
@@ -628,7 +628,7 @@ def _make_start_run_request(run_manager):
     from langgraph.checkpoint.memory import InMemorySaver
     from langgraph.store.memory import InMemoryStore
 
-    from deerflow.persistence.thread_meta.memory import MemoryThreadMetaStore
+    from operix.persistence.thread_meta.memory import MemoryThreadMetaStore
 
     store = InMemoryStore()
     return SimpleNamespace(
@@ -650,7 +650,7 @@ def _make_start_run_request(run_manager):
 
 @pytest.fixture
 def _stub_app_config():
-    set_app_config(AppConfig.model_validate({"sandbox": {"use": "deerflow.sandbox.local:LocalSandboxProvider"}}))
+    set_app_config(AppConfig.model_validate({"sandbox": {"use": "operix.sandbox.local:LocalSandboxProvider"}}))
     yield
     reset_app_config()
 

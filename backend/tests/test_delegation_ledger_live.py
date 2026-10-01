@@ -23,9 +23,9 @@ from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMe
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.runtime import Runtime
 
-from deerflow.agents.middlewares.durable_context_middleware import DurableContextMiddleware
-from deerflow.client import DeerFlowClient, StreamEvent
-from deerflow.config.app_config import reload_app_config, reset_app_config, set_app_config
+from operix.agents.middlewares.durable_context_middleware import DurableContextMiddleware
+from operix.client import OperixClient, StreamEvent
+from operix.config.app_config import reload_app_config, reset_app_config, set_app_config
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _ROOT_CONFIG = _REPO_ROOT / "config.yaml"
@@ -104,21 +104,21 @@ def live_config_path(tmp_path):
 @pytest.fixture
 def real_subagent_executor():
     """Undo tests/conftest.py's executor mock for this explicit live test."""
-    original_executor_module = sys.modules.get("deerflow.subagents.executor")
+    original_executor_module = sys.modules.get("operix.subagents.executor")
     original_subagent_attrs: dict[str, Any] = {}
     original_task_tool_attrs: dict[str, Any] = {}
 
-    import deerflow.subagents as subagents_pkg
+    import operix.subagents as subagents_pkg
 
     for name in ("SubagentExecutor", "SubagentResult"):
         original_subagent_attrs[name] = getattr(subagents_pkg, name, None)
 
-    sys.modules.pop("deerflow.subagents.executor", None)
-    executor_module = importlib.import_module("deerflow.subagents.executor")
+    sys.modules.pop("operix.subagents.executor", None)
+    executor_module = importlib.import_module("operix.subagents.executor")
     subagents_pkg.SubagentExecutor = executor_module.SubagentExecutor
     subagents_pkg.SubagentResult = executor_module.SubagentResult
 
-    task_tool_module = sys.modules.get("deerflow.tools.builtins.task_tool")
+    task_tool_module = sys.modules.get("operix.tools.builtins.task_tool")
     if task_tool_module is not None:
         for name in (
             "SubagentExecutor",
@@ -133,9 +133,9 @@ def real_subagent_executor():
     yield
 
     if original_executor_module is not None:
-        sys.modules["deerflow.subagents.executor"] = original_executor_module
+        sys.modules["operix.subagents.executor"] = original_executor_module
     else:
-        sys.modules.pop("deerflow.subagents.executor", None)
+        sys.modules.pop("operix.subagents.executor", None)
     for name, value in original_subagent_attrs.items():
         setattr(subagents_pkg, name, value)
     if task_tool_module is not None:
@@ -155,7 +155,7 @@ def live_client(live_config_path, real_subagent_executor, monkeypatch):
         return updated
 
     monkeypatch.setattr(DurableContextMiddleware, "_inject", recording_inject)
-    client = DeerFlowClient(
+    client = OperixClient(
         checkpointer=InMemorySaver(),
         thinking_enabled=False,
         subagent_enabled=True,
@@ -179,7 +179,7 @@ def _message_text(message: BaseMessage) -> str:
     return str(content)
 
 
-def _stream_events(client: DeerFlowClient, thread_id: str, prompt: str) -> list[StreamEvent]:
+def _stream_events(client: OperixClient, thread_id: str, prompt: str) -> list[StreamEvent]:
     events: list[StreamEvent] = []
     for event in client.stream(
         prompt,
@@ -225,7 +225,7 @@ def _task_ids_in_state(values: dict[str, Any], task_ids: set[str]) -> set[str]:
     return present
 
 
-def _state_values(client: DeerFlowClient, thread_id: str) -> dict[str, Any]:
+def _state_values(client: OperixClient, thread_id: str) -> dict[str, Any]:
     assert client._agent is not None
     config = client._get_runnable_config(
         thread_id,

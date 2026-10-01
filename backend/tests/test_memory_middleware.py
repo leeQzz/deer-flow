@@ -3,9 +3,9 @@ from unittest.mock import MagicMock
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.runtime import Runtime
 
-from deerflow.agents.middlewares import memory_middleware as memory_middleware_module
-from deerflow.agents.middlewares.memory_middleware import MemoryMiddleware
-from deerflow.config.memory_config import MemoryConfig
+from operix.agents.middlewares import memory_middleware as memory_middleware_module
+from operix.agents.middlewares.memory_middleware import MemoryMiddleware
+from operix.config.memory_config import MemoryConfig
 
 
 def test_after_agent_queues_memory_under_runtime_user(monkeypatch):

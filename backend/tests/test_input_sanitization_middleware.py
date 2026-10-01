@@ -12,7 +12,7 @@ import pytest
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.errors import GraphBubbleUp
 
-from deerflow.agents.middlewares.input_sanitization_middleware import (
+from operix.agents.middlewares.input_sanitization_middleware import (
     _BLOCKED_TAG_NAMES,
     _USER_INPUT_BEGIN,
     _USER_INPUT_END,
@@ -20,9 +20,9 @@ from deerflow.agents.middlewares.input_sanitization_middleware import (
     _check_user_content,
     neutralize_untrusted_tags,
 )
-from deerflow.agents.middlewares.message_utils import is_genuine_user_message, requires_input_sanitization
-from deerflow.models.claude_provider import ClaudeChatModel
-from deerflow.utils.messages import ORIGINAL_USER_CONTENT_KEY, UNTRUSTED_INPUT_KEY
+from operix.agents.middlewares.message_utils import is_genuine_user_message, requires_input_sanitization
+from operix.models.claude_provider import ClaudeChatModel
+from operix.utils.messages import ORIGINAL_USER_CONTENT_KEY, UNTRUSTED_INPUT_KEY
 
 
 def _make_middleware() -> InputSanitizationMiddleware:
@@ -310,9 +310,9 @@ def test_denylist_covers_framework_authority_blocks():
     import pathlib
     import re
 
-    import deerflow
+    import operix
 
-    harness_root = pathlib.Path(deerflow.__file__).parent
+    harness_root = pathlib.Path(operix.__file__).parent
     # Mirrors the tolerance of the production pattern (_BLOCKED_TAG_PATTERN):
     # attributes and surrounding whitespace must not hide a block from the scan.
     open_re = re.compile(r"<\s*([a-z][a-z0-9_-]*)\b[^>]*>")
@@ -938,7 +938,7 @@ def test_escapes_user_forged_current_uploads_tag():
 
 def test_server_current_uploads_block_not_escaped():
     """The server's <current_uploads> block is preserved when only user text is scanned."""
-    from deerflow.utils.messages import ORIGINAL_USER_CONTENT_KEY
+    from operix.utils.messages import ORIGINAL_USER_CONTENT_KEY
 
     mw = _make_middleware()
 

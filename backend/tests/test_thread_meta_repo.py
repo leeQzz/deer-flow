@@ -6,12 +6,12 @@ import logging
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from deerflow.persistence.thread_meta import THREAD_PINNED_METADATA_KEY, InvalidMetadataFilterError, ThreadMetaRepository
+from operix.persistence.thread_meta import THREAD_PINNED_METADATA_KEY, InvalidMetadataFilterError, ThreadMetaRepository
 
 
 @pytest.fixture
 async def repo(tmp_path):
-    from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
+    from operix.persistence.engine import close_engine, get_session_factory, init_engine
 
     url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
     await init_engine("sqlite", url=url, sqlite_dir=str(tmp_path))
@@ -356,7 +356,7 @@ class TestThreadMetaRepository:
         await repo.create("t1", metadata={"env": "prod"})
         await repo.create("t2", metadata={"env": "staging"})
 
-        with caplog.at_level(logging.WARNING, logger="deerflow.persistence.thread_meta.sql"):
+        with caplog.at_level(logging.WARNING, logger="operix.persistence.thread_meta.sql"):
             with pytest.raises(InvalidMetadataFilterError, match="rejected") as exc_info:
                 await repo.search(metadata={"bad;key": "x"})
         assert any("bad;key" in r.message for r in caplog.records)
@@ -369,7 +369,7 @@ class TestThreadMetaRepository:
         await repo.create("t1", metadata={"env": "prod"})
         await repo.create("t2", metadata={"env": "staging"})
 
-        with caplog.at_level(logging.WARNING, logger="deerflow.persistence.thread_meta.sql"):
+        with caplog.at_level(logging.WARNING, logger="operix.persistence.thread_meta.sql"):
             results = await repo.search(metadata={"env": "prod", "bad;key": "x"})
         ids = {r["thread_id"] for r in results}
         assert ids == {"t1"}
@@ -404,7 +404,7 @@ class TestThreadMetaRepository:
         await repo.create("t1", metadata={"env": "prod"})
         await repo.create("t2", metadata={"env": "staging"})
 
-        with caplog.at_level(logging.WARNING, logger="deerflow.persistence.thread_meta.sql"):
+        with caplog.at_level(logging.WARNING, logger="operix.persistence.thread_meta.sql"):
             with pytest.raises(InvalidMetadataFilterError, match="rejected"):
                 await repo.search(metadata={1: "x"})
         assert any("1" in r.message for r in caplog.records)
@@ -415,7 +415,7 @@ class TestThreadMetaRepository:
         await repo.create("t1", metadata={"env": "prod"})
         await repo.create("t2", metadata={"env": "staging"})
 
-        with caplog.at_level(logging.WARNING, logger="deerflow.persistence.thread_meta.sql"):
+        with caplog.at_level(logging.WARNING, logger="operix.persistence.thread_meta.sql"):
             with pytest.raises(InvalidMetadataFilterError, match="rejected"):
                 await repo.search(metadata={"env": ["prod", "staging"]})
 
@@ -425,7 +425,7 @@ class TestThreadMetaRepository:
         await repo.create("t1", metadata={"env": "prod"})
         await repo.create("t2", metadata={"env": "staging"})
 
-        with caplog.at_level(logging.WARNING, logger="deerflow.persistence.thread_meta.sql"):
+        with caplog.at_level(logging.WARNING, logger="operix.persistence.thread_meta.sql"):
             with pytest.raises(InvalidMetadataFilterError, match="rejected"):
                 await repo.search(metadata={"a.b": "anything"})
         assert any("a.b" in r.message for r in caplog.records)
@@ -513,7 +513,7 @@ class TestThreadMetaRepository:
 
     @pytest.mark.anyio
     async def test_membership_exposed_via_reserved_metadata_key(self, repo):
-        from deerflow.persistence.thread_meta import THREAD_PROJECT_METADATA_KEY
+        from operix.persistence.thread_meta import THREAD_PROJECT_METADATA_KEY
 
         record = await repo.create("t1", user_id="u1")
         assert THREAD_PROJECT_METADATA_KEY not in record["metadata"]
@@ -526,9 +526,9 @@ class TestThreadMetaRepository:
         before injecting the reserved project key. Without the copy the injected
         dict IS the ORM row's ``metadata_json`` object, so reading a member
         thread mutates the row in place and a later update in the same session
-        persists ``deerflow_project_id`` into stored user metadata."""
-        from deerflow.persistence.projects import ProjectRepository
-        from deerflow.persistence.thread_meta.model import ThreadMetaRow
+        persists ``operix_project_id`` into stored user metadata."""
+        from operix.persistence.projects import ProjectRepository
+        from operix.persistence.thread_meta.model import ThreadMetaRow
 
         projects = ProjectRepository(repo._sf)
         p = await projects.create(name="P", user_id="u1")
@@ -540,7 +540,7 @@ class TestThreadMetaRepository:
             await session.commit()
 
         record = await repo.get("t1", user_id="u1")
-        assert record["metadata"]["deerflow_project_id"] == p["id"]
+        assert record["metadata"]["operix_project_id"] == p["id"]
 
         # The review's failure mode is same-session: converting a row for read
         # must not dirty the ORM row's stored dict, or a later update in that
@@ -549,19 +549,19 @@ class TestThreadMetaRepository:
         async with repo._sf() as session:
             row = await session.get(ThreadMetaRow, "t1")
             repo._row_to_dict(row)  # same conversion repo.get performs
-            assert "deerflow_project_id" not in row.metadata_json
+            assert "operix_project_id" not in row.metadata_json
 
         await repo.update_metadata("t1", {"new": 2}, user_id="u1")
 
         async with repo._sf() as session:
             row = await session.get(ThreadMetaRow, "t1")
-            assert "deerflow_project_id" not in row.metadata_json
+            assert "operix_project_id" not in row.metadata_json
             assert row.metadata_json["keep"] == 1
             assert row.metadata_json["new"] == 2
 
     @pytest.mark.anyio
     async def test_set_project_moves_and_preserves_updated_at(self, repo):
-        from deerflow.persistence.projects import ProjectRepository
+        from operix.persistence.projects import ProjectRepository
 
         projects = ProjectRepository(repo._sf)
         p = await projects.create(name="P", user_id="u1")
@@ -570,16 +570,16 @@ class TestThreadMetaRepository:
 
         assert await repo.set_project("t1", p["id"], user_id="u1") is True
         record = await repo.get("t1", user_id="u1")
-        assert record["metadata"]["deerflow_project_id"] == p["id"]
+        assert record["metadata"]["operix_project_id"] == p["id"]
         assert record["updated_at"] == before  # G5: move must not bump recency
 
         # move out
         assert await repo.set_project("t1", None, user_id="u1") is True
-        assert "deerflow_project_id" not in (await repo.get("t1", user_id="u1"))["metadata"]
+        assert "operix_project_id" not in (await repo.get("t1", user_id="u1"))["metadata"]
 
     @pytest.mark.anyio
     async def test_set_project_rejects_foreign_thread_foreign_project_archived(self, repo):
-        from deerflow.persistence.projects import ProjectRepository
+        from operix.persistence.projects import ProjectRepository
 
         projects = ProjectRepository(repo._sf)
         mine = await projects.create(name="mine", user_id="u1")
@@ -593,43 +593,43 @@ class TestThreadMetaRepository:
         assert await repo.set_project("t2", mine["id"], user_id="u2") is False  # foreign project
         assert await repo.set_project("t1", archived["id"], user_id="u1") is False  # archived
         assert await repo.set_project("t1", "missing", user_id="u1") is False  # missing
-        assert (await repo.get("t1", user_id="u1"))["metadata"].get("deerflow_project_id") is None
+        assert (await repo.get("t1", user_id="u1"))["metadata"].get("operix_project_id") is None
 
     @pytest.mark.anyio
     async def test_run_admission_never_seeds_project_membership(self, repo):
         """Negative contract: run admission never writes thread→project membership.
 
-        A run admitted with the reserved ``deerflow_project_id`` metadata key
+        A run admitted with the reserved ``operix_project_id`` metadata key
         must leave the row's ``project_id`` column NULL, and the key must not
         persist into ``metadata_json`` either — membership is written only by
         POST /api/threads (create) and /threads/{id}/move.
         """
         from app.gateway.services import _ensure_thread_metadata
-        from deerflow.persistence.projects import ProjectRepository
-        from deerflow.persistence.thread_meta.model import ThreadMetaRow
-        from deerflow.runtime.runs.manager import RunRecord
-        from deerflow.runtime.runs.schemas import DisconnectMode, RunStatus
-        from deerflow.runtime.runs.worker import RunContext
+        from operix.persistence.projects import ProjectRepository
+        from operix.persistence.thread_meta.model import ThreadMetaRow
+        from operix.runtime.runs.manager import RunRecord
+        from operix.runtime.runs.schemas import DisconnectMode, RunStatus
+        from operix.runtime.runs.worker import RunContext
 
         projects = ProjectRepository(repo._sf)
         project = await projects.create(name="P")
-        record = RunRecord(run_id="run-1", thread_id="t1", assistant_id="lead-agent", status=RunStatus.pending, on_disconnect=DisconnectMode.cancel, metadata={"deerflow_project_id": project["id"]})
+        record = RunRecord(run_id="run-1", thread_id="t1", assistant_id="lead-agent", status=RunStatus.pending, on_disconnect=DisconnectMode.cancel, metadata={"operix_project_id": project["id"]})
         run_ctx = RunContext(checkpointer=None, thread_store=repo)
         await _ensure_thread_metadata(run_ctx, record, owner_user_id=None)
 
         async with repo._sf() as session:
             row = await session.get(ThreadMetaRow, "t1")
         assert row is not None and row.project_id is None
-        assert "deerflow_project_id" not in row.metadata_json
+        assert "operix_project_id" not in row.metadata_json
 
     @pytest.mark.anyio
     async def test_create_with_project_assignment_and_rejection(self, repo):
-        from deerflow.persistence.projects import ProjectNotAssignableError, ProjectRepository
+        from operix.persistence.projects import ProjectNotAssignableError, ProjectRepository
 
         projects = ProjectRepository(repo._sf)
         p = await projects.create(name="P", user_id="u1")
         record = await repo.create("t1", user_id="u1", project_id=p["id"])
-        assert record["metadata"]["deerflow_project_id"] == p["id"]
+        assert record["metadata"]["operix_project_id"] == p["id"]
         assert len(record["incarnation"]) == 32
 
         with pytest.raises(ProjectNotAssignableError):
@@ -638,8 +638,8 @@ class TestThreadMetaRepository:
 
     @pytest.mark.anyio
     async def test_search_project_filter_three_states(self, repo):
-        from deerflow.persistence.projects import ProjectRepository
-        from deerflow.persistence.thread_meta.base import PROJECT_FILTER_UNSET
+        from operix.persistence.projects import ProjectRepository
+        from operix.persistence.thread_meta.base import PROJECT_FILTER_UNSET
 
         projects = ProjectRepository(repo._sf)
         p = await projects.create(name="P", user_id="u1")
@@ -658,7 +658,7 @@ class TestThreadMetaRepository:
         """§5.2 race: move-vs-delete resolves to cleared membership or rejection."""
         import asyncio
 
-        from deerflow.persistence.projects import ProjectRepository
+        from operix.persistence.projects import ProjectRepository
 
         projects = ProjectRepository(repo._sf)
         for i in range(10):
@@ -670,7 +670,7 @@ class TestThreadMetaRepository:
                 projects.delete(p["id"], user_id="u1"),
             )
             record = await repo.get(tid, user_id="u1")
-            membership = record["metadata"].get("deerflow_project_id")
+            membership = record["metadata"].get("operix_project_id")
             if moved and not deleted:
                 # delete lost the race before our read: membership may still be
                 # set only if the project row still exists
@@ -685,7 +685,7 @@ class TestThreadMetaRepository:
         metadata references a deleted project."""
         import asyncio
 
-        from deerflow.persistence.projects import ProjectNotAssignableError, ProjectRepository
+        from operix.persistence.projects import ProjectNotAssignableError, ProjectRepository
 
         projects = ProjectRepository(repo._sf)
 
@@ -705,7 +705,7 @@ class TestThreadMetaRepository:
             )
             record = await repo.get(tid, user_id="u1")
             if record is not None:
-                membership = record["metadata"].get("deerflow_project_id")
+                membership = record["metadata"].get("operix_project_id")
                 if membership is not None:
                     # A carried key is only valid while the project row exists.
                     assert await projects.get(membership, user_id="u1") is not None
@@ -718,7 +718,7 @@ class TestJsonMatchCompilation:
         from sqlalchemy import Column, MetaData, String, Table, create_engine
         from sqlalchemy.types import JSON
 
-        from deerflow.persistence.json_compat import json_match
+        from operix.persistence.json_compat import json_match
 
         metadata = MetaData()
         t = Table("t", metadata, Column("data", JSON), Column("id", String))
@@ -759,7 +759,7 @@ class TestJsonMatchCompilation:
         from sqlalchemy.dialects import postgresql
         from sqlalchemy.types import JSON
 
-        from deerflow.persistence.json_compat import json_match
+        from operix.persistence.json_compat import json_match
 
         metadata = MetaData()
         t = Table("t", metadata, Column("data", JSON), Column("id", String))
@@ -800,7 +800,7 @@ class TestJsonMatchCompilation:
         from sqlalchemy import Column, MetaData, String, Table
         from sqlalchemy.types import JSON
 
-        from deerflow.persistence.json_compat import json_match
+        from operix.persistence.json_compat import json_match
 
         metadata = MetaData()
         t = Table("t", metadata, Column("data", JSON), Column("id", String))
@@ -818,7 +818,7 @@ class TestJsonMatchCompilation:
         from sqlalchemy import Column, MetaData, String, Table
         from sqlalchemy.types import JSON
 
-        from deerflow.persistence.json_compat import json_match
+        from operix.persistence.json_compat import json_match
 
         metadata = MetaData()
         t = Table("t", metadata, Column("data", JSON), Column("id", String))
@@ -832,7 +832,7 @@ class TestJsonMatchCompilation:
         from sqlalchemy.dialects import mysql
         from sqlalchemy.types import JSON
 
-        from deerflow.persistence.json_compat import json_match
+        from operix.persistence.json_compat import json_match
 
         metadata = MetaData()
         t = Table("t", metadata, Column("data", JSON), Column("id", String))
@@ -845,7 +845,7 @@ class TestJsonMatchCompilation:
         from sqlalchemy import Column, MetaData, String, Table
         from sqlalchemy.types import JSON
 
-        from deerflow.persistence.json_compat import json_match
+        from operix.persistence.json_compat import json_match
 
         metadata = MetaData()
         t = Table("t", metadata, Column("data", JSON), Column("id", String))
@@ -865,7 +865,7 @@ class TestJsonMatchCompilation:
         from sqlalchemy.dialects import postgresql
         from sqlalchemy.types import JSON
 
-        from deerflow.persistence.json_compat import json_match
+        from operix.persistence.json_compat import json_match
 
         metadata = MetaData()
         t = Table("t", metadata, Column("data", JSON), Column("id", String))
@@ -883,7 +883,7 @@ class TestJsonMatchCompilation:
 
 class TestJsonValueMatches:
     def test_distinguishes_missing_null_bool_int_and_float(self):
-        from deerflow.persistence.json_compat import json_value_matches
+        from operix.persistence.json_compat import json_value_matches
 
         assert json_value_matches({}, "value", None) is False
         assert json_value_matches({"value": None}, "value", None) is True

@@ -10,10 +10,10 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.gateway.authz import AuthContext
 from app.gateway.routers import scheduled_tasks
-from deerflow.persistence.scheduled_task_runs import ScheduledTaskRunRepository
-from deerflow.persistence.scheduled_task_runs.model import ScheduledTaskRunRow
-from deerflow.persistence.scheduled_tasks import ScheduledTaskRepository
-from deerflow.persistence.scheduled_tasks.model import (
+from operix.persistence.scheduled_task_runs import ScheduledTaskRunRepository
+from operix.persistence.scheduled_task_runs.model import ScheduledTaskRunRow
+from operix.persistence.scheduled_tasks import ScheduledTaskRepository
+from operix.persistence.scheduled_tasks.model import (
     ACTIVE_RUN_STATUSES,
     TERMINAL_RUN_STATUSES,
     ScheduledTaskRow,

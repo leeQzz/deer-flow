@@ -6,8 +6,8 @@ import sys
 
 import pytest
 
-import deerflow.sandbox.local.local_sandbox as local_sandbox
-from deerflow.sandbox.local.local_sandbox import LocalSandbox, PathMapping, _BoundedPipeCapture
+import operix.sandbox.local.local_sandbox as local_sandbox
+from operix.sandbox.local.local_sandbox import LocalSandbox, PathMapping, _BoundedPipeCapture
 
 
 def _open(base, file, mode="r", *args, **kwargs):
@@ -66,8 +66,8 @@ def test_windows_powershell_cjk_roundtrip(shell_name, no_console):
         pytest.skip(f"{shell_name} is not installed")
     probe = r"""
 import sys
-import deerflow.sandbox.local.local_sandbox as local_sandbox
-from deerflow.sandbox.local.local_sandbox import LocalSandbox
+import operix.sandbox.local.local_sandbox as local_sandbox
+from operix.sandbox.local.local_sandbox import LocalSandbox
 
 # Keep this regression effective even on an English or UTF-8 Windows runner.
 local_sandbox.locale.getpreferredencoding = lambda _: "cp936"
@@ -129,7 +129,7 @@ def test_windows_capture_matches_subprocess_text_mode_encoding(python_args, pyth
 import subprocess
 import sys
 
-from deerflow.sandbox.local.local_sandbox import LocalSandbox
+from operix.sandbox.local.local_sandbox import LocalSandbox
 
 reference = subprocess.Popen([sys.executable, "-c", ""], stdout=subprocess.PIPE, text=True)
 encoding = reference.stdout.encoding

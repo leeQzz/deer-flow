@@ -1,7 +1,7 @@
 """Tests for the slash-command registry (pure)."""
 
-from deerflow.skills.slash import RESERVED_SLASH_SKILL_NAMES
-from deerflow.tui.command_registry import (
+from operix.skills.slash import RESERVED_SLASH_SKILL_NAMES
+from operix.tui.command_registry import (
     BUILTIN_COMMANDS,
     build_registry,
     filter_commands,

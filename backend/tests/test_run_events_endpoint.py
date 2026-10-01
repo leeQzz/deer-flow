@@ -12,9 +12,9 @@ from unittest import mock
 import pytest
 from langchain_core.messages import HumanMessage
 
-from deerflow.agents.middlewares.dynamic_context_middleware import DynamicContextMiddleware
-from deerflow.runtime.events.store.memory import MemoryRunEventStore
-from deerflow.runtime.journal import RunJournal
+from operix.agents.middlewares.dynamic_context_middleware import DynamicContextMiddleware
+from operix.runtime.events.store.memory import MemoryRunEventStore
+from operix.runtime.journal import RunJournal
 
 
 class _ModelRequestFake:
@@ -47,7 +47,7 @@ async def test_list_run_events_forwards_task_id_and_after_seq():
 
     class FakeRequest:
         app = FakeApp()
-        _deerflow_test_bypass_auth = True
+        _operix_test_bypass_auth = True
 
     result = await list_run_events(
         thread_id="t1",
@@ -91,7 +91,7 @@ async def test_list_run_events_redacts_historical_run_start_metadata():
 
     class FakeRequest:
         app = FakeApp()
-        _deerflow_test_bypass_auth = True
+        _operix_test_bypass_auth = True
 
     events = await list_run_events(
         thread_id="legacy-thread",
@@ -119,7 +119,7 @@ def test_run_scoped_reads_of_a_noncanonical_run_id_on_jsonl_match_the_memory_sto
     from fastapi.testclient import TestClient
 
     from app.gateway.routers import thread_runs
-    from deerflow.runtime.events.store.jsonl import JsonlRunEventStore
+    from operix.runtime.events.store.jsonl import JsonlRunEventStore
 
     def get(store):
         app = make_authed_test_app()
@@ -150,8 +150,8 @@ async def test_effective_memory_flows_from_injection_to_the_existing_debug_api()
     mw = DynamicContextMiddleware()
 
     with (
-        mock.patch("deerflow.agents.lead_agent.prompt._get_memory_context", return_value=memory),
-        mock.patch("deerflow.agents.middlewares.dynamic_context_middleware.datetime") as mock_dt,
+        mock.patch("operix.agents.lead_agent.prompt._get_memory_context", return_value=memory),
+        mock.patch("operix.agents.middlewares.dynamic_context_middleware.datetime") as mock_dt,
     ):
         mock_dt.now.return_value.strftime.return_value = "2026-05-08, Friday"
         update = mw.before_agent(
@@ -174,7 +174,7 @@ async def test_effective_memory_flows_from_injection_to_the_existing_debug_api()
 
     class FakeRequest_:
         app = FakeApp()
-        _deerflow_test_bypass_auth = True
+        _operix_test_bypass_auth = True
 
     events = await list_run_events(
         thread_id="t1",

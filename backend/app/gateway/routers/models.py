@@ -11,9 +11,9 @@ from app.gateway.authz import (
     resolve_model_authorization,
 )
 from app.gateway.deps import get_config, get_optional_user_from_request
-from deerflow.config.app_config import AppConfig
-from deerflow.config.model_config import ModelConfig
-from deerflow.models.reasoning import reasoning_capabilities_payload, resolve_reasoning_contract
+from operix.config.app_config import AppConfig
+from operix.config.model_config import ModelConfig
+from operix.models.reasoning import reasoning_capabilities_payload, resolve_reasoning_contract
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class ReasoningEffortCapabilitiesResponse(BaseModel):
 
     values: list[str] = Field(..., description="Accepted effort values (provider vocabulary)")
     default: str | None = Field(default=None, description="Effort applied when the caller does not choose one")
-    aliases: dict[str, str] = Field(default_factory=dict, description="Generic DeerFlow value -> provider value")
+    aliases: dict[str, str] = Field(default_factory=dict, description="Generic Operix value -> provider value")
 
 
 class ReasoningCapabilitiesResponse(BaseModel):

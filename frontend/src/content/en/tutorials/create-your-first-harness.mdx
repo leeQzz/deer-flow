@@ -1,24 +1,24 @@
 ---
 title: Create Your First Harness
-description: This tutorial shows you how to use the DeerFlow Harness programmatically — importing and using DeerFlow directly in your Python code rather than through the web interface.
+description: This tutorial shows you how to use the Operix Harness programmatically — importing and using Operix directly in your Python code rather than through the web interface.
 ---
 
 import { Callout, Steps } from "nextra/components";
 
 # Create Your First Harness
 
-This tutorial shows you how to use the DeerFlow Harness programmatically — importing and using DeerFlow directly in your Python code rather than through the web interface.
+This tutorial shows you how to use the Operix Harness programmatically — importing and using Operix directly in your Python code rather than through the web interface.
 
 ## Prerequisites
 
 - Python 3.12+
 - `uv` installed
-- DeerFlow repository cloned
+- Operix repository cloned
 
 ## Install
 
 ```bash
-cd deer-flow/backend
+cd operix/backend
 uv sync
 ```
 
@@ -36,12 +36,12 @@ models:
     api_key: $OPENAI_API_KEY
 
 sandbox:
-  use: deerflow.sandbox.local:LocalSandboxProvider
+  use: operix.sandbox.local:LocalSandboxProvider
 
 tools:
-  - use: deerflow.community.ddg_search.tools:web_search_tool
-  - use: deerflow.sandbox.tools:read_file_tool
-  - use: deerflow.sandbox.tools:write_file_tool
+  - use: operix.community.ddg_search.tools:web_search_tool
+  - use: operix.sandbox.tools:read_file_tool
+  - use: operix.sandbox.tools:write_file_tool
 ```
 
 ## Write the code
@@ -54,13 +54,13 @@ Create `my_agent.py` in the `backend/` directory:
 
 ```python
 import os
-from deerflow.client import DeerFlowClient
+from operix.client import OperixClient
 
 os.environ["OPENAI_API_KEY"] = "sk-..."
 
 # The client loads config.yaml itself. To select a specific file,
-# set DEER_FLOW_CONFIG_PATH before constructing the client.
-client = DeerFlowClient()
+# set OPERIX_CONFIG_PATH before constructing the client.
+client = OperixClient()
 
 for event in client.stream(
     message="Write a Python fibonacci function with a docstring",

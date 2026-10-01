@@ -97,7 +97,7 @@ describe("fetchInfiniteThreadsPage", () => {
     const search = rs
       .fn()
       .mockResolvedValueOnce([
-        makeThread("sidecar-1", "Sidecar", { deerflow_sidecar: true }),
+        makeThread("sidecar-1", "Sidecar", { operix_sidecar: true }),
         makeThread("primary-1"),
       ])
       .mockResolvedValueOnce([makeThread("primary-2")]);
@@ -131,7 +131,7 @@ describe("fetchInfiniteThreadsPage", () => {
   test("keeps sidecar rows when the caller explicitly searches for sidecars", async () => {
     const search = rs.fn().mockResolvedValueOnce([
       makeThread("sidecar-1", "Sidecar", {
-        deerflow_sidecar: true,
+        operix_sidecar: true,
         parent_thread_id: "parent-1",
       }),
     ]);
@@ -141,7 +141,7 @@ describe("fetchInfiniteThreadsPage", () => {
       {
         sortBy: "updated_at",
         sortOrder: "desc",
-        metadata: { deerflow_sidecar: true, parent_thread_id: "parent-1" },
+        metadata: { operix_sidecar: true, parent_thread_id: "parent-1" },
       },
       0,
       2,

@@ -18,9 +18,9 @@ from app.gateway.authz import (
 from app.gateway.deps import get_config, get_optional_user_from_request, require_admin_user
 from app.gateway.path_utils import resolve_thread_virtual_path
 from app.gateway.skill_export import ExportClientDisconnected, SkillExportManifestResponse, SkillExportResponse, export_http_error, run_export_work
-from deerflow.agents.lead_agent.prompt import clear_skills_system_prompt_cache, refresh_skills_system_prompt_cache_async, refresh_user_skills_system_prompt_cache_async
-from deerflow.config.app_config import AppConfig
-from deerflow.config.extensions_config import (
+from operix.agents.lead_agent.prompt import clear_skills_system_prompt_cache, refresh_skills_system_prompt_cache_async, refresh_user_skills_system_prompt_cache_async
+from operix.config.app_config import AppConfig
+from operix.config.extensions_config import (
     ExtensionsConfig,
     atomic_write_extensions_config,
     extensions_config_file_lock,
@@ -31,21 +31,21 @@ from deerflow.config.extensions_config import (
     set_raw_skill_enabled,
     validate_raw_extensions_config,
 )
-from deerflow.runtime.user_context import get_effective_user_id
-from deerflow.skills import Skill
-from deerflow.skills.export import SkillExportError, build_skill_export, export_manifest
-from deerflow.skills.installer import SkillAlreadyExistsError, SkillSecurityScanError
-from deerflow.skills.security_scanner import scan_skill_content
-from deerflow.skills.security_static_scanner import (
+from operix.runtime.user_context import get_effective_user_id
+from operix.skills import Skill
+from operix.skills.export import SkillExportError, build_skill_export, export_manifest
+from operix.skills.installer import SkillAlreadyExistsError, SkillSecurityScanError
+from operix.skills.security_scanner import scan_skill_content
+from operix.skills.security_static_scanner import (
     StaticFinding,
     StaticScanBlockedError,
     StaticScannerError,
     enforce_static_scan,
 )
-from deerflow.skills.storage import SkillStorage, get_or_new_user_skill_storage
-from deerflow.skills.types import SKILL_MD_FILE, SkillCategory
-from deerflow.utils.file_io import await_drained
-from deerflow.utils.thread_id import ThreadId
+from operix.skills.storage import SkillStorage, get_or_new_user_skill_storage
+from operix.skills.types import SKILL_MD_FILE, SkillCategory
+from operix.utils.file_io import await_drained
+from operix.utils.thread_id import ThreadId
 
 logger = logging.getLogger(__name__)
 
@@ -225,7 +225,7 @@ def _copy_uploaded_skill_archive(source: BinaryIO) -> Path:
     """Copy an uploaded archive to a bounded temporary file off the event loop."""
     destination: Path | None = None
     try:
-        with tempfile.NamedTemporaryFile(prefix="deerflow-skill-", suffix=".skill", delete=False) as target:
+        with tempfile.NamedTemporaryFile(prefix="operix-skill-", suffix=".skill", delete=False) as target:
             destination = Path(target.name)
             total = 0
             while chunk := source.read(_UPLOAD_COPY_CHUNK_BYTES):
@@ -800,8 +800,8 @@ def _write_extensions_skill_state(
     """
     from contextlib import nullcontext
 
-    from deerflow.skills.projection import skill_projection_mutation
-    from deerflow.skills.storage.local_skill_storage import LocalSkillStorage
+    from operix.skills.projection import skill_projection_mutation
+    from operix.skills.storage.local_skill_storage import LocalSkillStorage
 
     removal_names = (skill_name,) if not enabled else ()
     projection_update = skill_projection_mutation(storage, "public", remove_names=removal_names) if rebuild_public_projection and isinstance(storage, LocalSkillStorage) else nullcontext()
@@ -871,7 +871,7 @@ async def update_skill(skill_name: str, body: SkillUpdateRequest, request: Reque
                 )
             else:
                 # CUSTOM / LEGACY: write per-user state
-                from deerflow.skills.storage.user_scoped_skill_storage import UserScopedSkillStorage
+                from operix.skills.storage.user_scoped_skill_storage import UserScopedSkillStorage
 
                 if isinstance(storage, UserScopedSkillStorage):
                     await asyncio.to_thread(storage.set_skill_enabled_state, skill_name, body.enabled)

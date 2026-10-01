@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from deerflow.authz.principal import build_principal_from_context
+from operix.authz.principal import build_principal_from_context
 
 
 class TestPrincipalBuilderFields:

@@ -6,7 +6,7 @@ import pytest
 from fastapi import HTTPException
 
 from app.gateway.routers import input_polish
-from deerflow.utils import oneshot_llm
+from operix.utils import oneshot_llm
 
 
 def _config(

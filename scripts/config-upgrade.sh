@@ -20,21 +20,21 @@ fi
 # Upgrade the config.yaml the Gateway loads. Ask the harness resolver rather
 # than copying its order: with both <checkout>/config.yaml and
 # backend/config.yaml present, `make dev` reads the checkout copy. The import
-# loads .env as the Gateway does; DEER_FLOW_PROJECT_ROOT then defaults to the
+# loads .env as the Gateway does; OPERIX_PROJECT_ROOT then defaults to the
 # checkout, as in serve.sh. Prints nothing when no config exists yet.
 CONFIG="$(cd "$REPO_ROOT/backend" && REPO_ROOT_WIN_PATH="$REPO_ROOT_WIN" uv run python -c "
 import os
 import sys
 
-from deerflow.config.app_config import AppConfig
+from operix.config.app_config import AppConfig
 
-os.environ.setdefault('DEER_FLOW_PROJECT_ROOT', os.environ['REPO_ROOT_WIN_PATH'])
+os.environ.setdefault('OPERIX_PROJECT_ROOT', os.environ['REPO_ROOT_WIN_PATH'])
 try:
     sys.stdout.write(str(AppConfig.resolve_config_path()))
 except FileNotFoundError as exc:
-    # An explicit DEER_FLOW_CONFIG_PATH that does not exist stops the Gateway
+    # An explicit OPERIX_CONFIG_PATH that does not exist stops the Gateway
     # too; never upgrade a fallback file in its place.
-    if os.environ.get('DEER_FLOW_CONFIG_PATH'):
+    if os.environ.get('OPERIX_CONFIG_PATH'):
         sys.exit(f'ERROR {exc}')
 except ValueError as exc:
     sys.exit(f'ERROR {exc}')
@@ -124,7 +124,7 @@ def migrate_knowledge_provider_settings(data):
                 for tool in tools
                 if isinstance(tool, dict)
                 and tool.get('name') == 'knowledge_search'
-                and tool.get('use') == 'deerflow.community.ragflow.tools:knowledge_search_tool'
+                and tool.get('use') == 'operix.community.ragflow.tools:knowledge_search_tool'
             ),
             None,
         )
@@ -160,12 +160,12 @@ def migrate_knowledge_provider_settings(data):
 
 MIGRATIONS = {
     1: {
-        'description': 'Rename src.* module paths to deerflow.*',
+        'description': 'Rename src.* module paths to operix.*',
         'replacements': [
-            ('src.community.', 'deerflow.community.'),
-            ('src.sandbox.', 'deerflow.sandbox.'),
-            ('src.models.', 'deerflow.models.'),
-            ('src.tools.', 'deerflow.tools.'),
+            ('src.community.', 'operix.community.'),
+            ('src.sandbox.', 'operix.sandbox.'),
+            ('src.models.', 'operix.models.'),
+            ('src.tools.', 'operix.tools.'),
         ],
     },
     46: {

@@ -1,49 +1,49 @@
-# DeerFlow Terminal Workbench (TUI)
+# Operix Terminal Workbench (TUI)
 
-`deerflow` is a terminal-native workbench for the DeerFlow harness. It runs
-**embedded** over `DeerFlowClient` — no Gateway, frontend, nginx, or Docker
+`operix` is a terminal-native workbench for the Operix harness. It runs
+**embedded** over `OperixClient` — no Gateway, frontend, nginx, or Docker
 services required — while honoring the same `config.yaml`, checkpointer, skills,
-memory, MCP, and sandbox settings as the rest of DeerFlow.
+memory, MCP, and sandbox settings as the rest of Operix.
 
-![DeerFlow TUI](../../docs/tui/tui-preview.svg)
+![Operix TUI](../../docs/tui/tui-preview.svg)
 
 ## Install & run
 
 The TUI ships as an optional extra so the core harness install stays lean:
 
 ```bash
-uv pip install 'deerflow-harness[tui]'    # or: pip install textual
+uv pip install 'operix-harness[tui]'    # or: pip install textual
 ```
 
 Launch modes:
 
 | Command | Behavior |
 |---|---|
-| `deerflow` | Launch the TUI when stdin/stdout are TTYs |
-| `deerflow --tui` | Force the TUI (clear diagnostic if `textual` is missing) |
-| `deerflow --tui-transparent` | Use the terminal's default background when launching the TUI |
-| `deerflow --cli` | Force headless/classic mode for one invocation |
-| `deerflow chat` | Same TUI conversation surface |
-| `deerflow --continue` | Resume the most recent thread |
-| `deerflow --resume THREAD` | Resume a thread by id |
-| `deerflow --print "question"` | Headless one-shot answer to stdout; on failure a concise stderr line and exit 1 |
-| `deerflow --json "question"` | Headless newline-delimited `StreamEvent`s; on failure one terminal `{"type": "error"}` record and exit 1 |
-| `deerflow --recursion-limit 250 --print "question"` | Set the headless agent-loop super-step limit |
-| `echo "q" \| deerflow --print` | Read the message from stdin |
-| `DEER_FLOW_TUI=1 deerflow` | Force the TUI via environment |
-| `DEER_FLOW_TUI_TRANSPARENT=1 deerflow` | Persist terminal-background rendering via environment |
+| `operix` | Launch the TUI when stdin/stdout are TTYs |
+| `operix --tui` | Force the TUI (clear diagnostic if `textual` is missing) |
+| `operix --tui-transparent` | Use the terminal's default background when launching the TUI |
+| `operix --cli` | Force headless/classic mode for one invocation |
+| `operix chat` | Same TUI conversation surface |
+| `operix --continue` | Resume the most recent thread |
+| `operix --resume THREAD` | Resume a thread by id |
+| `operix --print "question"` | Headless one-shot answer to stdout; on failure a concise stderr line and exit 1 |
+| `operix --json "question"` | Headless newline-delimited `StreamEvent`s; on failure one terminal `{"type": "error"}` record and exit 1 |
+| `operix --recursion-limit 250 --print "question"` | Set the headless agent-loop super-step limit |
+| `echo "q" \| operix --print` | Read the message from stdin |
+| `OPERIX_TUI=1 operix` | Force the TUI via environment |
+| `OPERIX_TUI_TRANSPARENT=1 operix` | Persist terminal-background rendering via environment |
 
-If no TTY is available and no headless flag is given, `deerflow` prints guidance
+If no TTY is available and no headless flag is given, `operix` prints guidance
 instead of hanging.
 
 Provider failures (for example an expired credential) usually do not raise: the
 LLM error middleware turns them into a final AI message flagged
-`deerflow_error_fallback`. Headless runs treat that as a failure too — `--print`
+`operix_error_fallback`. Headless runs treat that as a failure too — `--print`
 still writes the fallback text to stdout, then prints
 `Error: LLM request failed (error_type=…, error_reason=…)` to stderr; `--json`
 appends the same terminal `{"type": "error"}` record. Both exit `1`.
 
-Transparent rendering is opt-in; the solid DeerFlow palette remains the default.
+Transparent rendering is opt-in; the solid Operix palette remains the default.
 The transparent mode uses Textual's `ansi_default` background for the main
 screen, header, transcript, status, palette, composer, and modal surfaces while
 keeping truecolor foregrounds and selection highlights. Combine
@@ -92,7 +92,7 @@ return to the bottom with `PageDown`.
 `/help` `/new` `/clear` `/goal` `/threads` (`/switch`) `/model` `/skills` `/tools`
 `/mcp` `/memory` `/uploads` `/usage` `/config` `/quit`, plus
 `/<skill-name> task` to activate any enabled skill for the current turn (same
-semantics as elsewhere in DeerFlow). `/model` and `/threads` open modal pickers.
+semantics as elsewhere in Operix). `/model` and `/threads` open modal pickers.
 
 `/clear` removes the current transcript rows from the terminal display only; it keeps the active thread and persisted conversation intact. During an active run, `/new` and `/clear` ask you to wait for the run to finish instead of resetting in-flight display state.
 Use `/goal <condition>` to set the active thread goal, `/goal` to show it, and
@@ -105,7 +105,7 @@ agent behavior.
 
 ```
 cli.py          launch-mode planning (pure) + headless print/json + entry point
-session.py      builds DeerFlowClient (+ checkpointer) and the persistence writer
+session.py      builds OperixClient (+ checkpointer) and the persistence writer
 runtime.py      StreamEvent  ->  reducer actions  (pure translate + threaded driver)
 view_state.py   ViewState + reduce(state, action)  (pure, the testable heart)
 message_format  compact tool summaries / truncation (pure)
@@ -118,7 +118,7 @@ app.py          Textual App: composes widgets, drives runs on a worker thread,
 persistence.py  writes threads_meta so sessions appear in the Web UI (below)
 ```
 
-`DeerFlowClient.stream()` is a **synchronous** generator, so the app runs it on a
+`OperixClient.stream()` is a **synchronous** generator, so the app runs it on a
 Textual worker *thread* and marshals each yielded action back to the UI thread
 via `call_from_thread`. The pure layers (everything except `app.py`) have no
 Textual dependency and are unit-tested directly with synthetic `StreamEvent`s.
@@ -133,7 +133,7 @@ checkpointer, so a TUI thread would otherwise be invisible in the sidebar.
 `threads_meta` row — owned by the local default user (`"default"`) — into the
 **same** database the Gateway reads, and syncs the generated title afterward.
 This requires only the shared `threads_meta` store (built via
-`deerflow.persistence.engine.init_engine_from_config`), **not** the Gateway
+`operix.persistence.engine.init_engine_from_config`), **not** the Gateway
 process. When the database backend is `memory` (no SQL store) the writer
 degrades to a silent no-op and the TUI still works.
 

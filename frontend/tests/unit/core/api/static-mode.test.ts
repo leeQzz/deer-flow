@@ -211,7 +211,7 @@ it("serves the canonical capability catalog locally and rejects writes", async (
       readFileSync(
         path.resolve(
           process.cwd(),
-          "../backend/packages/harness/deerflow/capabilities/builtin.json",
+          "../backend/packages/harness/operix/capabilities/builtin.json",
         ),
         "utf8",
       ),

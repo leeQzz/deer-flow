@@ -12,8 +12,8 @@ from _router_auth_helpers import call_unwrapped
 from fastapi import HTTPException, UploadFile
 
 from app.gateway.routers import uploads
-from deerflow.runtime.user_context import get_effective_user_id
-from deerflow.uploads.manager import ensure_uploads_dir, get_uploads_dir
+from operix.runtime.user_context import get_effective_user_id
+from operix.uploads.manager import ensure_uploads_dir, get_uploads_dir
 
 pytestmark = pytest.mark.asyncio
 
@@ -60,9 +60,9 @@ class _RemoteProvider:
 
 
 def _reset_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("DEER_FLOW_HOME", str(tmp_path))
+    monkeypatch.setenv("OPERIX_HOME", str(tmp_path))
 
-    import deerflow.config.paths as paths_mod
+    import operix.config.paths as paths_mod
 
     monkeypatch.setattr(paths_mod, "_paths", None)
 

@@ -23,11 +23,11 @@ from datetime import UTC, datetime
 import pytest
 
 from app.scheduler.service import ScheduledTaskService
-from deerflow.config.database_config import DatabaseConfig
-from deerflow.persistence.engine import close_engine, get_session_factory, init_engine_from_config
-from deerflow.persistence.scheduled_task_runs import ActiveScheduledRunConflict, ScheduledTaskRunRepository
-from deerflow.persistence.scheduled_task_runs.model import ScheduledTaskRunRow
-from deerflow.persistence.scheduled_tasks import ScheduledTaskRepository
+from operix.config.database_config import DatabaseConfig
+from operix.persistence.engine import close_engine, get_session_factory, init_engine_from_config
+from operix.persistence.scheduled_task_runs import ActiveScheduledRunConflict, ScheduledTaskRunRepository
+from operix.persistence.scheduled_task_runs.model import ScheduledTaskRunRow
+from operix.persistence.scheduled_tasks import ScheduledTaskRepository
 
 pytestmark = pytest.mark.asyncio
 

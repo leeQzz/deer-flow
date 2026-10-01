@@ -51,7 +51,7 @@ class TestCheckPnpm:
         # repository root. The derived paths must not depend on that relative
         # invocation path.
         monkeypatch.chdir(REPO_ROOT)
-        relative_doctor = _load_script(Path("scripts/doctor.py"), "deerflow_doctor_relative")
+        relative_doctor = _load_script(Path("scripts/doctor.py"), "operix_doctor_relative")
 
         assert relative_doctor.PNPM_SCRIPT_PATH == REPO_ROOT / "scripts" / "pnpm.py"
         assert relative_doctor.PNPM_SCRIPT_PATH.is_absolute()
@@ -123,11 +123,11 @@ class TestCheckConfigExists:
 def runtime_path_env(monkeypatch):
     """Clear the runtime path variables and restore them after the test.
 
-    ``main()`` defaults ``DEER_FLOW_PROJECT_ROOT`` in ``os.environ`` the way
+    ``main()`` defaults ``OPERIX_PROJECT_ROOT`` in ``os.environ`` the way
     ``make dev`` does. ``monkeypatch.delenv`` records nothing for an unset
     variable, so set each one first to make teardown remove what main() adds.
     """
-    for name in ("DEER_FLOW_CONFIG_PATH", "DEER_FLOW_PROJECT_ROOT"):
+    for name in ("OPERIX_CONFIG_PATH", "OPERIX_PROJECT_ROOT"):
         monkeypatch.setenv(name, "")
         monkeypatch.delenv(name)
     return monkeypatch
@@ -137,49 +137,49 @@ class TestResolveConfigPath:
     def test_uses_config_path_env(self, tmp_path, runtime_path_env):
         cfg = tmp_path / "elsewhere.yaml"
         cfg.write_text("config_version: 5\n")
-        runtime_path_env.setenv("DEER_FLOW_CONFIG_PATH", str(cfg))
-        runtime_path_env.setenv("DEER_FLOW_PROJECT_ROOT", str(tmp_path / "root"))
+        runtime_path_env.setenv("OPERIX_CONFIG_PATH", str(cfg))
+        runtime_path_env.setenv("OPERIX_PROJECT_ROOT", str(tmp_path / "root"))
 
         assert doctor.resolve_config_path() == (cfg, None)
 
     def test_missing_config_path_env_fails(self, tmp_path, runtime_path_env):
         (tmp_path / "config.yaml").write_text("config_version: 5\n")
         missing = tmp_path / "missing.yaml"
-        runtime_path_env.setenv("DEER_FLOW_CONFIG_PATH", str(missing))
-        runtime_path_env.setenv("DEER_FLOW_PROJECT_ROOT", str(tmp_path))
+        runtime_path_env.setenv("OPERIX_CONFIG_PATH", str(missing))
+        runtime_path_env.setenv("OPERIX_PROJECT_ROOT", str(tmp_path))
 
         path, failure = doctor.resolve_config_path()
 
         assert path == missing
         assert failure is not None
         assert failure.status == "fail"
-        assert "DEER_FLOW_CONFIG_PATH" in failure.detail
-        assert "DEER_FLOW_CONFIG_PATH" in failure.fix
+        assert "OPERIX_CONFIG_PATH" in failure.detail
+        assert "OPERIX_CONFIG_PATH" in failure.fix
 
     def test_uses_config_under_project_root_env(self, tmp_path, runtime_path_env):
         cfg = tmp_path / "config.yaml"
         cfg.write_text("config_version: 5\n")
-        runtime_path_env.setenv("DEER_FLOW_PROJECT_ROOT", str(tmp_path))
+        runtime_path_env.setenv("OPERIX_PROJECT_ROOT", str(tmp_path))
 
         assert doctor.resolve_config_path() == (cfg, None)
 
     def test_missing_project_root_env_fails(self, tmp_path, runtime_path_env):
         missing_root = tmp_path / "missing-root"
-        runtime_path_env.setenv("DEER_FLOW_PROJECT_ROOT", str(missing_root))
+        runtime_path_env.setenv("OPERIX_PROJECT_ROOT", str(missing_root))
 
         path, failure = doctor.resolve_config_path()
 
         assert not path.exists()
         assert failure is not None
         assert failure.status == "fail"
-        assert "DEER_FLOW_PROJECT_ROOT" in failure.detail
-        assert "DEER_FLOW_PROJECT_ROOT" in failure.fix
+        assert "OPERIX_PROJECT_ROOT" in failure.detail
+        assert "OPERIX_PROJECT_ROOT" in failure.fix
 
     def test_no_config_anywhere_is_a_plain_missing_config(self, tmp_path, runtime_path_env):
-        from deerflow.config import app_config
+        from operix.config import app_config
 
         runtime_path_env.setattr(app_config, "_legacy_config_candidates", lambda: ())
-        runtime_path_env.setenv("DEER_FLOW_PROJECT_ROOT", str(tmp_path))
+        runtime_path_env.setenv("OPERIX_PROJECT_ROOT", str(tmp_path))
 
         path, failure = doctor.resolve_config_path()
 
@@ -194,12 +194,12 @@ class TestResolveConfigPath:
         real_import = builtins.__import__
 
         def broken_import(name, *args, **kwargs):
-            if name == "deerflow.config.app_config":
+            if name == "operix.config.app_config":
                 raise error
             return real_import(name, *args, **kwargs)
 
         runtime_path_env.setattr(builtins, "__import__", broken_import)
-        runtime_path_env.setenv("DEER_FLOW_PROJECT_ROOT", str(tmp_path))
+        runtime_path_env.setenv("OPERIX_PROJECT_ROOT", str(tmp_path))
 
         path, failure = doctor.resolve_config_path()
 
@@ -341,14 +341,14 @@ class TestCheckLLMApiKey:
 class TestCheckLLMAuth:
     def test_codex_auth_file_missing_fails(self, tmp_path, monkeypatch):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\nmodels:\n  - name: codex\n    use: deerflow.models.openai_codex_provider:CodexChatModel\n    model: gpt-5.4\n")
+        cfg.write_text("config_version: 5\nmodels:\n  - name: codex\n    use: operix.models.openai_codex_provider:CodexChatModel\n    model: gpt-5.4\n")
         monkeypatch.setenv("CODEX_AUTH_PATH", str(tmp_path / "missing-auth.json"))
         results = doctor.check_llm_auth(cfg)
         assert any(result.status == "fail" and "Codex CLI auth available" in result.label for result in results)
 
     def test_codex_auth_file_without_token_fails(self, tmp_path, monkeypatch):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\nmodels:\n  - name: codex\n    use: deerflow.models.openai_codex_provider:CodexChatModel\n    model: gpt-5.4\n")
+        cfg.write_text("config_version: 5\nmodels:\n  - name: codex\n    use: operix.models.openai_codex_provider:CodexChatModel\n    model: gpt-5.4\n")
         auth_path = tmp_path / "auth.json"
         auth_path.write_text("{}")
         monkeypatch.setenv("CODEX_AUTH_PATH", str(auth_path))
@@ -359,7 +359,7 @@ class TestCheckLLMAuth:
 
     def test_codex_auth_file_with_supported_token_shapes_passes(self, tmp_path, monkeypatch):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\nmodels:\n  - name: codex\n    use: deerflow.models.openai_codex_provider:CodexChatModel\n    model: gpt-5.4\n")
+        cfg.write_text("config_version: 5\nmodels:\n  - name: codex\n    use: operix.models.openai_codex_provider:CodexChatModel\n    model: gpt-5.4\n")
         auth_path = tmp_path / "auth.json"
         monkeypatch.setenv("CODEX_AUTH_PATH", str(auth_path))
 
@@ -375,14 +375,14 @@ class TestCheckLLMAuth:
 
     def test_claude_oauth_env_passes(self, tmp_path, monkeypatch):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\nmodels:\n  - name: claude\n    use: deerflow.models.claude_provider:ClaudeChatModel\n    model: claude-sonnet-4-6\n")
+        cfg.write_text("config_version: 5\nmodels:\n  - name: claude\n    use: operix.models.claude_provider:ClaudeChatModel\n    model: claude-sonnet-4-6\n")
         monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", "token")
         results = doctor.check_llm_auth(cfg)
         assert any(result.status == "ok" and "Claude auth available" in result.label for result in results)
 
     def test_claude_credentials_file_without_token_fails(self, tmp_path, monkeypatch):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\nmodels:\n  - name: claude\n    use: deerflow.models.claude_provider:ClaudeChatModel\n    model: claude-sonnet-4-6\n")
+        cfg.write_text("config_version: 5\nmodels:\n  - name: claude\n    use: operix.models.claude_provider:ClaudeChatModel\n    model: claude-sonnet-4-6\n")
         credentials_path = tmp_path / "credentials.json"
         credentials_path.write_text("{}")
         monkeypatch.setenv("CLAUDE_CODE_CREDENTIALS_PATH", str(credentials_path))
@@ -396,7 +396,7 @@ class TestCheckLLMAuth:
 
     def test_claude_expired_credentials_file_fails(self, tmp_path, monkeypatch):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\nmodels:\n  - name: claude\n    use: deerflow.models.claude_provider:ClaudeChatModel\n    model: claude-sonnet-4-6\n")
+        cfg.write_text("config_version: 5\nmodels:\n  - name: claude\n    use: operix.models.claude_provider:ClaudeChatModel\n    model: claude-sonnet-4-6\n")
         credentials_path = tmp_path / "credentials.json"
         credentials_path.write_text('{"claudeAiOauth": {"accessToken": "expired-token", "expiresAt": 1}}')
         monkeypatch.setenv("CLAUDE_CODE_CREDENTIALS_PATH", str(credentials_path))
@@ -410,7 +410,7 @@ class TestCheckLLMAuth:
 
     def test_claude_credentials_file_with_token_passes(self, tmp_path, monkeypatch):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\nmodels:\n  - name: claude\n    use: deerflow.models.claude_provider:ClaudeChatModel\n    model: claude-sonnet-4-6\n")
+        cfg.write_text("config_version: 5\nmodels:\n  - name: claude\n    use: operix.models.claude_provider:ClaudeChatModel\n    model: claude-sonnet-4-6\n")
         credentials_path = tmp_path / "credentials.json"
         credentials_path.write_text('{"claudeAiOauth": {"accessToken": "claude-token"}}')
         monkeypatch.setenv("CLAUDE_CODE_CREDENTIALS_PATH", str(credentials_path))
@@ -424,7 +424,7 @@ class TestCheckLLMAuth:
 
     def test_codex_auth_file_with_malformed_json_fails(self, tmp_path, monkeypatch):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\nmodels:\n  - name: codex\n    use: deerflow.models.openai_codex_provider:CodexChatModel\n    model: gpt-5.4\n")
+        cfg.write_text("config_version: 5\nmodels:\n  - name: codex\n    use: operix.models.openai_codex_provider:CodexChatModel\n    model: gpt-5.4\n")
         auth_path = tmp_path / "auth.json"
         auth_path.write_text("not json")
         monkeypatch.setenv("CODEX_AUTH_PATH", str(auth_path))
@@ -435,7 +435,7 @@ class TestCheckLLMAuth:
 
     def test_codex_auth_file_with_non_object_json_fails(self, tmp_path, monkeypatch):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\nmodels:\n  - name: codex\n    use: deerflow.models.openai_codex_provider:CodexChatModel\n    model: gpt-5.4\n")
+        cfg.write_text("config_version: 5\nmodels:\n  - name: codex\n    use: operix.models.openai_codex_provider:CodexChatModel\n    model: gpt-5.4\n")
         auth_path = tmp_path / "auth.json"
         auth_path.write_text('["access_token"]')
         monkeypatch.setenv("CODEX_AUTH_PATH", str(auth_path))
@@ -446,7 +446,7 @@ class TestCheckLLMAuth:
 
     def test_codex_auth_path_pointing_at_directory_fails(self, tmp_path, monkeypatch):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\nmodels:\n  - name: codex\n    use: deerflow.models.openai_codex_provider:CodexChatModel\n    model: gpt-5.4\n")
+        cfg.write_text("config_version: 5\nmodels:\n  - name: codex\n    use: operix.models.openai_codex_provider:CodexChatModel\n    model: gpt-5.4\n")
         auth_path = tmp_path / "auth.json"
         auth_path.mkdir()
         monkeypatch.setenv("CODEX_AUTH_PATH", str(auth_path))
@@ -457,7 +457,7 @@ class TestCheckLLMAuth:
 
     def test_codex_auth_file_with_blank_token_fails(self, tmp_path, monkeypatch):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\nmodels:\n  - name: codex\n    use: deerflow.models.openai_codex_provider:CodexChatModel\n    model: gpt-5.4\n")
+        cfg.write_text("config_version: 5\nmodels:\n  - name: codex\n    use: operix.models.openai_codex_provider:CodexChatModel\n    model: gpt-5.4\n")
         auth_path = tmp_path / "auth.json"
         auth_path.write_text('{"access_token": "   "}')
         monkeypatch.setenv("CODEX_AUTH_PATH", str(auth_path))
@@ -468,7 +468,7 @@ class TestCheckLLMAuth:
 
     def test_claude_credentials_file_with_invalid_expires_at_fails(self, tmp_path, monkeypatch):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\nmodels:\n  - name: claude\n    use: deerflow.models.claude_provider:ClaudeChatModel\n    model: claude-sonnet-4-6\n")
+        cfg.write_text("config_version: 5\nmodels:\n  - name: claude\n    use: operix.models.claude_provider:ClaudeChatModel\n    model: claude-sonnet-4-6\n")
         credentials_path = tmp_path / "credentials.json"
         monkeypatch.setenv("CLAUDE_CODE_CREDENTIALS_PATH", str(credentials_path))
         monkeypatch.setenv("HOME", str(tmp_path))
@@ -485,8 +485,8 @@ class TestCheckLLMAuth:
         cfg = tmp_path / "config.yaml"
         cfg.write_text(
             "config_version: 5\nmodels:\n"
-            "  - name: codex\n    use: deerflow.models.openai_codex_provider:CodexChatModel\n    model: gpt-5.4\n"
-            "  - name: claude\n    use: deerflow.models.claude_provider:ClaudeChatModel\n    model: claude-sonnet-4-6\n"
+            "  - name: codex\n    use: operix.models.openai_codex_provider:CodexChatModel\n    model: gpt-5.4\n"
+            "  - name: claude\n    use: operix.models.claude_provider:ClaudeChatModel\n    model: claude-sonnet-4-6\n"
         )
         auth_path = tmp_path / "auth.json"
         auth_path.write_bytes(b'{"access_token": "\xff\xfe"}')
@@ -514,7 +514,7 @@ class TestCheckWebSearch:
     def test_ddg_always_ok(self, tmp_path):
         cfg = tmp_path / "config.yaml"
         cfg.write_text(
-            "config_version: 5\nmodels:\n  - name: default\n    use: langchain_openai:ChatOpenAI\n    model: gpt-4o\n    api_key: $OPENAI_API_KEY\ntools:\n  - name: web_search\n    use: deerflow.community.ddg_search.tools:web_search_tool\n"
+            "config_version: 5\nmodels:\n  - name: default\n    use: langchain_openai:ChatOpenAI\n    model: gpt-4o\n    api_key: $OPENAI_API_KEY\ntools:\n  - name: web_search\n    use: operix.community.ddg_search.tools:web_search_tool\n"
         )
         result = doctor.check_web_search(cfg)
         assert result.status == "ok"
@@ -541,14 +541,14 @@ class TestCheckWebSearch:
     def test_tavily_with_key_ok(self, tmp_path, monkeypatch):
         monkeypatch.setenv("TAVILY_API_KEY", "tvly-test")
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: deerflow.community.tavily.tools:web_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: operix.community.tavily.tools:web_search_tool\n")
         result = doctor.check_web_search(cfg)
         assert result.status == "ok"
 
     def test_tavily_without_key_warns(self, tmp_path, monkeypatch):
         monkeypatch.delenv("TAVILY_API_KEY", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: deerflow.community.tavily.tools:web_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: operix.community.tavily.tools:web_search_tool\n")
         result = doctor.check_web_search(cfg)
         assert result.status == "warn"
         assert result.fix is not None
@@ -557,14 +557,14 @@ class TestCheckWebSearch:
     def test_brave_with_key_ok(self, tmp_path, monkeypatch):
         monkeypatch.setenv("BRAVE_SEARCH_API_KEY", "bsa-test")
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: deerflow.community.brave.tools:web_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: operix.community.brave.tools:web_search_tool\n")
         result = doctor.check_web_search(cfg)
         assert result.status == "ok"
 
     def test_brave_without_key_warns(self, tmp_path, monkeypatch):
         monkeypatch.delenv("BRAVE_SEARCH_API_KEY", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: deerflow.community.brave.tools:web_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: operix.community.brave.tools:web_search_tool\n")
         result = doctor.check_web_search(cfg)
         assert result.status == "warn"
         assert result.fix is not None
@@ -573,7 +573,7 @@ class TestCheckWebSearch:
     def test_brave_with_inline_api_key_warns(self, tmp_path, monkeypatch):
         monkeypatch.delenv("BRAVE_SEARCH_API_KEY", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text('config_version: 5\ntools:\n  - name: web_search\n    use: deerflow.community.brave.tools:web_search_tool\n    api_key: "inline-key"\n')
+        cfg.write_text('config_version: 5\ntools:\n  - name: web_search\n    use: operix.community.brave.tools:web_search_tool\n    api_key: "inline-key"\n')
         result = doctor.check_web_search(cfg)
         assert result.status == "warn"
         assert "literal api_key set in config" in result.detail
@@ -582,7 +582,7 @@ class TestCheckWebSearch:
     def test_brave_with_api_key_env_ref_ok(self, tmp_path, monkeypatch):
         monkeypatch.setenv("BRAVE_SEARCH_API_KEY", "bsa-test")
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: deerflow.community.brave.tools:web_search_tool\n    api_key: $BRAVE_SEARCH_API_KEY\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: operix.community.brave.tools:web_search_tool\n    api_key: $BRAVE_SEARCH_API_KEY\n")
         result = doctor.check_web_search(cfg)
         assert result.status == "ok"
         assert "BRAVE_SEARCH_API_KEY set from config" in result.detail
@@ -590,7 +590,7 @@ class TestCheckWebSearch:
     def test_sofya_with_key_ok(self, tmp_path, monkeypatch):
         monkeypatch.setenv("SOFYA_API_KEY", "test-key")
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: deerflow.community.sofya.tools:web_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: operix.community.sofya.tools:web_search_tool\n")
         result = doctor.check_web_search(cfg)
         assert result.status == "ok"
         assert "sofya" in result.detail
@@ -598,7 +598,7 @@ class TestCheckWebSearch:
     def test_sofya_without_key_warns(self, tmp_path, monkeypatch):
         monkeypatch.delenv("SOFYA_API_KEY", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: deerflow.community.sofya.tools:web_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: operix.community.sofya.tools:web_search_tool\n")
         result = doctor.check_web_search(cfg)
         assert result.status == "warn"
         assert "SOFYA_API_KEY" in (result.fix or "")
@@ -606,7 +606,7 @@ class TestCheckWebSearch:
     def test_serper_with_key_ok(self, tmp_path, monkeypatch):
         monkeypatch.setenv("SERPER_API_KEY", "test-key")
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: deerflow.community.serper.tools:web_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: operix.community.serper.tools:web_search_tool\n")
         result = doctor.check_web_search(cfg)
         assert result.status == "ok"
         assert "serper" in result.detail
@@ -614,7 +614,7 @@ class TestCheckWebSearch:
     def test_serper_without_key_warns(self, tmp_path, monkeypatch):
         monkeypatch.delenv("SERPER_API_KEY", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: deerflow.community.serper.tools:web_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: operix.community.serper.tools:web_search_tool\n")
         result = doctor.check_web_search(cfg)
         assert result.status == "warn"
         assert "SERPER_API_KEY" in (result.fix or "")
@@ -622,7 +622,7 @@ class TestCheckWebSearch:
     def test_serper_inline_api_key_warns(self, tmp_path, monkeypatch):
         monkeypatch.delenv("SERPER_API_KEY", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: deerflow.community.serper.tools:web_search_tool\n    api_key: inline-key\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: operix.community.serper.tools:web_search_tool\n    api_key: inline-key\n")
         result = doctor.check_web_search(cfg)
         assert result.status == "warn"
         assert "literal api_key set in config" in result.detail
@@ -631,7 +631,7 @@ class TestCheckWebSearch:
     def test_serper_config_env_ref_ok(self, tmp_path, monkeypatch):
         monkeypatch.setenv("SERPER_API_KEY", "test-key")
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: deerflow.community.serper.tools:web_search_tool\n    api_key: $SERPER_API_KEY\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: operix.community.serper.tools:web_search_tool\n    api_key: $SERPER_API_KEY\n")
         result = doctor.check_web_search(cfg)
         assert result.status == "ok"
         assert "SERPER_API_KEY set from config" in result.detail
@@ -642,7 +642,7 @@ class TestCheckWebSearch:
         monkeypatch.delenv("MY_CUSTOM_SERPER_KEY", raising=False)
         monkeypatch.setenv("SERPER_API_KEY", "test-key")
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: deerflow.community.serper.tools:web_search_tool\n    api_key: $MY_CUSTOM_SERPER_KEY\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: operix.community.serper.tools:web_search_tool\n    api_key: $MY_CUSTOM_SERPER_KEY\n")
         result = doctor.check_web_search(cfg)
         assert result.status == "ok"
         assert "SERPER_API_KEY set" in result.detail
@@ -652,7 +652,7 @@ class TestCheckWebSearch:
         monkeypatch.delenv("MY_CUSTOM_SERPER_KEY", raising=False)
         monkeypatch.delenv("SERPER_API_KEY", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: deerflow.community.serper.tools:web_search_tool\n    api_key: $MY_CUSTOM_SERPER_KEY\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: operix.community.serper.tools:web_search_tool\n    api_key: $MY_CUSTOM_SERPER_KEY\n")
         result = doctor.check_web_search(cfg)
         assert result.status == "warn"
         assert "SERPER_API_KEY" in (result.fix or "")
@@ -660,7 +660,7 @@ class TestCheckWebSearch:
     def test_tencent_wsa_without_key_warns(self, tmp_path, monkeypatch):
         monkeypatch.delenv("TENCENTCLOUD_WSA_APIKEY", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: deerflow.community.tencent_wsa.tools:web_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: operix.community.tencent_wsa.tools:web_search_tool\n")
 
         result = doctor.check_web_search(cfg)
 
@@ -671,7 +671,7 @@ class TestCheckWebSearch:
     def test_serply_with_key_ok(self, tmp_path, monkeypatch):
         monkeypatch.setenv("SERPLY_API_KEY", "test-key")
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: deerflow.community.serply.tools:web_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: operix.community.serply.tools:web_search_tool\n")
         result = doctor.check_web_search(cfg)
         assert result.status == "ok"
         assert "serply" in result.detail
@@ -679,7 +679,7 @@ class TestCheckWebSearch:
     def test_serply_without_key_warns(self, tmp_path, monkeypatch):
         monkeypatch.delenv("SERPLY_API_KEY", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: deerflow.community.serply.tools:web_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: operix.community.serply.tools:web_search_tool\n")
         result = doctor.check_web_search(cfg)
         assert result.status == "warn"
         assert "SERPLY_API_KEY" in (result.fix or "")
@@ -698,7 +698,7 @@ class TestCheckWebSearch:
 
     def test_invalid_provider_use_fails(self, tmp_path):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: deerflow.community.not_real.tools:web_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_search\n    use: operix.community.not_real.tools:web_search_tool\n")
         result = doctor.check_web_search(cfg)
         assert result.status == "fail"
 
@@ -711,7 +711,7 @@ class TestCheckWebSearch:
 class TestCheckWebFetch:
     def test_jina_always_ok(self, tmp_path):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_fetch\n    use: deerflow.community.jina_ai.tools:web_fetch_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_fetch\n    use: operix.community.jina_ai.tools:web_fetch_tool\n")
         result = doctor.check_web_fetch(cfg)
         assert result.status == "ok"
         assert "Jina AI" in result.detail
@@ -719,7 +719,7 @@ class TestCheckWebFetch:
     def test_firecrawl_without_key_warns(self, tmp_path, monkeypatch):
         monkeypatch.delenv("FIRECRAWL_API_KEY", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_fetch\n    use: deerflow.community.firecrawl.tools:web_fetch_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_fetch\n    use: operix.community.firecrawl.tools:web_fetch_tool\n")
         result = doctor.check_web_fetch(cfg)
         assert result.status == "warn"
         assert "FIRECRAWL_API_KEY" in (result.fix or "")
@@ -727,7 +727,7 @@ class TestCheckWebFetch:
     def test_sofya_without_key_warns(self, tmp_path, monkeypatch):
         monkeypatch.delenv("SOFYA_API_KEY", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_fetch\n    use: deerflow.community.sofya.tools:web_fetch_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_fetch\n    use: operix.community.sofya.tools:web_fetch_tool\n")
         result = doctor.check_web_fetch(cfg)
         assert result.status == "warn"
         assert "SOFYA_API_KEY" in (result.fix or "")
@@ -735,7 +735,7 @@ class TestCheckWebFetch:
     def test_unbrowse_with_key_ok(self, tmp_path, monkeypatch):
         monkeypatch.setenv("UNBROWSE_API_KEY", "test-key")
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_fetch\n    use: deerflow.community.unbrowse.tools:web_fetch_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_fetch\n    use: operix.community.unbrowse.tools:web_fetch_tool\n")
         result = doctor.check_web_fetch(cfg)
         assert result.status == "ok"
         assert "unbrowse" in result.detail
@@ -743,7 +743,7 @@ class TestCheckWebFetch:
     def test_unbrowse_without_key_warns(self, tmp_path, monkeypatch):
         monkeypatch.delenv("UNBROWSE_API_KEY", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_fetch\n    use: deerflow.community.unbrowse.tools:web_fetch_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_fetch\n    use: operix.community.unbrowse.tools:web_fetch_tool\n")
         result = doctor.check_web_fetch(cfg)
         assert result.status == "warn"
         assert "UNBROWSE_API_KEY" in (result.fix or "")
@@ -757,7 +757,7 @@ class TestCheckWebFetch:
 
     def test_invalid_provider_use_fails(self, tmp_path):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_fetch\n    use: deerflow.community.not_real.tools:web_fetch_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_fetch\n    use: operix.community.not_real.tools:web_fetch_tool\n")
         result = doctor.check_web_fetch(cfg)
         assert result.status == "fail"
 
@@ -771,7 +771,7 @@ class TestCheckWebCapture:
     def test_browserless_self_host_without_token_ok(self, tmp_path, monkeypatch):
         monkeypatch.delenv("BROWSERLESS_TOKEN", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_capture\n    use: deerflow.community.browserless.tools:web_capture_tool\n    base_url: http://localhost:3032\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_capture\n    use: operix.community.browserless.tools:web_capture_tool\n    base_url: http://localhost:3032\n")
 
         result = doctor.check_web_capture(cfg)
 
@@ -781,7 +781,7 @@ class TestCheckWebCapture:
     def test_browserless_token_env_ref_ok(self, tmp_path, monkeypatch):
         monkeypatch.setenv("BROWSERLESS_TOKEN", "browserless-test")
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_capture\n    use: deerflow.community.browserless.tools:web_capture_tool\n    base_url: https://production-sfo.browserless.io\n    token: $BROWSERLESS_TOKEN\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_capture\n    use: operix.community.browserless.tools:web_capture_tool\n    base_url: https://production-sfo.browserless.io\n    token: $BROWSERLESS_TOKEN\n")
 
         result = doctor.check_web_capture(cfg)
 
@@ -791,7 +791,7 @@ class TestCheckWebCapture:
     def test_browserless_cloud_without_token_warns(self, tmp_path, monkeypatch):
         monkeypatch.delenv("BROWSERLESS_TOKEN", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: web_capture\n    use: deerflow.community.browserless.tools:web_capture_tool\n    base_url: https://production-sfo.browserless.io\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: web_capture\n    use: operix.community.browserless.tools:web_capture_tool\n    base_url: https://production-sfo.browserless.io\n")
 
         result = doctor.check_web_capture(cfg)
 
@@ -807,7 +807,7 @@ class TestCheckWebCapture:
 class TestCheckImageSearch:
     def test_ddg_always_ok(self, tmp_path):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: deerflow.community.image_search.tools:image_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: operix.community.image_search.tools:image_search_tool\n")
         result = doctor.check_image_search(cfg)
         assert result.status == "ok"
         assert "DuckDuckGo" in result.detail
@@ -815,7 +815,7 @@ class TestCheckImageSearch:
     def test_serper_with_key_ok(self, tmp_path, monkeypatch):
         monkeypatch.setenv("SERPER_API_KEY", "test-key")
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: deerflow.community.serper.tools:image_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: operix.community.serper.tools:image_search_tool\n")
         result = doctor.check_image_search(cfg)
         assert result.status == "ok"
         assert "serper" in result.detail
@@ -823,7 +823,7 @@ class TestCheckImageSearch:
     def test_serper_without_key_warns(self, tmp_path, monkeypatch):
         monkeypatch.delenv("SERPER_API_KEY", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: deerflow.community.serper.tools:image_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: operix.community.serper.tools:image_search_tool\n")
         result = doctor.check_image_search(cfg)
         assert result.status == "warn"
         assert "SERPER_API_KEY" in (result.fix or "")
@@ -831,7 +831,7 @@ class TestCheckImageSearch:
     def test_serper_inline_api_key_warns(self, tmp_path, monkeypatch):
         monkeypatch.delenv("SERPER_API_KEY", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: deerflow.community.serper.tools:image_search_tool\n    api_key: inline-key\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: operix.community.serper.tools:image_search_tool\n    api_key: inline-key\n")
         result = doctor.check_image_search(cfg)
         assert result.status == "warn"
         assert "literal api_key set in config" in result.detail
@@ -840,7 +840,7 @@ class TestCheckImageSearch:
     def test_serper_config_env_ref_without_env_warns(self, tmp_path, monkeypatch):
         monkeypatch.delenv("SERPER_API_KEY", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: deerflow.community.serper.tools:image_search_tool\n    api_key: $SERPER_API_KEY\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: operix.community.serper.tools:image_search_tool\n    api_key: $SERPER_API_KEY\n")
         result = doctor.check_image_search(cfg)
         assert result.status == "warn"
         assert "SERPER_API_KEY" in (result.fix or "")
@@ -848,7 +848,7 @@ class TestCheckImageSearch:
     def test_brave_image_search_with_key_ok(self, tmp_path, monkeypatch):
         monkeypatch.setenv("BRAVE_SEARCH_API_KEY", "bsa-test")
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: deerflow.community.brave.tools:image_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: operix.community.brave.tools:image_search_tool\n")
         result = doctor.check_image_search(cfg)
         assert result.status == "ok"
         assert "brave" in result.detail
@@ -856,7 +856,7 @@ class TestCheckImageSearch:
     def test_brave_image_search_without_key_warns(self, tmp_path, monkeypatch):
         monkeypatch.delenv("BRAVE_SEARCH_API_KEY", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: deerflow.community.brave.tools:image_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: operix.community.brave.tools:image_search_tool\n")
         result = doctor.check_image_search(cfg)
         assert result.status == "warn"
         assert "BRAVE_SEARCH_API_KEY" in (result.fix or "")
@@ -864,7 +864,7 @@ class TestCheckImageSearch:
     def test_brave_image_search_inline_api_key_warns(self, tmp_path, monkeypatch):
         monkeypatch.delenv("BRAVE_SEARCH_API_KEY", raising=False)
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: deerflow.community.brave.tools:image_search_tool\n    api_key: inline-key\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: operix.community.brave.tools:image_search_tool\n    api_key: inline-key\n")
         result = doctor.check_image_search(cfg)
         assert result.status == "warn"
         assert "literal api_key set in config" in result.detail
@@ -873,7 +873,7 @@ class TestCheckImageSearch:
     def test_infoquest_with_key_ok(self, tmp_path, monkeypatch):
         monkeypatch.setenv("INFOQUEST_API_KEY", "test-key")
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: deerflow.community.infoquest.tools:image_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: operix.community.infoquest.tools:image_search_tool\n")
         result = doctor.check_image_search(cfg)
         assert result.status == "ok"
         assert "infoquest" in result.detail
@@ -887,7 +887,7 @@ class TestCheckImageSearch:
 
     def test_invalid_provider_use_fails(self, tmp_path):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: deerflow.community.not_real.tools:image_search_tool\n")
+        cfg.write_text("config_version: 5\ntools:\n  - name: image_search\n    use: operix.community.not_real.tools:image_search_tool\n")
         result = doctor.check_image_search(cfg)
         assert result.status == "fail"
 
@@ -942,7 +942,7 @@ class TestCheckSandbox:
         # Regression: iterating a null `tools:` raised TypeError, which the
         # broad handler rendered as "('NoneType' object is not iterable)".
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\nsandbox:\n  use: deerflow.sandbox.local:LocalSandboxProvider\ntools:\n  # - name: bash\n")
+        cfg.write_text("config_version: 5\nsandbox:\n  use: operix.sandbox.local:LocalSandboxProvider\ntools:\n  # - name: bash\n")
         results = doctor.check_sandbox(cfg)
         # Empty `tools:` means no bash tool, so the path is deterministic.
         assert len(results) == 1
@@ -951,13 +951,13 @@ class TestCheckSandbox:
 
     def test_local_sandbox_with_disabled_host_bash_warns(self, tmp_path):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\nsandbox:\n  use: deerflow.sandbox.local:LocalSandboxProvider\n  allow_host_bash: false\ntools:\n  - name: bash\n    use: deerflow.sandbox.tools:bash_tool\n")
+        cfg.write_text("config_version: 5\nsandbox:\n  use: operix.sandbox.local:LocalSandboxProvider\n  allow_host_bash: false\ntools:\n  - name: bash\n    use: operix.sandbox.tools:bash_tool\n")
         results = doctor.check_sandbox(cfg)
         assert any(result.status == "warn" for result in results)
 
     def test_container_sandbox_without_runtime_warns(self, tmp_path, monkeypatch):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text("config_version: 5\nsandbox:\n  use: deerflow.community.aio_sandbox:AioSandboxProvider\ntools: []\n")
+        cfg.write_text("config_version: 5\nsandbox:\n  use: operix.community.aio_sandbox:AioSandboxProvider\ntools: []\n")
         monkeypatch.setattr(doctor.shutil, "which", lambda _name: None)
         results = doctor.check_sandbox(cfg)
         assert any(result.label == "container runtime available" and result.status == "warn" for result in results)
@@ -974,7 +974,7 @@ def _fake_checkout(tmp_path: Path, monkeypatch) -> Path:
     The harness's legacy config fallback is pinned to the same checkout, so
     whether the real repository has a ``config.yaml`` cannot leak in.
     """
-    from deerflow.config import app_config
+    from operix.config import app_config
 
     repo_root = tmp_path / "repo"
     scripts_dir = repo_root / "scripts"
@@ -1015,14 +1015,14 @@ class TestMainConfigResolution:
     def test_missing_config_path_env_fails_even_with_a_checkout_config(self, tmp_path, runtime_path_env, capsys):
         repo_root = _fake_checkout(tmp_path, runtime_path_env)
         (repo_root / "config.yaml").write_text("config_version: 5\nmodels: []\n")
-        runtime_path_env.setenv("DEER_FLOW_CONFIG_PATH", str(tmp_path / "missing.yaml"))
+        runtime_path_env.setenv("OPERIX_CONFIG_PATH", str(tmp_path / "missing.yaml"))
 
         exit_code = doctor.main()
 
         output = capsys.readouterr().out
         assert exit_code == 1
         assert "✗ config.yaml found" in output
-        assert "DEER_FLOW_CONFIG_PATH" in output
+        assert "OPERIX_CONFIG_PATH" in output
         # The checkout's config.yaml is not the one the Gateway would read, so
         # nothing is reported about it.
         assert "— config.yaml loadable" in output
@@ -1032,7 +1032,7 @@ class TestMainConfigResolution:
         _fake_checkout(tmp_path, runtime_path_env)
         cfg = tmp_path / "custom.yaml"
         cfg.write_text("config_version: 5\nmodels: []\n")
-        runtime_path_env.setenv("DEER_FLOW_CONFIG_PATH", str(cfg))
+        runtime_path_env.setenv("OPERIX_CONFIG_PATH", str(cfg))
 
         doctor.main()
 
@@ -1048,7 +1048,7 @@ class TestMainConfigResolution:
         # <checkout>/config.yaml over the legacy backend/config.yaml.
         # Resolving from the cwd would pick the backend copy instead.
         if project_root_env is not None:
-            runtime_path_env.setenv("DEER_FLOW_PROJECT_ROOT", project_root_env)
+            runtime_path_env.setenv("OPERIX_PROJECT_ROOT", project_root_env)
         backend_dir = repo_root / "backend"
         backend_dir.mkdir()
         runtime_path_env.chdir(backend_dir)
@@ -1064,14 +1064,14 @@ class TestMainConfigResolution:
     def test_missing_project_root_env_fails(self, tmp_path, runtime_path_env, capsys):
         repo_root = _fake_checkout(tmp_path, runtime_path_env)
         (repo_root / "config.yaml").write_text("config_version: 5\nmodels: []\n")
-        runtime_path_env.setenv("DEER_FLOW_PROJECT_ROOT", str(tmp_path / "missing-root"))
+        runtime_path_env.setenv("OPERIX_PROJECT_ROOT", str(tmp_path / "missing-root"))
 
         exit_code = doctor.main()
 
         output = capsys.readouterr().out
         assert exit_code == 1
         assert "✗ config.yaml found" in output
-        assert "DEER_FLOW_PROJECT_ROOT" in output
+        assert "OPERIX_PROJECT_ROOT" in output
 
     def test_dotenv_config_path_overrides_the_shell_like_make_dev(self, tmp_path, runtime_path_env, capsys):
         # serve.sh sources .env over the shell, so the Gateway loads the .env
@@ -1079,8 +1079,8 @@ class TestMainConfigResolution:
         repo_root = _fake_checkout(tmp_path, runtime_path_env)
         cfg = tmp_path / "from-dotenv.yaml"
         cfg.write_text("config_version: 5\nmodels:\n  - name: dotenv-model\n")
-        (repo_root / ".env").write_text(f"DEER_FLOW_CONFIG_PATH={cfg}\n")
-        runtime_path_env.setenv("DEER_FLOW_CONFIG_PATH", str(tmp_path / "missing.yaml"))
+        (repo_root / ".env").write_text(f"OPERIX_CONFIG_PATH={cfg}\n")
+        runtime_path_env.setenv("OPERIX_CONFIG_PATH", str(tmp_path / "missing.yaml"))
 
         doctor.main()
 
@@ -1091,8 +1091,8 @@ class TestMainConfigResolution:
     def test_dotenv_project_root_overrides_the_shell_like_make_dev(self, tmp_path, runtime_path_env, capsys):
         repo_root = _fake_checkout(tmp_path, runtime_path_env)
         (repo_root / "config.yaml").write_text("config_version: 5\nmodels:\n  - name: checkout-model\n")
-        (repo_root / ".env").write_text(f"DEER_FLOW_PROJECT_ROOT={repo_root}\n")
-        runtime_path_env.setenv("DEER_FLOW_PROJECT_ROOT", str(tmp_path / "missing-root"))
+        (repo_root / ".env").write_text(f"OPERIX_PROJECT_ROOT={repo_root}\n")
+        runtime_path_env.setenv("OPERIX_PROJECT_ROOT", str(tmp_path / "missing-root"))
 
         doctor.main()
 
@@ -1101,12 +1101,12 @@ class TestMainConfigResolution:
         assert "✓ models configured  (1 model(s))" in output
 
     def test_empty_dotenv_config_path_clears_the_shell_value_like_make_dev(self, tmp_path, runtime_path_env, capsys):
-        # Sourcing `DEER_FLOW_CONFIG_PATH=` exports an empty value, which the
+        # Sourcing `OPERIX_CONFIG_PATH=` exports an empty value, which the
         # resolver skips, so the Gateway falls back to <checkout>/config.yaml.
         repo_root = _fake_checkout(tmp_path, runtime_path_env)
         (repo_root / "config.yaml").write_text("config_version: 5\nmodels:\n  - name: checkout-model\n")
-        (repo_root / ".env").write_text("DEER_FLOW_CONFIG_PATH=\n")
-        runtime_path_env.setenv("DEER_FLOW_CONFIG_PATH", str(tmp_path / "missing.yaml"))
+        (repo_root / ".env").write_text("OPERIX_CONFIG_PATH=\n")
+        runtime_path_env.setenv("OPERIX_CONFIG_PATH", str(tmp_path / "missing.yaml"))
 
         doctor.main()
 
@@ -1117,10 +1117,10 @@ class TestMainConfigResolution:
     @pytest.mark.parametrize(
         ("name", "value", "found"),
         [
-            ("DEER_FLOW_CONFIG_PATH", "~/cfg.yaml", True),
-            ("DEER_FLOW_PROJECT_ROOT", "~/repo", True),
+            ("OPERIX_CONFIG_PATH", "~/cfg.yaml", True),
+            ("OPERIX_PROJECT_ROOT", "~/repo", True),
             # bash leaves a quoted tilde literal, so the Gateway fails too.
-            ("DEER_FLOW_CONFIG_PATH", '"~/cfg.yaml"', False),
+            ("OPERIX_CONFIG_PATH", '"~/cfg.yaml"', False),
         ],
         ids=["config-path", "project-root", "quoted-config-path"],
     )

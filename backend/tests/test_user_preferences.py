@@ -8,9 +8,9 @@ from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from deerflow.persistence.base import Base
-from deerflow.persistence.user.model import UserRow
-from deerflow.persistence.user.preferences import UserPreferencesRepository
+from operix.persistence.base import Base
+from operix.persistence.user.model import UserRow
+from operix.persistence.user.preferences import UserPreferencesRepository
 
 
 @pytest.fixture
@@ -132,7 +132,7 @@ def test_preferences_migration_preserves_existing_users_and_downgrades(tmp_path)
     from alembic.operations import Operations
     from sqlalchemy import create_engine, inspect, text
 
-    revision = importlib.import_module("deerflow.persistence.migrations.versions.0023_user_preferences")
+    revision = importlib.import_module("operix.persistence.migrations.versions.0023_user_preferences")
     engine = create_engine(f"sqlite:///{tmp_path}/migration.db")
     with engine.begin() as connection:
         UserRow.__table__.create(connection)

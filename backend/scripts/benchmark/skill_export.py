@@ -19,8 +19,8 @@ import threading
 import time
 from pathlib import Path
 
-from deerflow.skills import export
-from deerflow.skills.storage.local_skill_storage import LocalSkillStorage
+from operix.skills import export
+from operix.skills.storage.local_skill_storage import LocalSkillStorage
 
 
 class Tracker:

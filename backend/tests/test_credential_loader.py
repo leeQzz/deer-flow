@@ -6,13 +6,13 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-from deerflow.models import credential_loader
-from deerflow.models.claude_provider import ClaudeChatModel
-from deerflow.models.credential_loader import (
+from operix.models import credential_loader
+from operix.models.claude_provider import ClaudeChatModel
+from operix.models.credential_loader import (
     load_claude_code_credential,
     load_codex_cli_credential,
 )
-from deerflow.models.openai_codex_provider import CodexChatModel
+from operix.models.openai_codex_provider import CodexChatModel
 
 
 @pytest.fixture(autouse=True)

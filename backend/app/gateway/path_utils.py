@@ -5,8 +5,8 @@ from pathlib import Path
 
 from fastapi import HTTPException
 
-from deerflow.config.paths import VIRTUAL_PATH_PREFIX, get_paths
-from deerflow.runtime.user_context import get_effective_user_id
+from operix.config.paths import VIRTUAL_PATH_PREFIX, get_paths
+from operix.runtime.user_context import get_effective_user_id
 
 OUTPUTS_VIRTUAL_ROOT = f"{VIRTUAL_PATH_PREFIX}/outputs"
 _OUTPUTS_PREFIX = OUTPUTS_VIRTUAL_ROOT.lstrip("/") + "/"

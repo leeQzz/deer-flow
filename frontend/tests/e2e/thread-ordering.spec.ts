@@ -327,7 +327,7 @@ test.describe("Thread message ordering", () => {
         {
           event: "updates",
           data: {
-            "DeerFlowSummarizationMiddleware.before_model": {
+            "OperixSummarizationMiddleware.before_model": {
               messages: [removeAll, summary3, ...retainedTail, serverHuman],
             },
           },

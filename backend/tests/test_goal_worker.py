@@ -2,17 +2,17 @@ import asyncio
 import copy
 
 import pytest
-from deerflow_extension_api import ExtensionData
+from operix_extension_api import ExtensionData
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.checkpoint.base import empty_checkpoint, uuid6
 from langgraph.checkpoint.memory import InMemorySaver
 
-from deerflow.extensions.registry import ExtensionRegistry
-from deerflow.runtime.checkpoint_state import CheckpointStateAccessor, build_state_mutation_graph
-from deerflow.runtime.goal import GoalEvaluation, attach_goal_evaluation, build_goal_state, latest_visible_assistant_signature, read_thread_goal, write_thread_goal
-from deerflow.runtime.runs import worker
-from deerflow.runtime.runs.manager import RunRecord, RunStartOutcome
-from deerflow.runtime.runs.schemas import DisconnectMode, RunStatus
+from operix.extensions.registry import ExtensionRegistry
+from operix.runtime.checkpoint_state import CheckpointStateAccessor, build_state_mutation_graph
+from operix.runtime.goal import GoalEvaluation, attach_goal_evaluation, build_goal_state, latest_visible_assistant_signature, read_thread_goal, write_thread_goal
+from operix.runtime.runs import worker
+from operix.runtime.runs.manager import RunRecord, RunStartOutcome
+from operix.runtime.runs.schemas import DisconnectMode, RunStatus
 
 
 def _full_accessor(checkpointer) -> CheckpointStateAccessor:
@@ -917,7 +917,7 @@ def test_stand_down_reason_uses_documented_default_caps_when_missing():
 
     assert worker._stand_down_reason(bare_goal, unmet, no_progress_count=0) is None
     # And the two gate functions agree on the same bare goal.
-    from deerflow.runtime.goal import should_continue_goal
+    from operix.runtime.goal import should_continue_goal
 
     assert should_continue_goal(bare_goal, unmet, no_progress_count=0) is True
 

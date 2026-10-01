@@ -9,8 +9,8 @@ import pytest
 from fastapi import HTTPException
 from pydantic import ValidationError
 
-from deerflow.config.app_config import AppConfig
-from deerflow.config.managed_models import ManagedModel, ManagedModelStore, merge_managed_models
+from operix.config.app_config import AppConfig
+from operix.config.managed_models import ManagedModel, ManagedModelStore, merge_managed_models
 
 
 def profile(**kwargs):
@@ -19,7 +19,7 @@ def profile(**kwargs):
 
 @pytest.fixture
 def store(tmp_path, monkeypatch):
-    monkeypatch.setenv("DEER_FLOW_HOME", str(tmp_path))
+    monkeypatch.setenv("OPERIX_HOME", str(tmp_path))
     return ManagedModelStore()
 
 
@@ -165,13 +165,13 @@ async def test_admin_gate_and_response_redaction(store, monkeypatch):
 
 
 def test_config_loader_sees_changes_without_yaml_write(store, tmp_path, monkeypatch):
-    from deerflow.config.app_config import get_app_config, reset_app_config
+    from operix.config.app_config import get_app_config, reset_app_config
 
     path = tmp_path / "config.yaml"
     original = "sandbox:\n  use: test\nmodels: []\n"
     path.write_text(original, encoding="utf-8")
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(path))
-    monkeypatch.delenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", raising=False)
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(path))
+    monkeypatch.delenv("OPERIX_EXTENSIONS_CONFIG_PATH", raising=False)
     reset_app_config()
     try:
         assert not get_app_config().models
@@ -271,7 +271,7 @@ def test_separate_process_writers_share_catalog_lock(store):
 
     script = """
 import sys
-from deerflow.config.managed_models import ManagedModelStore, ManagedModel
+from operix.config.managed_models import ManagedModelStore, ManagedModel
 store = ManagedModelStore()
 for index in range(5):
     store.save(ManagedModel(name=f'{sys.argv[1]}-{index}', model='test', base_url='https://example.com/v1', api_key='secret'), expected_revision=None)

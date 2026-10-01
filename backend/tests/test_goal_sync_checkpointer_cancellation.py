@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from deerflow.runtime.goal import build_goal_state, write_thread_goal
+from operix.runtime.goal import build_goal_state, write_thread_goal
 
 
 class _BlockingSyncCheckpointer:

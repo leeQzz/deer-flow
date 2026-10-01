@@ -8,7 +8,7 @@ import pytest
 from langchain_core.messages import ToolMessage
 from langgraph.types import Command
 
-from deerflow.agents.middlewares.tool_result_meta import (
+from operix.agents.middlewares.tool_result_meta import (
     TOOL_META_KEY,
     TOOL_RESULT_ERROR_TYPES,
     ToolResultMeta,

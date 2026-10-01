@@ -11,7 +11,7 @@ from unittest import mock
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
-from deerflow.models.claude_provider import ClaudeChatModel
+from operix.models.claude_provider import ClaudeChatModel
 
 
 def _make_model(prompt_cache_size: int = 3) -> ClaudeChatModel:

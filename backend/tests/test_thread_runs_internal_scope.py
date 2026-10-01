@@ -27,10 +27,10 @@ from app.gateway.auth_disabled import AUTH_SOURCE_INTERNAL, AUTH_SOURCE_SESSION
 from app.gateway.authz import AuthContext, Permissions
 from app.gateway.internal_auth import INTERNAL_OWNER_USER_ID_HEADER_NAME, get_internal_user
 from app.gateway.routers import thread_runs
-from deerflow.persistence.thread_meta.memory import MemoryThreadMetaStore
-from deerflow.runtime.events.store.memory import MemoryRunEventStore
-from deerflow.runtime.runs.manager import RunManager
-from deerflow.runtime.runs.store.memory import MemoryRunStore
+from operix.persistence.thread_meta.memory import MemoryThreadMetaStore
+from operix.runtime.events.store.memory import MemoryRunEventStore
+from operix.runtime.runs.manager import RunManager
+from operix.runtime.runs.store.memory import MemoryRunStore
 
 THREAD_ID = "thread-scope"
 BROWSER_USER_ID = UUID("00000000-0000-0000-0000-00000000000a")

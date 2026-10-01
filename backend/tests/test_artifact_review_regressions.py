@@ -8,12 +8,12 @@ from langchain.agents import create_agent
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.checkpoint.memory import InMemorySaver
 
-from deerflow.agents.middlewares.artifact_capture_middleware import ArtifactCaptureMiddleware
-from deerflow.agents.middlewares.durable_context_middleware import DurableContextMiddleware
-from deerflow.agents.thread_state import ThreadState, get_thread_state_schema, merge_tool_artifacts
-from deerflow.config.pii_redaction_config import PiiRedactionConfig
-from deerflow.config.tool_artifact_config import ToolArtifactConfig
-from deerflow.tools.artifact_registry import extract_artifacts_from_result
+from operix.agents.middlewares.artifact_capture_middleware import ArtifactCaptureMiddleware
+from operix.agents.middlewares.durable_context_middleware import DurableContextMiddleware
+from operix.agents.thread_state import ThreadState, get_thread_state_schema, merge_tool_artifacts
+from operix.config.pii_redaction_config import PiiRedactionConfig
+from operix.config.tool_artifact_config import ToolArtifactConfig
+from operix.tools.artifact_registry import extract_artifacts_from_result
 
 
 def result(message_id, ref, call_id="reused"):
@@ -118,7 +118,7 @@ def test_reused_provider_ids_in_real_checkpointed_agent_resolve_both_occurrences
     from langchain_core.tools import tool
     from langgraph.prebuilt.tool_node import ToolCallRequest
 
-    from deerflow.agents.middlewares.artifact_resolution_middleware import ArtifactResolutionMiddleware
+    from operix.agents.middlewares.artifact_resolution_middleware import ArtifactResolutionMiddleware
 
     @tool
     def make_file(name: str) -> str:

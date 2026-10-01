@@ -1,6 +1,6 @@
 # Configuration Guide
 
-This guide explains how to configure DeerFlow for your environment.
+This guide explains how to configure Operix for your environment.
 
 ## Prompt overlays
 
@@ -133,7 +133,7 @@ limit runaway LLM cost. Both settings are read per run, so changes apply to the
 next request without a Gateway restart.
 
 These settings apply to Gateway API runs. IM channel runs and embedded
-`DeerFlowClient` runs retain their own defaults and can be overridden through
+`OperixClient` runs retain their own defaults and can be overridden through
 their channel/client-specific configuration or per-call options.
 
 ### Models
@@ -155,9 +155,9 @@ models:
 - OpenAI (`langchain_openai:ChatOpenAI`)
 - Anthropic (`langchain_anthropic:ChatAnthropic`)
 - DeepSeek (`langchain_deepseek:ChatDeepSeek`)
-- Xiaomi MiMo (`deerflow.models.patched_mimo:PatchedChatMiMo`)
-- Claude Code OAuth (`deerflow.models.claude_provider:ClaudeChatModel`)
-- Codex CLI (`deerflow.models.openai_codex_provider:CodexChatModel`)
+- Xiaomi MiMo (`operix.models.patched_mimo:PatchedChatMiMo`)
+- Claude Code OAuth (`operix.models.claude_provider:ClaudeChatModel`)
+- Codex CLI (`operix.models.openai_codex_provider:CodexChatModel`)
 - Any LangChain-compatible provider
 
 CLI-backed provider examples:
@@ -166,14 +166,14 @@ CLI-backed provider examples:
 models:
   - name: gpt-5.4
     display_name: GPT-5.4 (Codex CLI)
-    use: deerflow.models.openai_codex_provider:CodexChatModel
+    use: operix.models.openai_codex_provider:CodexChatModel
     model: gpt-5.4
     supports_thinking: true
     supports_reasoning_effort: true
 
   - name: claude-sonnet-4.6
     display_name: Claude Sonnet 4.6 (Claude Code OAuth)
-    use: deerflow.models.claude_provider:ClaudeChatModel
+    use: operix.models.claude_provider:ClaudeChatModel
     model: claude-sonnet-4-6
     max_tokens: 4096
     supports_thinking: true
@@ -184,7 +184,7 @@ models:
 - The Codex Responses endpoint currently rejects `max_tokens` and `max_output_tokens`, so `CodexChatModel` does not expose a request-level token cap
 - `ClaudeChatModel` accepts `CLAUDE_CODE_OAUTH_TOKEN`, `ANTHROPIC_AUTH_TOKEN`, `CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR`, `CLAUDE_CODE_CREDENTIALS_PATH`, or plaintext `~/.claude/.credentials.json`
 - A `CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR` handoff is drained on first use and the token is kept for the life of the process, so every `ClaudeChatModel` instance reuses it
-- On macOS, DeerFlow does not probe Keychain automatically. Use `scripts/export_claude_code_oauth.py` to export Claude Code auth explicitly when needed
+- On macOS, Operix does not probe Keychain automatically. Use `scripts/export_claude_code_oauth.py` to export Claude Code auth explicitly when needed
 
 To use OpenAI's `/v1/responses` endpoint with LangChain, keep using `langchain_openai:ChatOpenAI` and set:
 
@@ -278,13 +278,13 @@ HTTP 400 INVALID_ARGUMENT: function call `<tool>` in the N. content block is
 missing a `thought_signature`.
 ```
 
-Standard `langchain_openai:ChatOpenAI` silently drops `thought_signature` when serialising messages.  Use `deerflow.models.patched_openai:PatchedChatOpenAI` instead — it re-injects the tool-call signatures (sourced from `AIMessage.additional_kwargs["tool_calls"]`) into every outgoing payload:
+Standard `langchain_openai:ChatOpenAI` silently drops `thought_signature` when serialising messages.  Use `operix.models.patched_openai:PatchedChatOpenAI` instead — it re-injects the tool-call signatures (sourced from `AIMessage.additional_kwargs["tool_calls"]`) into every outgoing payload:
 
 ```yaml
 models:
   - name: gemini-2.5-pro-thinking
     display_name: Gemini 2.5 Pro (Thinking)
-    use: deerflow.models.patched_openai:PatchedChatOpenAI
+    use: operix.models.patched_openai:PatchedChatOpenAI
     model: google/gemini-2.5-pro-preview   # model name as expected by your gateway
     api_key: $GEMINI_API_KEY
     base_url: https://<your-openai-compat-gateway>/v1
@@ -301,7 +301,7 @@ For Gemini accessed **without** thinking (e.g. via OpenRouter where thinking is 
 
 **MiMo with thinking via OpenAI-compatible API**:
 
-MiMo returns `reasoning_content` on assistant messages in thinking mode. In multi-turn agent conversations with tool calls, subsequent requests must preserve that historical `reasoning_content` on assistant messages or the MiMo API can return HTTP 400. Standard `langchain_openai:ChatOpenAI` drops this provider-specific field, so use `deerflow.models.patched_mimo:PatchedChatMiMo`:
+MiMo returns `reasoning_content` on assistant messages in thinking mode. In multi-turn agent conversations with tool calls, subsequent requests must preserve that historical `reasoning_content` on assistant messages or the MiMo API can return HTTP 400. Standard `langchain_openai:ChatOpenAI` drops this provider-specific field, so use `operix.models.patched_mimo:PatchedChatMiMo`:
 
 For pay-as-you-go API keys (`sk-...`), use `https://api.xiaomimimo.com/v1`. For Token Plan keys (`tp-...`), use the regional Token Plan Base URL shown in the MiMo console, such as `https://token-plan-cn.xiaomimimo.com/v1`. MiMo documents these key types as separate and non-interchangeable.
 
@@ -311,7 +311,7 @@ For pay-as-you-go API keys (`sk-...`), use `https://api.xiaomimimo.com/v1`. For 
 models:
   - name: mimo-v2.5-pro
     display_name: MiMo V2.5 Pro
-    use: deerflow.models.patched_mimo:PatchedChatMiMo
+    use: operix.models.patched_mimo:PatchedChatMiMo
     model: mimo-v2.5-pro
     api_key: $MIMO_API_KEY
     base_url: https://api.xiaomimimo.com/v1
@@ -333,7 +333,7 @@ models:
 ### RAGFlow Knowledge Retrieval
 
 RAGFlow integration is disabled by default. It adds one read-only Agent tool,
-`knowledge_search`. DeerFlow does not persist a copy of dataset or document
+`knowledge_search`. Operix does not persist a copy of dataset or document
 metadata; RAGFlow is the sole source of truth. The configured API key is
 tenant-scoped. An optional operator-controlled `datasets` list restricts every
 Agent on this deployment to the same dataset-ID allowlist; omitting it searches
@@ -347,7 +347,7 @@ tool_groups:
 tools:
   - name: knowledge_search
     group: knowledge
-    use: deerflow.community.ragflow.tools:knowledge_search_tool
+    use: operix.community.ragflow.tools:knowledge_search_tool
     base_url: http://localhost:9380
     api_key: $RAGFLOW_API_KEY
     datasets:
@@ -364,7 +364,7 @@ tools:
 
 The tool is opt-in through the normal `tools:` list. `datasets` is optional but,
 when present, must contain at least one ID. If
-it contains RAGFlow dataset IDs selected by the deployment operator, DeerFlow
+it contains RAGFlow dataset IDs selected by the deployment operator, Operix
 does not validate their existence while loading configuration; on each search
 it verifies them with ID-filtered requests. If `datasets` is omitted, each
 search paginates through the tenant-visible dataset catalog. Both paths resolve
@@ -373,7 +373,7 @@ an empty dataset that has no embedding-model metadata is also skipped with a
 server warning. The remaining datasets are grouped by the exact embedding-model
 identifier and each group is sent to RAGFlow with a non-empty `dataset_ids`
 list. At most four groups are retrieved concurrently. Because raw similarity
-scores from different embedding spaces are not globally comparable, DeerFlow
+scores from different embedding spaces are not globally comparable, Operix
 preserves each group's RAGFlow ranking, interleaves equal rank positions, omits
 score labels when more than one group is searched, and applies `page_size` as a
 single global chunk limit. If any searchable group fails, the whole tool call
@@ -390,9 +390,9 @@ container or Pod, not the host machine.
 
 This integration is retrieval-only. Dataset creation, uploads, parsing, and
 deletion remain in RAGFlow and are not exposed as Agent tools, workspace pages,
-or DeerFlow APIs. The authenticated `/api/knowledge/retrieval-catalog` routes
+or Operix APIs. The authenticated `/api/knowledge/retrieval-catalog` routes
 exist only to populate the custom-agent chat selector. The provider-neutral
-`knowledge_base` block only gates DeerFlow's knowledge capability and selector;
+`knowledge_base` block only gates Operix's knowledge capability and selector;
 configure the RAGFlow connection and retrieval defaults on the
 `tools[].name: knowledge_search` entry shown above:
 
@@ -415,11 +415,11 @@ entry, so different knowledge providers can use their own settings.
 LightRAG integration is disabled by default. It is an alternative provider for
 the same read-only `knowledge_search` tool: an operator picks RAGFlow or
 LightRAG by which entry appears in the `tools:` list — the two entries share
-one name, and on duplicate names DeerFlow keeps the **first** configured
+one name, and on duplicate names Operix keeps the **first** configured
 entry, so configure exactly one. Requires LightRAG v1.4.9 or newer: v1.4.8
 introduced the data-retrieval endpoint but returned a pre-envelope response
 shape, and the `status`/`data` envelope plus the citation fields consumed
-here shipped in v1.4.9. DeerFlow does not persist any index
+here shipped in v1.4.9. Operix does not persist any index
 metadata; LightRAG stays the sole source of truth, and the deployment's
 single indexed workspace is always searched.
 
@@ -430,7 +430,7 @@ tool_groups:
 tools:
   - name: knowledge_search
     group: knowledge
-    use: deerflow.community.lightrag.tools:knowledge_search_tool
+    use: operix.community.lightrag.tools:knowledge_search_tool
     base_url: http://localhost:9621
     api_key: $LIGHTRAG_API_KEY
     mode: mix
@@ -443,7 +443,7 @@ tools:
 
 The tool is opt-in through the normal `tools:` list. Retrieval uses LightRAG's
 `POST /query/data` endpoint, which performs no LLM generation and returns
-structured entities, relationships, chunks, and references; DeerFlow keeps the
+structured entities, relationships, chunks, and references; Operix keeps the
 chunks — the document text the selected mode already ranked as relevant — and
 formats them as citation-numbered text, dropping the graph objects to stay
 compact and keep the citation shape shared with the RAGFlow provider. `mode`
@@ -468,7 +468,7 @@ Kubernetes it must be reachable from the Gateway container or Pod.
 Internal identifiers (chunk IDs and the response-local reference IDs) are
 never exposed to the Agent; citations use the operator-readable `file_path`.
 This integration is retrieval-only. Document insertion, indexing, and graph
-mutation remain in LightRAG and are not exposed as Agent tools or DeerFlow
+mutation remain in LightRAG and are not exposed as Agent tools or Operix
 APIs.
 
 ### Tool Groups
@@ -555,7 +555,7 @@ Configure specific tools available to the agent:
 tools:
   - name: web_search
     group: web
-    use: deerflow.community.tavily.tools:web_search_tool
+    use: operix.community.tavily.tools:web_search_tool
     max_results: 5
     include_domains:             # Optional: limit search sources to these domains
       - docs.python.org
@@ -566,7 +566,7 @@ tools:
 
 For Tavily, `include_domains` and `exclude_domains` are deployment-only options
 read from the `web_search` tool entry and passed directly to `TavilyClient.search`.
-For a non-empty `include_domains`, DeerFlow also sends `include_domains_mode: filter`
+For a non-empty `include_domains`, Operix also sends `include_domains_mode: filter`
 so Tavily restricts results to those domains rather than merely boosting them.
 Either list may be configured independently. Omitted options are not added to the SDK
 call; explicit empty lists are forwarded as `[]`, meaning no inclusion restriction
@@ -598,7 +598,7 @@ Browserless can be configured as an opt-in visual capture tool:
 tools:
   - name: web_capture
     group: web
-    use: deerflow.community.browserless.tools:web_capture_tool
+    use: operix.community.browserless.tools:web_capture_tool
     base_url: http://localhost:3032
     # token: $BROWSERLESS_TOKEN
     output_format: png
@@ -655,7 +655,7 @@ Enable the read-only Gateway tool through the existing tools list:
 tools:
   - name: read_conversation
     group: conversation
-    use: deerflow.tools.conversation:read_conversation
+    use: operix.tools.conversation:read_conversation
 ```
 
 It is off by default. A run must explicitly submit `conversation_references`
@@ -677,24 +677,24 @@ externalized to `.tool-results`. To allow larger pages, raise
 
 ### Sandbox
 
-DeerFlow supports multiple sandbox execution modes. Configure your preferred mode in `config.yaml`:
+Operix supports multiple sandbox execution modes. Configure your preferred mode in `config.yaml`:
 
 **Local Execution** (runs sandbox code directly on the host machine):
 ```yaml
 sandbox:
-   use: deerflow.sandbox.local:LocalSandboxProvider # Local execution
+   use: operix.sandbox.local:LocalSandboxProvider # Local execution
    allow_host_bash: false # default; host bash is disabled unless explicitly re-enabled
 ```
 
 **Docker Execution** (runs sandbox code in isolated Docker containers):
 ```yaml
 sandbox:
-   use: deerflow.community.aio_sandbox:AioSandboxProvider # Docker-based sandbox
+   use: operix.community.aio_sandbox:AioSandboxProvider # Docker-based sandbox
 ```
 
 For AIO images on the supported semver line (`1.9.3` through the recommended
 `1.11.0` image), `sandbox.bash_command_timeout` is enforced server-side through
-the `hard_timeout` API when the image exposes it. DeerFlow's legacy frozen
+the `hard_timeout` API when the image exposes it. Operix's legacy frozen
 `all-in-one-sandbox:latest` image predates that API, so only the host-side
 request is bounded there. On supported semver AIO images, `list_dir` uses a 60
 second server-side hard timeout with a 65 second no-retry host envelope; the
@@ -703,9 +703,9 @@ ambiguous commands are never replayed, and a partial `list_dir` result is never
 returned as a complete listing.
 
 Explicit AIO shell/bash session creation is a separate control-plane
-operation. DeerFlow bounds those create requests to 5 seconds with SDK
+operation. Operix bounds those create requests to 5 seconds with SDK
 retries disabled. If a response cannot prove whether creation committed,
-DeerFlow does not replay the create or execute on that session id. The
+Operix does not replay the create or execute on that session id. The
 affected creation plane is quarantined, bounded best-effort session cleanup
 is attempted, and the container is recycled instead of being returned to the
 warm pool. Session-level cleanup does not clear that quarantine because a
@@ -714,7 +714,7 @@ timed-out create may commit after cleanup has already returned.
 **BoxLite micro-VM Sandbox** (runs sandbox code in daemonless OCI micro-VMs):
 ```yaml
 sandbox:
-   use: deerflow.community.boxlite:BoxliteProvider
+   use: operix.community.boxlite:BoxliteProvider
    image: python:3.12-slim
    memory_mib: 1024                 # optional per-box memory cap
    cpus: 2                          # optional per-box vCPUs
@@ -727,7 +727,7 @@ sandbox:
 Install the optional runtime before selecting this provider:
 
 ```bash
-pip install "deerflow-harness[boxlite]"
+pip install "operix-harness[boxlite]"
 ```
 
 BoxLite boxes are named from the effective `(user_id, thread_id)` scope and are
@@ -743,20 +743,20 @@ This mode runs each sandbox in an isolated Kubernetes Pod on your **host machine
 
 ```yaml
 sandbox:
-   use: deerflow.community.aio_sandbox:AioSandboxProvider
+   use: operix.community.aio_sandbox:AioSandboxProvider
    provisioner_url: http://provisioner:8002
 ```
 
-When using Docker development (`make docker-start`), DeerFlow starts the `provisioner` service only if this provisioner mode is configured. In local or plain Docker sandbox modes, `provisioner` is skipped.
+When using Docker development (`make docker-start`), Operix starts the `provisioner` service only if this provisioner mode is configured. In local or plain Docker sandbox modes, `provisioner` is skipped.
 
 Remote/provisioner backends default to explicit file synchronization because
-DeerFlow cannot infer whether their `/mnt/user-data` mount points reference the
+Operix cannot infer whether their `/mnt/user-data` mount points reference the
 same storage as the Gateway. When the deployment guarantees that both sides use
 the same thread user-data directories, opt out of that extra transfer:
 
 ```yaml
 sandbox:
-  use: deerflow.community.aio_sandbox:AioSandboxProvider
+  use: operix.community.aio_sandbox:AioSandboxProvider
   provisioner_url: http://provisioner:8002
   thread_data_mounts: true
 ```
@@ -774,7 +774,7 @@ See [Provisioner Setup Guide](../../docker/provisioner/README.md) for detailed c
 
 ```yaml
 sandbox:
-   use: deerflow.community.e2b_sandbox:E2BSandboxProvider
+   use: operix.community.e2b_sandbox:E2BSandboxProvider
    api_key: $E2B_API_KEY            # required; or set the E2B_API_KEY env var
    template: code-interpreter-v1     # e2b sandbox template id
    # domain: e2b.dev                # optional; for self-hosted e2b deployments
@@ -799,14 +799,14 @@ sandbox:
      OPENAI_API_KEY: $OPENAI_API_KEY
 ```
 
-`e2b-code-interpreter` is bundled as a core dependency of `deerflow-harness`,
+`e2b-code-interpreter` is bundled as a core dependency of `operix-harness`,
 so no extra install step is needed; just supply your API key and switch the
 provider in `config.yaml`.
 
 Notes specific to `E2BSandboxProvider`:
 
-- Each DeerFlow thread is bound to its E2B sandbox via metadata
-  (`deer_flow_user`, `deer_flow_thread`, `deer_flow_skills_root`). Startup and
+- Each Operix thread is bound to its E2B sandbox via metadata
+  (`operix_user`, `operix_thread`, `operix_skills_root`). Startup and
   periodic reconciliation probe every bounded candidate, adopt one healthy
   canonical sandbox, and reap duplicates after a grace period. A sandbox whose
   skills root differs from the provider's startup snapshot is never adopted and
@@ -840,7 +840,7 @@ Notes specific to `E2BSandboxProvider`:
 
 ```yaml
 sandbox:
-   use: deerflow.community.opensandbox:OpenSandboxProvider
+   use: operix.community.opensandbox:OpenSandboxProvider
    image: python:3.11
    api_key: $OPEN_SANDBOX_API_KEY     # optional when the SDK env var is set
    domain: localhost:8080             # OPEN_SANDBOX_DOMAIN fallback
@@ -859,7 +859,7 @@ sandbox:
 Install the optional SDK before selecting this provider:
 
 ```bash
-pip install "deerflow-harness[opensandbox]"
+pip install "operix-harness[opensandbox]"
 ```
 
 The provider creates a sandbox per effective user/thread scope and parks it in
@@ -882,39 +882,39 @@ Choose between local execution or Docker-based isolation:
 **Option 1: Local Sandbox** (default, simpler setup):
 ```yaml
 sandbox:
-  use: deerflow.sandbox.local:LocalSandboxProvider
+  use: operix.sandbox.local:LocalSandboxProvider
   allow_host_bash: false
 ```
 
-`allow_host_bash` is intentionally `false` by default. DeerFlow's local sandbox is a host-side convenience mode, not a secure shell isolation boundary. If you need `bash`, prefer `AioSandboxProvider`. Only set `allow_host_bash: true` for fully trusted single-user local workflows.
+`allow_host_bash` is intentionally `false` by default. Operix's local sandbox is a host-side convenience mode, not a secure shell isolation boundary. If you need `bash`, prefer `AioSandboxProvider`. Only set `allow_host_bash: true` for fully trusted single-user local workflows.
 
-When `LocalSandboxProvider` runs under `make up`, it runs inside the `deer-flow-gateway` container. In that mode, `sandbox.mounts[].host_path` is resolved from the gateway container's filesystem, not from your Docker host. If you need a local-sandbox custom mount in production Docker, bind the host directory into the gateway service first, then use the in-container path in `config.yaml`:
+When `LocalSandboxProvider` runs under `make up`, it runs inside the `operix-gateway` container. In that mode, `sandbox.mounts[].host_path` is resolved from the gateway container's filesystem, not from your Docker host. If you need a local-sandbox custom mount in production Docker, bind the host directory into the gateway service first, then use the in-container path in `config.yaml`:
 
 ```yaml
 # docker/docker-compose.yaml or an override file
 services:
   gateway:
     volumes:
-      - ${DEER_FLOW_REPO_ROOT}/.deer-flow/knowledge:/app/.deer-flow/knowledge:ro
+      - ${OPERIX_REPO_ROOT}/.operix/knowledge:/app/.operix/knowledge:ro
 ```
 
 ```yaml
 sandbox:
-  use: deerflow.sandbox.local:LocalSandboxProvider
+  use: operix.sandbox.local:LocalSandboxProvider
   mounts:
-    - host_path: /app/.deer-flow/knowledge
+    - host_path: /app/.operix/knowledge
       container_path: /mnt/knowledge
       read_only: true
 ```
 
-If the configured `host_path` is not visible to the gateway process, DeerFlow logs an error and ignores that mount.
+If the configured `host_path` is not visible to the gateway process, Operix logs an error and ignores that mount.
 
 **Option 2: Docker Sandbox** (isolated, more secure):
 ```yaml
 sandbox:
-  use: deerflow.community.aio_sandbox:AioSandboxProvider
+  use: operix.community.aio_sandbox:AioSandboxProvider
   port: 8080
-  container_prefix: deer-flow-sandbox
+  container_prefix: operix-sandbox
 
   # Optional: Additional mounts
   mounts:
@@ -923,7 +923,7 @@ sandbox:
       read_only: false
 ```
 
-When you configure `sandbox.mounts`, DeerFlow exposes those `container_path` values in the agent prompt so the agent can discover and operate on mounted directories directly instead of assuming everything must live under `/mnt/user-data`.
+When you configure `sandbox.mounts`, Operix exposes those `container_path` values in the agent prompt so the agent can discover and operate on mounted directories directly instead of assuming everything must live under `/mnt/user-data`.
 
 #### Sandbox network policy
 
@@ -931,7 +931,7 @@ Local Docker AIO sandboxes can opt into an outbound policy:
 
 ```yaml
 sandbox:
-  use: deerflow.community.aio_sandbox:AioSandboxProvider
+  use: operix.community.aio_sandbox:AioSandboxProvider
   network:
     mode: allowlist
     allow_domains:
@@ -948,7 +948,7 @@ traffic. `allowlist` uses the same bridge and a trusted sidecar that supports
 HTTP and HTTPS CONNECT only. Exact domains and leading wildcards such as
 `*.pythonhosted.org` are accepted; URLs, ports, and a catch-all `*` are
 rejected. Traffic that ignores proxy environment variables still has no route
-out of the internal bridge. DeerFlow also sets the upstream AIO image's
+out of the internal bridge. Operix also sets the upstream AIO image's
 `PROXY_SERVER`/`PROXY_EXCLUDE` variables so its Chromium service uses the same
 policy sidecar; standard upper/lower-case HTTP, HTTPS, and ALL proxy variables
 cover shell and package-manager clients.
@@ -976,7 +976,7 @@ require strict origin-level HTTPS isolation should use `isolated` mode or an
 operator-managed TLS-inspecting egress gateway.
 
 With `approval: prompt`, a denied public domain becomes a Human Input card with
-**Deny**, **Allow temporarily**, and **Allow for this sandbox** choices. DeerFlow
+**Deny**, **Allow temporarily**, and **Allow for this sandbox** choices. Operix
 does not replay the failed command after approval because it may already have
 performed local side effects; the agent must retry it explicitly. Non-interactive
 runs auto-deny without opening a card or waiting for input. The sidecar rejects
@@ -988,7 +988,7 @@ restricted modes.
 
 Restricted modes currently require the local Docker backend and Docker Engine
 28 or newer. They fail closed on Apple Container, provisioner mode, and older
-engines. DeerFlow applies Engine 28's isolated bridge gateway mode to both IPv4
+engines. Operix applies Engine 28's isolated bridge gateway mode to both IPv4
 and IPv6 so the sandbox cannot reach services bound to either host-side bridge
 address. The sandbox, sidecar, internal network, and egress network carry a
 digest of the effective policy, proxy source, and image reference; startup and
@@ -998,12 +998,12 @@ mode also carry stable identity and mode labels. After a Gateway restart,
 changing between `open` and a restricted mode is therefore reported as an
 incompatible persisted sandbox and replaced only after the normal ownership,
 orphan-grace, and teardown fences. Unlabelled open containers from older
-DeerFlow versions are recognized when they use the configured image and retain
+Operix versions are recognized when they use the configured image and retain
 their published API port. Docker Desktop is detected
 from the daemon, not the Gateway process, so Docker-outside-of-Docker deployments
 handle its synthetic DNS range correctly. The policy sidecar publishes only its
 fixed sandbox-API relay back to the Gateway; the sandbox API itself is not
-published. DeerFlow generates a separate relay token for each sandbox, requires
+published. Operix generates a separate relay token for each sandbox, requires
 it on every new relay connection, reconstructs it from Docker during discovery,
 and injects it only into Gateway control-plane clients. The token is excluded
 from `SandboxInfo` serialization, representations, and command logs.
@@ -1012,23 +1012,23 @@ require supply-chain pinning.
 
 #### Sandbox container network exposure and hardening
 
-The sandbox HTTP API (`/v1/shell/*` and friends) has no authentication: anyone who can reach a published sandbox port can execute arbitrary commands in that sandbox. For bare-metal Docker sandbox runs that use localhost, DeerFlow binds the sandbox port to `127.0.0.1` so it is not exposed on other host interfaces. For Docker-outside-of-Docker deployments that connect through `host.docker.internal`, the port is bound to the address that hostname actually resolves to — the daemon's `host-gateway-ip` mapping (customizable, possibly IPv6) — so the published port and the address the gateway connects to always match, and the port is no longer published on external network interfaces (previously it was bound to `0.0.0.0`). On Docker Desktop, resolving `host.docker.internal` yields an internal VM gateway address that the host OS cannot bind; because Docker Desktop forwards `host.docker.internal` to host loopback, DeerFlow defaults to `127.0.0.1` for `host.docker.internal` on Desktop daemons. Custom non-loopback sandbox hosts continue to bind their resolved address. If resolution fails, the Docker default bridge gateway (via `docker network inspect bridge`, falling back to `172.17.0.1`) is used as a best-effort bind and a warning is logged. Set `DEER_FLOW_SANDBOX_BIND_HOST` explicitly if your deployment needs a different bind address; setting it to `0.0.0.0` restores the legacy broad bind, which re-exposes the unauthenticated exec API on every interface and should be paired with an external firewall.
+The sandbox HTTP API (`/v1/shell/*` and friends) has no authentication: anyone who can reach a published sandbox port can execute arbitrary commands in that sandbox. For bare-metal Docker sandbox runs that use localhost, Operix binds the sandbox port to `127.0.0.1` so it is not exposed on other host interfaces. For Docker-outside-of-Docker deployments that connect through `host.docker.internal`, the port is bound to the address that hostname actually resolves to — the daemon's `host-gateway-ip` mapping (customizable, possibly IPv6) — so the published port and the address the gateway connects to always match, and the port is no longer published on external network interfaces (previously it was bound to `0.0.0.0`). On Docker Desktop, resolving `host.docker.internal` yields an internal VM gateway address that the host OS cannot bind; because Docker Desktop forwards `host.docker.internal` to host loopback, Operix defaults to `127.0.0.1` for `host.docker.internal` on Desktop daemons. Custom non-loopback sandbox hosts continue to bind their resolved address. If resolution fails, the Docker default bridge gateway (via `docker network inspect bridge`, falling back to `172.17.0.1`) is used as a best-effort bind and a warning is logged. Set `OPERIX_SANDBOX_BIND_HOST` explicitly if your deployment needs a different bind address; setting it to `0.0.0.0` restores the legacy broad bind, which re-exposes the unauthenticated exec API on every interface and should be paired with an external firewall.
 
-Local Docker sandbox containers are also hardened by default: all Linux capabilities are dropped (`--cap-drop=ALL`) except a five-capability compatibility allowlist — `CHOWN`, `FOWNER`, `SETUID`, `SETGID`, and `DAC_OVERRIDE` — while privilege escalation across exec stays blocked with `no-new-privileges` and CPU/memory/PID resources are bounded. `CHOWN`/`SETUID`/`SETGID` support the runtime user handoff and `DAC_OVERRIDE` supports the root nginx master's writes to gem-owned logs. `FOWNER` is specifically required by the newer AIO 1.11.x startup path (regression-tested against the recommended 1.11.0 image), which runs `chmod /run/user/1000` after capabilities are dropped. Images that do not perform that `chmod` do not need `FOWNER`; DeerFlow deliberately does not guess a smaller set from mutable tags, digests, or arbitrary custom images, so the default compatibility allowlist remains version-agnostic.
+Local Docker sandbox containers are also hardened by default: all Linux capabilities are dropped (`--cap-drop=ALL`) except a five-capability compatibility allowlist — `CHOWN`, `FOWNER`, `SETUID`, `SETGID`, and `DAC_OVERRIDE` — while privilege escalation across exec stays blocked with `no-new-privileges` and CPU/memory/PID resources are bounded. `CHOWN`/`SETUID`/`SETGID` support the runtime user handoff and `DAC_OVERRIDE` supports the root nginx master's writes to gem-owned logs. `FOWNER` is specifically required by the newer AIO 1.11.x startup path (regression-tested against the recommended 1.11.0 image), which runs `chmod /run/user/1000` after capabilities are dropped. Images that do not perform that `chmod` do not need `FOWNER`; Operix deliberately does not guess a smaller set from mutable tags, digests, or arbitrary custom images, so the default compatibility allowlist remains version-agnostic.
 
-A custom image that is already fully initialized as a non-root user and needs none of those compatibility capabilities should set `DEER_FLOW_SANDBOX_IMAGE_STARTUP_CAPS=0` to drop the whole set. This is an all-or-nothing opt-out, not a per-capability selector: an older or custom root-initialized image that does not need `FOWNER` may still require `CHOWN`, `SETUID`, `SETGID`, or `DAC_OVERRIDE` and should therefore leave the compatibility set enabled. Retained capabilities remain available for the container's lifetime and can let sandboxed code change ownership or mode on accessible bind-mounted paths, impersonate mounted-file UIDs/GIDs, or bypass discretionary access checks. `no-new-privileges` does **not** mitigate that existing-capability risk — it only blocks gaining new privileges across exec. One hardening knob is relaxed by default: the shipped AIO image runs with `seccomp=unconfined` because its Chromium browser does not start under Docker's default seccomp profile (syscall filtering is disabled — see the two seccomp variables below to change that). The following environment variables (set them in the gateway process, e.g. via `.env` loaded by docker-compose, or the gateway service `environment:`) tune or disable each knob:
+A custom image that is already fully initialized as a non-root user and needs none of those compatibility capabilities should set `OPERIX_SANDBOX_IMAGE_STARTUP_CAPS=0` to drop the whole set. This is an all-or-nothing opt-out, not a per-capability selector: an older or custom root-initialized image that does not need `FOWNER` may still require `CHOWN`, `SETUID`, `SETGID`, or `DAC_OVERRIDE` and should therefore leave the compatibility set enabled. Retained capabilities remain available for the container's lifetime and can let sandboxed code change ownership or mode on accessible bind-mounted paths, impersonate mounted-file UIDs/GIDs, or bypass discretionary access checks. `no-new-privileges` does **not** mitigate that existing-capability risk — it only blocks gaining new privileges across exec. One hardening knob is relaxed by default: the shipped AIO image runs with `seccomp=unconfined` because its Chromium browser does not start under Docker's default seccomp profile (syscall filtering is disabled — see the two seccomp variables below to change that). The following environment variables (set them in the gateway process, e.g. via `.env` loaded by docker-compose, or the gateway service `environment:`) tune or disable each knob:
 
 | Environment variable | Default | Purpose |
 | --- | --- | --- |
-| `DEER_FLOW_SANDBOX_BIND_HOST` | loopback (localhost or Docker Desktop with `host.docker.internal`) / host-gateway-ip / bridge gateway | Host interface for the sandbox `-p` publish. Must be an IP literal (bare or bracketed IPv6) or a hostname, which is resolved to an address first — Docker publish specs do not accept hostnames. `0.0.0.0` restores the legacy broad bind (risky). |
-| `DEER_FLOW_SANDBOX_SECCOMP_UNCONFINED` | on | The shipped AIO image's Chromium browser does not start under Docker's default seccomp profile (see the upstream agent-infra sandbox FAQ), so `seccomp=unconfined` remains the default. Set to `0` to run with the built-in profile — passed explicitly as `seccomp=builtin`, so a daemon configured with a different default cannot weaken the opt-out — and only for images verified to start and pass browser checks with it. |
-| `DEER_FLOW_SANDBOX_IMAGE_STARTUP_CAPS` | on | Keeps the five-capability compatibility set (`CHOWN`/`FOWNER`/`SETUID`/`SETGID`/`DAC_OVERRIDE`). `FOWNER` specifically covers the newer AIO 1.11.x startup `chmod /run/user/1000` path (tested with 1.11.0); images without that step do not need `FOWNER`, but DeerFlow does not infer per-image capability subsets from tags/digests/custom images. Set to `0` only for images that need none of the five — the switch drops the entire set. |
-| `DEER_FLOW_SANDBOX_SECCOMP_PROFILE` | unset | Path to a custom seccomp profile (e.g. a restricted, Chromium-compatible one built from Docker's default plus the namespace syscalls Chromium needs). Takes precedence over the unconfined default. |
-| `DEER_FLOW_SANDBOX_MEMORY` | `2g` | `--memory` limit per sandbox container. `0`/`none` disables the limit. |
-| `DEER_FLOW_SANDBOX_CPUS` | `2` | `--cpus` limit per sandbox container. `0`/`none` disables the limit. |
-| `DEER_FLOW_SANDBOX_PIDS_LIMIT` | `512` | `--pids-limit` per sandbox container (fork-bomb guard). `0`/`none` disables the limit. |
-| `DEER_FLOW_SANDBOX_CONTAINER_USER` | unset (image default) | Passed through as `--user` (e.g. `1000:1000`). The default AIO image's user is upstream-controlled, so DeerFlow does not force one; set this only if you know your image's runtime user. |
-| `DEER_FLOW_SANDBOX_NETWORK` | unset (daemon default network) | Legacy `open`-mode escape hatch passed through as `--network`. Prefer `sandbox.network` for managed isolation. `host`, `container:<name>`, and `none` are rejected at startup. Restricted modes ignore this variable and use their own per-sandbox internal network. |
+| `OPERIX_SANDBOX_BIND_HOST` | loopback (localhost or Docker Desktop with `host.docker.internal`) / host-gateway-ip / bridge gateway | Host interface for the sandbox `-p` publish. Must be an IP literal (bare or bracketed IPv6) or a hostname, which is resolved to an address first — Docker publish specs do not accept hostnames. `0.0.0.0` restores the legacy broad bind (risky). |
+| `OPERIX_SANDBOX_SECCOMP_UNCONFINED` | on | The shipped AIO image's Chromium browser does not start under Docker's default seccomp profile (see the upstream agent-infra sandbox FAQ), so `seccomp=unconfined` remains the default. Set to `0` to run with the built-in profile — passed explicitly as `seccomp=builtin`, so a daemon configured with a different default cannot weaken the opt-out — and only for images verified to start and pass browser checks with it. |
+| `OPERIX_SANDBOX_IMAGE_STARTUP_CAPS` | on | Keeps the five-capability compatibility set (`CHOWN`/`FOWNER`/`SETUID`/`SETGID`/`DAC_OVERRIDE`). `FOWNER` specifically covers the newer AIO 1.11.x startup `chmod /run/user/1000` path (tested with 1.11.0); images without that step do not need `FOWNER`, but Operix does not infer per-image capability subsets from tags/digests/custom images. Set to `0` only for images that need none of the five — the switch drops the entire set. |
+| `OPERIX_SANDBOX_SECCOMP_PROFILE` | unset | Path to a custom seccomp profile (e.g. a restricted, Chromium-compatible one built from Docker's default plus the namespace syscalls Chromium needs). Takes precedence over the unconfined default. |
+| `OPERIX_SANDBOX_MEMORY` | `2g` | `--memory` limit per sandbox container. `0`/`none` disables the limit. |
+| `OPERIX_SANDBOX_CPUS` | `2` | `--cpus` limit per sandbox container. `0`/`none` disables the limit. |
+| `OPERIX_SANDBOX_PIDS_LIMIT` | `512` | `--pids-limit` per sandbox container (fork-bomb guard). `0`/`none` disables the limit. |
+| `OPERIX_SANDBOX_CONTAINER_USER` | unset (image default) | Passed through as `--user` (e.g. `1000:1000`). The default AIO image's user is upstream-controlled, so Operix does not force one; set this only if you know your image's runtime user. |
+| `OPERIX_SANDBOX_NETWORK` | unset (daemon default network) | Legacy `open`-mode escape hatch passed through as `--network`. Prefer `sandbox.network` for managed isolation. `host`, `container:<name>`, and `none` are rejected at startup. Restricted modes ignore this variable and use their own per-sandbox internal network. |
 
 These hardening flags are Docker-only; Apple Container (`container` runtime) keeps its previous, unhardened invocation and therefore supports only `network.mode: open`. On macOS, an `open` Gateway normally prefers Apple Container, but it keeps using Docker while the configured sandbox prefix has managed Docker sandboxes so startup reconciliation can safely replace resources left by a restricted-mode deployment before the runtime changes.
 
@@ -1043,13 +1043,13 @@ continue to use the normal environment proxy configuration.
 Each concurrently running native subagent uses one persistent AIO shell session.
 The semver AIO images from `1.9.3` through `1.11.0` default
 `MAX_SHELL_SESSIONS` to 10 and evict the oldest idle session when an eleventh is
-created. If `subagent_runtime.max_running` is greater than nine, DeerFlow sets
+created. If `subagent_runtime.max_running` is greater than nine, Operix sets
 the container limit to `max_running + 1`; the extra slot leaves room for the lead
 agent's shell. This applies to both locally created containers and provisioner
 Pods. Lower concurrency keeps the image's own default unchanged.
 
 The separate `bash.exec` API uses its own `AIO_BASH_MAX_SESSIONS` pool rather
-than `MAX_SHELL_SESSIONS`. DeerFlow nevertheless creates and closes an explicit
+than `MAX_SHELL_SESSIONS`. Operix nevertheless creates and closes an explicit
 transient bash session around every env-bearing command, so request-scoped
 secrets and completed command sessions are not retained.
 
@@ -1057,7 +1057,7 @@ You may set `sandbox.environment.MAX_SHELL_SESSIONS` explicitly. It must be a
 positive integer at least as large as `subagent_runtime.max_running + 1`, or the
 provider fails at startup with the conflicting values. The setting is applied
 when a sandbox is created. Persisted local containers and provisioner Pods report
-their effective value; DeerFlow replaces one whose capacity is below the current
+their effective value; Operix replaces one whose capacity is below the current
 requirement instead of reusing it. Reuse checks also apply when no explicit
 override is needed for new containers: a previously configured lower limit must
 still fit the current concurrency. The Gateway waits for existing ownership and
@@ -1072,7 +1072,7 @@ an error and does not authorize replacement.
 
 ### Building a Custom AIO Sandbox Image
 
-`AioSandboxProvider` talks to the sandbox container through the `agent-sandbox` SDK. The Dockerfile for the default `enterprise-public-cn-beijing.cr.volces.com/vefaas-public/all-in-one-sandbox:latest` image is not part of this repository; DeerFlow treats that image as an upstream AIO sandbox runtime.
+`AioSandboxProvider` talks to the sandbox container through the `agent-sandbox` SDK. The Dockerfile for the default `enterprise-public-cn-beijing.cr.volces.com/vefaas-public/all-in-one-sandbox:latest` image is not part of this repository; Operix treats that image as an upstream AIO sandbox runtime.
 
 For persistent system or language dependencies, extend the published image and keep its startup command intact:
 
@@ -1080,7 +1080,7 @@ For persistent system or language dependencies, extend the published image and k
 FROM enterprise-public-cn-beijing.cr.volces.com/vefaas-public/all-in-one-sandbox:latest
 
 USER root
-# Example user dependency; not required by DeerFlow itself.
+# Example user dependency; not required by Operix itself.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends graphviz \
     && rm -rf /var/lib/apt/lists/*
@@ -1095,17 +1095,17 @@ Use the custom image in local Docker or Apple Container mode with `sandbox.image
 
 ```yaml
 sandbox:
-  use: deerflow.community.aio_sandbox:AioSandboxProvider
+  use: operix.community.aio_sandbox:AioSandboxProvider
   image: your-registry/your-aio-sandbox:tag
 ```
 
 In provisioner mode, sandbox Pods are created by the provisioner service, so configure the provisioner `SANDBOX_IMAGE` environment variable instead of `sandbox.image`. See the [Provisioner Setup Guide](../../docker/provisioner/README.md#custom-sandbox-image).
 
-If you rebuild the runtime from scratch instead of extending the published image, it must expose the same HTTP API used by `agent-sandbox`. DeerFlow currently depends on:
+If you rebuild the runtime from scratch instead of extending the published image, it must expose the same HTTP API used by `agent-sandbox`. Operix currently depends on:
 
 - `sandbox.get_context()`, including `home_dir`
 - `shell.exec_command(...)`
-- `bash.exec(...)` — only exercised for per-command environment injection (skills that declare `required-secrets`). The `/v1/bash/*` routes exist since upstream all-in-one-sandbox `1.9.3`; on older images (including a `latest` tag still frozen on the `1.0.0.x` line) DeerFlow fails fast with an actionable error instead of surfacing the raw 404. Pin `sandbox.image` to `1.9.3` or newer (e.g. `1.11.0`) and recreate the sandbox container to use `required-secrets` with the AIO sandbox.
+- `bash.exec(...)` — only exercised for per-command environment injection (skills that declare `required-secrets`). The `/v1/bash/*` routes exist since upstream all-in-one-sandbox `1.9.3`; on older images (including a `latest` tag still frozen on the `1.0.0.x` line) Operix fails fast with an actionable error instead of surfacing the raw 404. Pin `sandbox.image` to `1.9.3` or newer (e.g. `1.11.0`) and recreate the sandbox container to use `required-secrets` with the AIO sandbox.
 - `file.read_file(...)`
 - `file.write_file(...)`, including base64 writes for binary content
 - streamed `file.download_file(...)`
@@ -1116,9 +1116,9 @@ If you rebuild the runtime from scratch instead of extending the published image
 Custom images must also keep these compatibility constraints:
 
 - The container should listen on the configured sandbox port, `8080` by default.
-- `/mnt/user-data` must remain writable because DeerFlow mounts thread workspace, uploads, and outputs there.
-- `home_dir` comes from the sandbox context endpoint; do not assume DeerFlow hardcodes it.
-- Shell command handling must remain compatible with serialized `exec_command` calls. DeerFlow serializes shell access on the host side to avoid corrupting the sandbox's persistent shell session.
+- `/mnt/user-data` must remain writable because Operix mounts thread workspace, uploads, and outputs there.
+- `home_dir` comes from the sandbox context endpoint; do not assume Operix hardcodes it.
+- Shell command handling must remain compatible with serialized `exec_command` calls. Operix serializes shell access on the host side to avoid corrupting the sandbox's persistent shell session.
 
 ### Skills
 
@@ -1136,14 +1136,14 @@ skills:
 For the AIO provider (including the Kubernetes provisioner) and E2B,
 `skills.container_path` is captured when the provider starts and must be one
 canonical absolute, non-root POSIX path. Do not use redundant separators,
-`.`/`..`, or a path that contains or sits below DeerFlow's reserved mounts
+`.`/`..`, or a path that contains or sits below Operix's reserved mounts
 (`/mnt/user-data`, `/mnt/acp-workspace`, or `/mnt/integrations/lark-cli`).
 Restart the Gateway after changing it so sandbox identities and mounts use the
 same root. E2B also records the root in remote metadata and refuses to adopt a
 VM created for another root.
 
 **How Skills Work**:
-- Skills are stored in `deer-flow/skills/{public,custom}/`
+- Skills are stored in `operix/skills/{public,custom}/`
 - Each skill has a `SKILL.md` file with metadata
 - Skills are automatically discovered and loaded
 - Available in both local and Docker sandbox via path mapping
@@ -1191,11 +1191,11 @@ The default GitHub API rate limits are quite restrictive. For frequent project r
 
 **Configuration Steps**:
 1. Uncomment the `GITHUB_TOKEN` line in the `.env` file and add your personal access token
-2. Restart the DeerFlow service to apply changes
+2. Restart the Operix service to apply changes
 
 ## Environment Variables
 
-DeerFlow supports environment variable substitution using the `$` prefix:
+Operix supports environment variable substitution using the `$` prefix:
 
 ```yaml
 models:
@@ -1216,38 +1216,38 @@ models:
 - `SOFYA_API_KEY` - [Sofya](https://sofya.co) key for `web_search` and `web_fetch`
 - `UNBROWSE_API_KEY` - [Unbrowse](https://unbrowse.ai) key for `web_fetch`
 - `BROWSERLESS_TOKEN` - Browserless Cloud token for `web_capture` (optional for self-hosted Browserless)
-- `DEER_FLOW_PROJECT_ROOT` - Project root for relative runtime paths
-- `DEER_FLOW_CONFIG_PATH` - Custom config file path
-- `DEER_FLOW_EXTENSIONS_CONFIG_PATH` - Custom extensions config file path
-- `DEER_FLOW_HOME` - Runtime state directory (defaults to `.deer-flow` under the project root)
-- `DEER_FLOW_SKILLS_PATH` - Skills directory when `skills.path` is omitted
+- `OPERIX_PROJECT_ROOT` - Project root for relative runtime paths
+- `OPERIX_CONFIG_PATH` - Custom config file path
+- `OPERIX_EXTENSIONS_CONFIG_PATH` - Custom extensions config file path
+- `OPERIX_HOME` - Runtime state directory (defaults to `.operix` under the project root)
+- `OPERIX_SKILLS_PATH` - Skills directory when `skills.path` is omitted
 - `GATEWAY_ENABLE_DOCS` - Set to `false` to disable Swagger UI (`/docs`), ReDoc (`/redoc`), and OpenAPI schema (`/openapi.json`) endpoints (default: `true`)
 
 ## Configuration Location
 
-The configuration file should be placed in the **project root directory** (`deer-flow/config.yaml`). Set `DEER_FLOW_PROJECT_ROOT` when the process may start from another working directory, or set `DEER_FLOW_CONFIG_PATH` to point at a specific file.
+The configuration file should be placed in the **project root directory** (`operix/config.yaml`). Set `OPERIX_PROJECT_ROOT` when the process may start from another working directory, or set `OPERIX_CONFIG_PATH` to point at a specific file.
 
 ## Configuration Priority
 
-DeerFlow searches for configuration in this order:
+Operix searches for configuration in this order:
 
 1. Path specified in code via `config_path` argument
-2. Path from `DEER_FLOW_CONFIG_PATH` environment variable
-3. `config.yaml` under `DEER_FLOW_PROJECT_ROOT`, or under the current working directory when `DEER_FLOW_PROJECT_ROOT` is unset
+2. Path from `OPERIX_CONFIG_PATH` environment variable
+3. `config.yaml` under `OPERIX_PROJECT_ROOT`, or under the current working directory when `OPERIX_PROJECT_ROOT` is unset
 4. Legacy backend/repository-root locations for monorepo compatibility
 
 ## Security Notes
 ### Sandbox Isolation and the Docker Socket (DooD)
 
-DeerFlow executes agent-generated shell/code through a configurable sandbox
+Operix executes agent-generated shell/code through a configurable sandbox
 (`sandbox.use` in `config.yaml`). The isolation guarantees differ by mode, and
 one mode requires mounting the host Docker socket. Understand the trade-offs
 before exposing an instance to untrusted input.
 
 | Mode | `config.yaml` | Host Docker socket | Isolation |
 |------|---------------|--------------------|-----------|
-| `local` (default) | `deerflow.sandbox.local:LocalSandboxProvider` | Not mounted | Commands run **inside the gateway container** on its filesystem. Not a strong boundary — `allow_host_bash` is `false` by default and should stay off for untrusted workloads. |
-| `aio` (pure DooD) | `deerflow.community.aio_sandbox:AioSandboxProvider` (no `provisioner_url`) | **Mounted** (opt-in overlay) | Sandbox containers are started via the host Docker daemon. |
+| `local` (default) | `operix.sandbox.local:LocalSandboxProvider` | Not mounted | Commands run **inside the gateway container** on its filesystem. Not a strong boundary — `allow_host_bash` is `false` by default and should stay off for untrusted workloads. |
+| `aio` (pure DooD) | `operix.community.aio_sandbox:AioSandboxProvider` (no `provisioner_url`) | **Mounted** (opt-in overlay) | Sandbox containers are started via the host Docker daemon. |
 | `provisioner` (Kubernetes) | `AioSandboxProvider` + `provisioner_url` | Not mounted | Sandbox pods are created through the provisioner's K8s API over HTTP. Strongest isolation. |
 
 #### The Docker socket is host root
@@ -1255,7 +1255,7 @@ before exposing an instance to untrusted input.
 Mounting `/var/run/docker.sock` into a container grants that container
 **root-equivalent control of the host**: anything able to reach the socket can
 start a new container that bind-mounts the host filesystem and escape. This
-matters for DeerFlow because the gateway executes model-generated commands, so a
+matters for Operix because the gateway executes model-generated commands, so a
 prompt injection or any in-container code-execution primitive could pivot to the
 host through the socket.
 
@@ -1278,7 +1278,7 @@ To keep this off the default attack surface:
 
 ### CLI Credential Mounts (Claude Code / Codex / MiniMax Code)
 
-DeerFlow can reuse your Claude Code / Codex CLI subscription login as a model
+Operix can reuse your Claude Code / Codex CLI subscription login as a model
 provider (`ClaudeChatModel`, the Codex provider) or for ACP agents that run the
 CLI in-container. The Compose stack used to bind-mount the **entire** `~/.claude`
 and `~/.codex` directories (read-only) into the gateway container in **every**
@@ -1297,7 +1297,7 @@ with the least exposure that fits your setup:
 
 The Gateway credential loader checks environment variables **before** the
 default credential files, so the env-token paths need no bind mount at all. ACP
-adapters authenticate independently of DeerFlow via their own documented env —
+adapters authenticate independently of Operix via their own documented env —
 for example the common `claude-code-acp` adapter starts as
 `ANTHROPIC_API_KEY=… claude-code-acp` and honors `CLAUDE_CONFIG_DIR` to redirect
 its config directory, so it needs no `~/.claude` mount at all. Prefer the
@@ -1310,7 +1310,7 @@ Gateway runs, install it with `npm install --global @minimax-ai/code`, run
 `mcode login`, and configure `acp_agents.mcode` with `command: mcode` and
 `args: ["acp"]`. The executable and its authenticated runtime must be available
 inside the Gateway environment; a host-only installation is not visible to a
-Docker container. DeerFlow forwards enabled MCP servers to the MCode session.
+Docker container. Operix forwards enabled MCP servers to the MCode session.
 Leave `auto_approve_permissions` disabled for untrusted tasks, and enable it
 only when the agent is expected to edit files or run commands for a trusted
 task.
@@ -1318,7 +1318,7 @@ task.
 
 ## Best Practices
 
-1. **Place `config.yaml` in project root** - Set `DEER_FLOW_PROJECT_ROOT` if the runtime starts elsewhere
+1. **Place `config.yaml` in project root** - Set `OPERIX_PROJECT_ROOT` if the runtime starts elsewhere
 2. **Never commit `config.yaml`** - It's already in `.gitignore`
 3. **Use environment variables for secrets** - Don't hardcode API keys
 4. **Keep `config.example.yaml` updated** - Document all new options
@@ -1328,18 +1328,18 @@ task.
 ## Troubleshooting
 
 ### "Config file not found"
-- Ensure `config.yaml` exists in the **project root** directory (`deer-flow/config.yaml`)
-- If the runtime starts outside the project root, set `DEER_FLOW_PROJECT_ROOT`
-- Alternatively, set `DEER_FLOW_CONFIG_PATH` environment variable to custom location
+- Ensure `config.yaml` exists in the **project root** directory (`operix/config.yaml`)
+- If the runtime starts outside the project root, set `OPERIX_PROJECT_ROOT`
+- Alternatively, set `OPERIX_CONFIG_PATH` environment variable to custom location
 
 ### "Invalid API key"
 - Verify environment variables are set correctly
 - Check that `$` prefix is used for env var references
 
 ### "Skills not loading"
-- Check that `deer-flow/skills/` directory exists
+- Check that `operix/skills/` directory exists
 - Verify skills have valid `SKILL.md` files
-- Check `skills.path` or `DEER_FLOW_SKILLS_PATH` if using a custom path
+- Check `skills.path` or `OPERIX_SKILLS_PATH` if using a custom path
 
 ### "Docker sandbox fails to start"
 - Ensure Docker is running

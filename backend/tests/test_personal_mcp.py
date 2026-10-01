@@ -14,17 +14,17 @@ from fastapi.testclient import TestClient
 from langchain_core.tools import ToolException
 
 from app.gateway.routers import personal_mcp
-from deerflow.config.extensions_config import ExtensionsConfig
-from deerflow.mcp.user_config import load_user_mcp_config, read_user_mcp_config, user_mcp_config_path
-from deerflow.runtime.user_context import reset_current_user, set_current_user
+from operix.config.extensions_config import ExtensionsConfig
+from operix.mcp.user_config import load_user_mcp_config, read_user_mcp_config, user_mcp_config_path
+from operix.runtime.user_context import reset_current_user, set_current_user
 
 
 @pytest.fixture
 def personal_client(tmp_path, monkeypatch):
-    from deerflow.config.paths import Paths
+    from operix.config.paths import Paths
 
-    monkeypatch.setattr("deerflow.mcp.user_config.get_paths", lambda: Paths(base_dir=tmp_path))
-    monkeypatch.setattr("deerflow.mcp.personal_access._admin_checker", AsyncMock(return_value=True))
+    monkeypatch.setattr("operix.mcp.user_config.get_paths", lambda: Paths(base_dir=tmp_path))
+    monkeypatch.setattr("operix.mcp.personal_access._admin_checker", AsyncMock(return_value=True))
     monkeypatch.setattr("app.gateway.personal_mcp_access._is_current_admin", AsyncMock(return_value=True))
     app = FastAPI()
 
@@ -131,7 +131,7 @@ def test_masked_edit_and_delete_do_not_touch_platform_or_peer(personal_client, t
     client = personal_client
     platform = tmp_path / "platform.json"
     platform.write_text(json.dumps({"mcpServers": {"github": {"type": "http", "url": "https://example.com/platform"}}}))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(platform))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(platform))
     before = platform.read_bytes()
     create(client, "alice")
     create(client, "bob")
@@ -155,7 +155,7 @@ def test_corrupt_personal_config_in_capability_listings(personal_client, tmp_pat
     app.dependency_overrides[get_config] = lambda: SimpleNamespace()
     deployment = tmp_path / "deployment.json"
     deployment.write_text(json.dumps({"mcpServers": {"shared": {"type": "http", "url": "https://example.com/mcp"}}}))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(deployment))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(deployment))
     path = user_mcp_config_path("alice")
     path.parent.mkdir(parents=True)
     path.write_text(contents)
@@ -185,8 +185,8 @@ def test_catalog_listing_and_installation_respect_owner(personal_client, monkeyp
     app.dependency_overrides[get_config] = lambda: SimpleNamespace()
     platform = tmp_path / "deployment.json"
     platform.write_text(json.dumps({"mcpServers": {"shared": {"type": "http", "url": "https://example.com/platform"}}}))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(platform))
-    monkeypatch.setattr("deerflow.community.url_safety.validate_public_http_url", lambda *a, **k: None)
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(platform))
+    monkeypatch.setattr("operix.community.url_safety.validate_public_http_url", lambda *a, **k: None)
     response = personal_client.post(
         "/api/capabilities/installations",
         headers={"test-user": "alice", "test-role": "user"},
@@ -205,14 +205,14 @@ def test_catalog_listing_and_installation_respect_owner(personal_client, monkeyp
 def test_tool_assembly_combines_platform_and_only_current_owner(personal_client, monkeypatch, tmp_path):
     from langchain_core.tools import StructuredTool
 
-    from deerflow.tools.mcp_metadata import tag_mcp_tool
-    from deerflow.tools.tools import get_available_tools
+    from operix.tools.mcp_metadata import tag_mcp_tool
+    from operix.tools.tools import get_available_tools
 
     path = tmp_path / "deployment.json"
     path.write_text(json.dumps({"mcpServers": {"shared": {"type": "http", "url": "https://example.com/mcp"}}}))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(path))
     shared = tag_mcp_tool(StructuredTool.from_function(lambda: "platform", name="shared_test", description="Shared tool"), server_name="shared")
-    monkeypatch.setattr("deerflow.mcp.cache.get_cached_mcp_tools", lambda: [shared])
+    monkeypatch.setattr("operix.mcp.cache.get_cached_mcp_tools", lambda: [shared])
 
     async def discover(config, **kwargs):
         name = next(iter(config.mcp_servers))
@@ -222,7 +222,7 @@ def test_tool_assembly_combines_platform_and_only_current_owner(personal_client,
 
         return [tag_mcp_tool(StructuredTool.from_function(coroutine=echo, name=name + "_test", description="Personal tool"), server_name=name)]
 
-    monkeypatch.setattr("deerflow.mcp.tools.get_mcp_tools", discover)
+    monkeypatch.setattr("operix.mcp.tools.get_mcp_tools", discover)
     config = SimpleNamespace(tools=[], models=[], get_model_config=lambda _: None)
     for user in ("alice", "bob"):
         create(personal_client, user)
@@ -244,16 +244,16 @@ def test_tool_assembly_combines_platform_and_only_current_owner(personal_client,
 def test_deployment_name_collision_does_not_publish_a_personal_tool(personal_client, monkeypatch, tmp_path):
     from langchain_core.tools import StructuredTool
 
-    from deerflow.tools.mcp_metadata import tag_mcp_tool
-    from deerflow.tools.tools import get_available_tools
+    from operix.tools.mcp_metadata import tag_mcp_tool
+    from operix.tools.tools import get_available_tools
 
     assert create(personal_client, "alice").status_code == 200
     name = next(iter(load_user_mcp_config("alice").mcp_servers))
     path = tmp_path / "deployment.json"
     path.write_text(json.dumps({"mcpServers": {name: {"type": "http", "url": "https://example.com/platform"}}}))
-    monkeypatch.setenv("DEER_FLOW_EXTENSIONS_CONFIG_PATH", str(path))
+    monkeypatch.setenv("OPERIX_EXTENSIONS_CONFIG_PATH", str(path))
     platform = tag_mcp_tool(StructuredTool.from_function(lambda: "platform", name=name + "_test", description="Shared tool"), server_name=name)
-    monkeypatch.setattr("deerflow.mcp.cache.get_cached_mcp_tools", lambda: [platform])
+    monkeypatch.setattr("operix.mcp.cache.get_cached_mcp_tools", lambda: [platform])
 
     async def discover(config, **kwargs):
         async def personal():
@@ -261,7 +261,7 @@ def test_deployment_name_collision_does_not_publish_a_personal_tool(personal_cli
 
         return [tag_mcp_tool(StructuredTool.from_function(coroutine=personal, name=name + "_test", description="Personal tool"), server_name=name)]
 
-    monkeypatch.setattr("deerflow.mcp.tools.get_mcp_tools", discover)
+    monkeypatch.setattr("operix.mcp.tools.get_mcp_tools", discover)
     config = SimpleNamespace(tools=[], models=[], get_model_config=lambda _: None)
     identity = set_current_user(SimpleNamespace(id="alice"))
     try:
@@ -280,14 +280,14 @@ def test_untrusted_users_cannot_launch_packages_or_connect_to_private_hosts(pers
     assert response.status_code == 403
     response = client.post("/api/mcp/personal/config/servers", headers={"test-user": "alice", "test-role": "user"}, json={"mcp_servers": {"private": {"type": "http", "url": "http://127.0.0.1/mcp", "personal_public_network": False}}})
     assert response.status_code == 400
-    monkeypatch.setattr("deerflow.community.url_safety.validate_public_http_url", lambda *a, **k: None)
+    monkeypatch.setattr("operix.community.url_safety.validate_public_http_url", lambda *a, **k: None)
     assert create(client, "alice", role="user").status_code == 200
     assert read_user_mcp_config("alice")["mcpServers"]["github"]["personal_public_network"] is True
 
 
 @pytest.mark.asyncio
 async def test_personal_network_rechecks_destination_before_each_request(monkeypatch):
-    from deerflow.mcp import personal_network
+    from operix.mcp import personal_network
 
     received = []
     blocked = False
@@ -312,8 +312,8 @@ async def test_real_mcp_calls_keep_credentials_separate_and_reject_stale_tools(p
     from mcp.server.fastmcp import Context, FastMCP
     from mcp.server.transport_security import TransportSecuritySettings
 
-    from deerflow.mcp import client as mcp_client
-    from deerflow.mcp.user_tools import _load
+    from operix.mcp import client as mcp_client
+    from operix.mcp.user_tools import _load
 
     server = FastMCP("identity", stateless_http=True, json_response=True, transport_security=TransportSecuritySettings(allowed_hosts=["example.com"]))
     received = []
@@ -368,9 +368,9 @@ async def test_personal_tool_guard_reuses_validation_and_rejects_file_replacemen
 
     from langchain_core.tools import StructuredTool
 
-    import deerflow.mcp.user_config as user_config
-    from deerflow.config.extensions_config import atomic_write_extensions_config
-    from deerflow.mcp.user_tools import _guard
+    import operix.mcp.user_config as user_config
+    from operix.config.extensions_config import atomic_write_extensions_config
+    from operix.mcp.user_tools import _guard
 
     assert create(personal_client, "alice").status_code == 200
     old_name = next(iter(load_user_mcp_config("alice").mcp_servers))
@@ -415,8 +415,8 @@ async def test_personal_tool_guard_reuses_validation_and_rejects_file_replacemen
 
 @pytest.mark.asyncio
 async def test_background_calls_resolve_only_persisted_task_owner(personal_client, monkeypatch):
-    import deerflow.mcp.user_config as user_config
-    from deerflow.mcp.task_tool_caller import McpTaskToolCaller
+    import operix.mcp.user_config as user_config
+    from operix.mcp.task_tool_caller import McpTaskToolCaller
 
     create(personal_client, "alice")
     name = next(iter(load_user_mcp_config("alice").mcp_servers))
@@ -457,8 +457,8 @@ async def test_background_calls_resolve_only_persisted_task_owner(personal_clien
 
 @pytest.mark.asyncio
 async def test_background_caller_rebuilds_after_personal_credential_edit(personal_client, monkeypatch):
-    from deerflow.config.extensions_config import atomic_write_extensions_config
-    from deerflow.mcp.task_tool_caller import McpTaskToolCaller
+    from operix.config.extensions_config import atomic_write_extensions_config
+    from operix.mcp.task_tool_caller import McpTaskToolCaller
 
     assert create(personal_client, "alice").status_code == 200
     old_name = next(iter(load_user_mcp_config("alice").mcp_servers))
@@ -488,7 +488,7 @@ async def test_background_caller_rebuilds_after_personal_credential_edit(persona
 
 @pytest.mark.asyncio
 async def test_background_caller_keeps_only_recent_owners(personal_client, monkeypatch):
-    import deerflow.mcp.task_tool_caller as task_tool_caller
+    import operix.mcp.task_tool_caller as task_tool_caller
 
     monkeypatch.setattr(task_tool_caller, "_MAX_PERSONAL_CALLERS", 2)
 
@@ -512,10 +512,10 @@ async def test_gateway_registers_driver_for_personal_only_task_toolsets(personal
     from langchain_core.tools import StructuredTool
 
     from app.gateway.app import lifespan
-    from deerflow.config.extensions_config import atomic_write_extensions_config
-    from deerflow.config.mcp_tasks_config import McpTasksConfig
-    from deerflow.mcp.tasks import ORDINARY_MCP_TASK_DRIVER
-    from deerflow.mcp.tools import get_mcp_tools
+    from operix.config.extensions_config import atomic_write_extensions_config
+    from operix.config.mcp_tasks_config import McpTasksConfig
+    from operix.mcp.tasks import ORDINARY_MCP_TASK_DRIVER
+    from operix.mcp.tools import get_mcp_tools
 
     path = user_mcp_config_path("alice")
     atomic_write_extensions_config(
@@ -553,9 +553,9 @@ async def test_gateway_registers_driver_for_personal_only_task_toolsets(personal
         patch("app.gateway.app.auth.close_oidc_service", AsyncMock()),
         patch("app.channels.service.start_channel_service", AsyncMock(return_value=channel)),
         patch("app.channels.service.stop_channel_service", AsyncMock()),
-        patch("deerflow.skills.projection.ensure_public_skill_projection"),
-        patch("deerflow.agents.memory.get_memory_manager", return_value=MagicMock()),
-        patch("deerflow.config.extensions_config.ExtensionsConfig.from_file", return_value=deployment),
+        patch("operix.skills.projection.ensure_public_skill_projection"),
+        patch("operix.agents.memory.get_memory_manager", return_value=MagicMock()),
+        patch("operix.config.extensions_config.ExtensionsConfig.from_file", return_value=deployment),
         patch("app.mcp_tasks.McpTaskService.start", AsyncMock()),
         patch("app.mcp_tasks.McpTaskService.stop", AsyncMock()),
         patch("langchain_mcp_adapters.client.MultiServerMCPClient", FakeClient),

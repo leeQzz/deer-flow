@@ -1,6 +1,6 @@
 """deploy.sh must not shadow secrets the operator wrote to the repo-root .env.
 
-Compose interpolates ``${BETTER_AUTH_SECRET}`` / ``${DEER_FLOW_INTERNAL_AUTH_TOKEN}``
+Compose interpolates ``${BETTER_AUTH_SECRET}`` / ``${OPERIX_INTERNAL_AUTH_TOKEN}``
 from the shell environment first and ``--env-file`` second. deploy.sh only ever
 looked at the shell before generating (or reloading a persisted) secret and
 exporting it, so a value in ``.env`` -- the surface every deployment doc points
@@ -31,10 +31,10 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 BASH = find_script_bash()
 pytestmark = pytest.mark.skipif(BASH is None, reason="repo shell-script tests need Git Bash on Windows")
 
-SECRETS = ("BETTER_AUTH_SECRET", "DEER_FLOW_INTERNAL_AUTH_TOKEN")
+SECRETS = ("BETTER_AUTH_SECRET", "OPERIX_INTERNAL_AUTH_TOKEN")
 PERSISTED_FILE = {
     "BETTER_AUTH_SECRET": ".better-auth-secret",
-    "DEER_FLOW_INTERNAL_AUTH_TOKEN": ".internal-auth-token",
+    "OPERIX_INTERNAL_AUTH_TOKEN": ".internal-auth-token",
 }
 GENERATED = re.compile(r"set:[A-Za-z0-9_\-]{32,}")
 
@@ -58,13 +58,13 @@ case " $* " in
     value=""
     [ -z "${FAKE_COMPOSE_ENVIRONMENT:-}" ] || value="$(sed -n "s/^${key}=//p" "$FAKE_COMPOSE_ENVIRONMENT" | head -n 1)"
     [ -n "$value" ] || value='""'
-    printf 'name: probe\\nservices:\\n  probe:\\n    environment:\\n      DEER_FLOW_PROBE_VALUE: %s\\n    image: scratch\\n' "$value"
+    printf 'name: probe\\nservices:\\n  probe:\\n    environment:\\n      OPERIX_PROBE_VALUE: %s\\n    image: scratch\\n' "$value"
     exit 0
     ;;
 esac
 {
   printf 'BETTER_AUTH_SECRET=%s\\n' "${BETTER_AUTH_SECRET+set:}${BETTER_AUTH_SECRET:-}"
-  printf 'DEER_FLOW_INTERNAL_AUTH_TOKEN=%s\\n' "${DEER_FLOW_INTERNAL_AUTH_TOKEN+set:}${DEER_FLOW_INTERNAL_AUTH_TOKEN:-}"
+  printf 'OPERIX_INTERNAL_AUTH_TOKEN=%s\\n' "${OPERIX_INTERNAL_AUTH_TOKEN+set:}${OPERIX_INTERNAL_AUTH_TOKEN:-}"
 } > "$CAPTURE_SECRETS"
 for arg in "$@"; do printf "%s\\n" "$arg"; done > "$CAPTURE_DOCKER_ARGS"
 exit 0
@@ -105,7 +105,7 @@ def _run_deploy_build(
     env = os.environ.copy()
     for key in (*SECRETS, "UV_EXTRAS", "REAL_DOCKER", "FAKE_COMPOSE_ENVIRONMENT", "FAKE_COMPOSE_CONFIG_RC"):
         env.pop(key, None)
-    env["DEER_FLOW_HOME"] = str(tmp_path / "deer-flow-home")
+    env["OPERIX_HOME"] = str(tmp_path / "operix-home")
     env["CAPTURE_SECRETS"] = str(capture_secrets)
     env["CAPTURE_DOCKER_ARGS"] = str(capture_args)
     env["CAPTURE_CONFIG_ARGS"] = str(capture_config_args)
@@ -135,7 +135,7 @@ def _run_deploy_build(
     args = capture_args.read_text(encoding="utf-8").splitlines() if capture_args.exists() else []
     config_args = capture_config_args.read_text(encoding="utf-8").splitlines() if capture_config_args.exists() else []
     config_stdin = capture_config_stdin.read_text(encoding="utf-8") if capture_config_stdin.exists() else ""
-    return result, observed, args, config_args, config_stdin, Path(env["DEER_FLOW_HOME"])
+    return result, observed, args, config_args, config_stdin, Path(env["OPERIX_HOME"])
 
 
 def _other(key: str) -> str:
@@ -150,7 +150,7 @@ def test_deploy_asks_compose_to_interpolate_the_secret_like_the_real_project(tmp
     worktree = _worktree(tmp_path)
     (worktree / ".env").write_text("BETTER_AUTH_SECRET=from-dotenv\n", encoding="utf-8")
 
-    _, _, args, config_args, config_stdin, _ = _run_deploy_build(tmp_path, worktree, compose_environment={"BETTER_AUTH_SECRET": "from-dotenv", "DEER_FLOW_INTERNAL_AUTH_TOKEN": "x"})
+    _, _, args, config_args, config_stdin, _ = _run_deploy_build(tmp_path, worktree, compose_environment={"BETTER_AUTH_SECRET": "from-dotenv", "OPERIX_INTERNAL_AUTH_TOKEN": "x"})
 
     assert config_args[:1] == ["compose"]
     assert "config" in config_args
@@ -164,7 +164,7 @@ def test_deploy_asks_compose_to_interpolate_the_secret_like_the_real_project(tmp
     # The stub project on stdin is what gets interpolated: it must reference
     # the secret and nothing from the real compose file.
     assert config_args[config_args.index("-f") + 1] == "-"
-    assert "${DEER_FLOW_INTERNAL_AUTH_TOKEN}" in config_stdin
+    assert "${OPERIX_INTERNAL_AUTH_TOKEN}" in config_stdin
     assert "docker-compose.yaml" not in config_stdin
 
 
@@ -206,7 +206,7 @@ def test_deploy_prefers_dotenv_secret_over_the_persisted_generated_one(tmp_path,
     """An operator-written .env value wins over the file an earlier run generated."""
     worktree = _worktree(tmp_path)
     (worktree / ".env").write_text(f"{key}=from-dotenv\n", encoding="utf-8")
-    home = tmp_path / "deer-flow-home"
+    home = tmp_path / "operix-home"
     home.mkdir()
     (home / PERSISTED_FILE[key]).write_text("from-persisted-file\n", encoding="utf-8")
 
@@ -278,12 +278,12 @@ def test_deploy_stops_when_compose_cannot_interpolate_instead_of_guessing(tmp_pa
 
 
 def _compose_clients() -> list[tuple[str, str]]:
-    """The `docker` CLI plus any standalone binaries named in DEER_FLOW_TEST_COMPOSE_BINARIES."""
+    """The `docker` CLI plus any standalone binaries named in OPERIX_TEST_COMPOSE_BINARIES."""
     clients: list[tuple[str, str]] = []
     docker = shutil.which("docker")
     if docker and _renders_stub_project([docker, "compose"]):
         clients.append(("docker", docker))
-    for binary in filter(None, os.environ.get("DEER_FLOW_TEST_COMPOSE_BINARIES", "").split(os.pathsep)):
+    for binary in filter(None, os.environ.get("OPERIX_TEST_COMPOSE_BINARIES", "").split(os.pathsep)):
         if _renders_stub_project([binary]):
             clients.append((Path(binary).name, binary))
     return clients
@@ -326,12 +326,12 @@ def real_docker(client: str, tmp_path: Path) -> str:
 def _resolved_by(real_docker: str, dotenv: Path, key: str) -> str:
     rendered = subprocess.run(
         [real_docker, "compose", "--env-file", str(dotenv), "-f", "-", "config"],
-        input=f"services:\n  probe:\n    image: scratch\n    environment:\n      DEER_FLOW_PROBE_VALUE: ${{{key}}}\n",
+        input=f"services:\n  probe:\n    image: scratch\n    environment:\n      OPERIX_PROBE_VALUE: ${{{key}}}\n",
         capture_output=True,
         text=True,
         check=True,
     ).stdout
-    return re.search(r"^\s*DEER_FLOW_PROBE_VALUE: (.*)$", rendered, re.M).group(1)
+    return re.search(r"^\s*OPERIX_PROBE_VALUE: (.*)$", rendered, re.M).group(1)
 
 
 @real_compose

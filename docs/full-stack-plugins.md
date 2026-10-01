@@ -3,7 +3,7 @@
 A deployment-installed Python extension can register a `PluginContribution` with
 optional browser code, authenticated backend actions and model tools. This extends
 the existing `install(registry, config)` workflow. MCP and Skills keep their existing
-APIs and lifecycles. Public contracts live in `deerflow_extension_api` (0.2.4).
+APIs and lifecycles. Public contracts live in `operix_extension_api` (0.2.4).
 
 The browser contribution API is experimental. `BrowserModule(code=...)` remains the
 self-contained transport; `BrowserAssets(root=...)` adds manifest-listed resources
@@ -13,11 +13,11 @@ without changing the page/action API or requiring a host frontend rebuild.
 
 Capability Center has an **Extensions** tab with read-only information and deployment
 status. A plugin can add a conversation action, its own workspace page and an optional
-sidebar entry. The [bookmarks example](../examples/deerflow-extension-bookmarks/README.md)
+sidebar entry. The [bookmarks example](../examples/operix-extension-bookmarks/README.md)
 uses all three: save the last visible answer, then search, rename or delete it under
 **My bookmarks**. Existing notification and Markdown/JSON export behavior is unchanged.
 
-The [Jev context pruning example](../examples/deerflow-extension-jev-context/README.md)
+The [Jev context pruning example](../examples/operix-extension-jev-context/README.md)
 combines a catalog contribution with public middleware hooks to shorten old read-only
 tool results. It requires deployment opt-in and a separate Jev API key.
 
@@ -49,7 +49,7 @@ inputs up to 256 KiB and have a 30-second timeout. Cancellation does not guarant
 rollback of external effects or already-running worker-thread operations.
 
 A plugin can also contribute tools alone. The
-[text classification example](../examples/deerflow-extension-jev-classify/README.md)
+[text classification example](../examples/operix-extension-jev-classify/README.md)
 registers one model tool and a status action, no browser code: the agent labels a
 list of texts through a deployment-configured Jev or chat-model backend, and the
 plugin keeps the whole call inside those bounds with its own batch and deadline
@@ -117,7 +117,7 @@ Register a package-owned directory alongside the Python implementation:
 
 ```python
 from pathlib import Path
-from deerflow_extension_api import BrowserAssets, PluginContribution
+from operix_extension_api import BrowserAssets, PluginContribution
 
 registry.plugin(PluginContribution(
     namespace="community.example",
@@ -127,7 +127,7 @@ registry.plugin(PluginContribution(
 ```
 
 Place `ui_manifest.json` at that root, and include it and every listed file in the
-installed wheel. The [bookmarks package](../examples/deerflow-extension-bookmarks/README.md)
+installed wheel. The [bookmarks package](../examples/operix-extension-bookmarks/README.md)
 is a working example. Its manifest uses this schema:
 
 ```json
@@ -225,7 +225,7 @@ unchanged, on every entry point.
 | Registered backend action | `plugin_action` | `invoke` | `<namespace>/<action-name>` |
 | Enterprise management route | `plugin_management` | `read` / `write` | `<namespace>/permissions.read` / `<namespace>/permissions.write` |
 
-Targets are composed and validated by `deerflow.authz.plugin_targets`; the left
+Targets are composed and validated by `operix.authz.plugin_targets`; the left
 side is always a host-validated plugin namespace. Read and write management
 authority are separate **targets** (the built-in provider ignores `action`), and
 page access never implies write authority.
@@ -272,7 +272,7 @@ A contributed router is not covered by the registered-action dispatcher, so it
 asks for plugin-scoped authority itself:
 
 ```python
-from deerflow_extension_api import arequire_plugin_management, require_admin
+from operix_extension_api import arequire_plugin_management, require_admin
 from fastapi import HTTPException, Request
 
 @router.get("/{namespace}/permissions")
@@ -337,7 +337,7 @@ async def write_permissions(namespace: str, request: Request):
   through `request.tools` inside `wrap_model_call`, and model calls naming a tool
   absent from the bound tool set, are not part of assembly-time narrowing; the
   execution-time provider decides each call by name, like every other tool call.
-- **`create_deerflow_agent` (`deerflow.agents.factory`) still performs no
+- **`create_operix_agent` (`operix.agents.factory`) still performs no
   authorization.** Pre-existing and unchanged by this work.
 - **Durable tasks keep today's contract.** Only the exposed submission wrapper is
   checked; raw status/cancel service calls and their ownership checks are
@@ -380,6 +380,6 @@ The example uses single-host storage, not a multi-node persistence contract.
 plus direct SVG navigation through the real Gateway asset route. Its script-execution
 control removes the sandbox header from the same SVG to verify the restriction.
 To exercise the actual Turbopack development build, start the frontend with
-`DEER_FLOW_DEV_BUNDLER=turbo pnpm dev`, then run
+`OPERIX_DEV_BUNDLER=turbo pnpm dev`, then run
 `PLAYWRIGHT_SKIP_WEB_SERVER=1 pnpm exec playwright test tests/e2e/bookmark-plugin.spec.ts`.
 Set `PLAYWRIGHT_BASE_URL` if the development server uses a port other than 3000.

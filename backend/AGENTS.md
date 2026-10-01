@@ -11,23 +11,23 @@ The backend runs a LangGraph-based super agent with sandbox execution, persisten
 - **Provisioner** (port 8002, optional in Docker dev): Started only when sandbox is configured for provisioner/Kubernetes mode
 
 **Runtime**:
-- `make dev`, Docker dev, and production all run the agent runtime in Gateway via `RunManager` + `run_agent()` + `StreamBridge` (`packages/harness/deerflow/runtime/`). Nginx exposes that runtime at `/api/langgraph/*` and rewrites it to Gateway's native `/api/*` routers.
+- `make dev`, Docker dev, and production all run the agent runtime in Gateway via `RunManager` + `run_agent()` + `StreamBridge` (`packages/harness/operix/runtime/`). Nginx exposes that runtime at `/api/langgraph/*` and rewrites it to Gateway's native `/api/*` routers.
 - Gateway streams `write_file` and `str_replace` argument deltas in bounded batches for multi-mode `messages-tuple` consumers; single-mode message consumers retain the original per-chunk contract. Non-message frames flush pending batches, and `values` remains an optional complete-state snapshot rather than a prerequisite for batching.
 - With `stream_subgraphs`, subgraph frames keep their namespace in the SSE event name (`values|<ns>`, LangGraph Platform style) instead of impersonating root frames — a delegated subagent inherits the parent checkpoint namespace, so publishing its `values` snapshot as bare `values` replaces the whole thread view in SDK clients (#4399). Root-only consumers (file-tool chunk batcher, subagent event persistence, LLM error-fallback detection) ignore namespaced frames. The web frontend does not request subgraph streaming; subtask progress rides root-namespace `task_*` custom events.
 - Background subagent identity is deliberately split: the provider `tool_call_id` remains the correlation key for `ToolMessage`, `task_*` SSE events, persisted lifecycle events, frontend cards, and the public `ExtensionData.scope_id` contract (stored as `SubagentResult.external_task_id`), while `SubagentExecutor.execute_async()` generates a full server-side `execution_id` for `SubagentResult.task_id`, the process-wide registry, polling, cancellation, timeout handling, and cleanup. Provider IDs are not globally unique across parent runs, so they must never become registry ownership keys; scheduler closures retain their own `SubagentResult` rather than resolving ownership again through the mutable registry. Terminal subagent token usage travels in the current run's `ToolMessage.additional_kwargs` and is attributed from message state, never through a process-global provider-ID cache.
 - Scheduled tasks dispatch through the normal Gateway run path. `launch_scheduled_thread_run` reads `get_app_config()` at dispatch and passes `scheduler.recursion_limit` (default 1000, matching the web UI; clamped by `max_recursion_limit`), so YAML changes apply on the next run without restarting Gateway.
 - Run-history `status` filters are occurrence states, not task states. `ScheduledTaskRunStatus` in `persistence/scheduled_tasks/model.py` is the shared API/repository vocabulary and must match the active and terminal occurrence-status sets. Keep owner lookup before reading history, and apply SQL task/status predicates before pagination; omitted status preserves the existing response.
 - The background scheduler is single-instance by default. `scheduler.multi_instance=true` opts into lease-aware recovery across Gateway instances and requires shared Postgres, `run_ownership.heartbeat_enabled=true`, and `run_events.backend=db`; otherwise startup rejects the configuration. Live scheduled runs are preserved when a peer starts; expired launch claims return to the durable queue, expired run leases are atomically taken over, stale launch writes are fenced by lease ownership, and the Postgres advisory-locked budget makes `max_concurrent_runs` a shared global cap for `launching`/`running` rows.
-- Long-running MCP work uses a separate durable task runtime (`McpTaskService` + `mcp_tasks`, lease-based recovery) rather than keeping remote task IDs or status polling inside the Agent loop; only submit remains Agent-visible, the database is the source of truth, and `ThreadState` receives only a bounded current-thread projection. Full contract (leases, cancellation fencing, delivery idempotency, management-tool exposure): [packages/harness/deerflow/mcp/AGENTS.md](packages/harness/deerflow/mcp/AGENTS.md).
-- MCP task notification retries, dead-lettering, and the cancel endpoint's worker-stopped 503 are part of that same contract — see [packages/harness/deerflow/mcp/AGENTS.md](packages/harness/deerflow/mcp/AGENTS.md).
+- Long-running MCP work uses a separate durable task runtime (`McpTaskService` + `mcp_tasks`, lease-based recovery) rather than keeping remote task IDs or status polling inside the Agent loop; only submit remains Agent-visible, the database is the source of truth, and `ThreadState` receives only a bounded current-thread projection. Full contract (leases, cancellation fencing, delivery idempotency, management-tool exposure): [packages/harness/operix/mcp/AGENTS.md](packages/harness/operix/mcp/AGENTS.md).
+- MCP task notification retries, dead-lettering, and the cancel endpoint's worker-stopped 503 are part of that same contract — see [packages/harness/operix/mcp/AGENTS.md](packages/harness/operix/mcp/AGENTS.md).
 - Scheduled-task dispatch permits one active occurrence per task via `uq_scheduled_task_run_active` (`task_id WHERE status IN ('queued','launching','running')`). Durable `queued` rows survive restarts; only lease-fenced `launching` may call Gateway launch; `running` references the durable run. Stable admission idempotency keys reuse that run after recovery. Reused-thread `ConflictError` returns `launching` to `queued`; other launch errors become `failed`. Atomic queue claims enforce `max_concurrent_runs`, excluding waiting rows; the budget count and its UPDATE are separate statements, so writers must serialize before the count (Postgres advisory lock; SQLite `BEGIN IMMEDIATE`, whose deferred transaction otherwise reserves the writer only at the UPDATE) or claims on distinct rows overshoot the cap. Repeated triggers coalesce; same-thread FIFO blocks behind older active rows. Queue admission, PATCH/resume, pause and delete lock the parent before the occurrence, freezing active task definitions. Pause/delete atomically cancel `queued` work but reject `launching`/`running`; PATCH/resume reject all active states. Only queued conflicts offer pause cancellation. Manual triggers may queue/run while paused. Recovery locks task/run pairs in task-id/run-id order and restores `run_id`, `started_at` and live errors before releasing launch claims. Launch/failure/timeout updates use one parent-first transaction to prevent interleaved claims. Queue timeout fails the occurrence and advances scheduled work to prevent immediate requeue. Repository boundaries coerce serialized timestamps before SQL `DateTime` binding.
 - `POST /api/scheduled-tasks/preview-cron` requires authenticated `threads:read`. Bounded cron previews call the shared scheduler calculator in `asyncio.to_thread`, preserving its DST semantics. Capture the optional aware reference once; return UTC and offset-bearing local occurrences without acquiring task/thread/run stores or dispatching work. This advisory API does not reserve execution.
 - `extensions_config.json` is written at runtime by the Gateway (`PUT`/`PATCH /api/mcp/config`, the MCP enable switch, skill updates), so the production compose mounts it read-write while `config.yaml` stays `:ro`; Helm copies its ConfigMap seed into a writable home-volume directory before Gateway starts. Every read-modify-write holds both `extensions_config_write_lock` and the sidecar advisory `extensions_config_file_lock`, because the process-local lock alone loses updates across workers. Docker mounts the compose file as its own mount point, and Linux refuses `rename()` over a mount point with `EBUSY` even when the mount is writable — so `atomic_write_extensions_config` keeps the temp-file-plus-rename path and falls back to an in-place overwrite only on `EBUSY`. That fallback is deliberately non-atomic (a crash mid-write truncates the file); it exists because the alternative is a write that can never succeed, and only its first occurrence per target is logged at warning level. Any other `errno` still propagates. Pinned by `tests/test_compose_extensions_config_writable.py`, `tests/test_extensions_config_atomic_write.py`, and `tests/test_helm_extensions_config_writable.py`.
-- MCP cache reset scope and discovery fencing: [MCP guide](packages/harness/deerflow/mcp/AGENTS.md).
+- MCP cache reset scope and discovery fencing: [MCP guide](packages/harness/operix/mcp/AGENTS.md).
 
 **Project Structure**:
 ```
-deer-flow/
+operix/
 ├── Makefile                    # Root commands (check, install, dev, stop)
 ├── config.yaml                 # Main application configuration
 ├── extensions_config.json      # MCP servers and skills configuration
@@ -35,10 +35,10 @@ deer-flow/
 │   ├── Makefile               # Backend-only commands (dev, gateway, lint)
 │   ├── langgraph.json         # LangGraph Studio graph configuration
 │   ├── packages/
-│   │   ├── extension-api/     # public, host-independent extension contracts (import: deerflow_extension_api.*)
-│   │   └── harness/           # deerflow-harness package (import: deerflow.*)
+│   │   ├── extension-api/     # public, host-independent extension contracts (import: operix_extension_api.*)
+│   │   └── harness/           # operix-harness package (import: operix.*)
 │   │       ├── pyproject.toml
-│   │       └── deerflow/
+│   │       └── operix/
 │   │           ├── agents/            # LangGraph agent system
 │   │           │   ├── lead_agent/    # Main agent (factory + system prompt)
 │   │           │   ├── middlewares/   # middleware components (see Middleware Chain section)
@@ -63,7 +63,7 @@ deer-flow/
 │   │           ├── community/         # Community tools (search/fetch/scrape, image search, AIO sandbox)
 │   │           ├── reflection/        # Dynamic module loading (resolve_variable, resolve_class)
 │   │           ├── utils/             # Utilities (network, readability)
-│   │           └── client.py          # Embedded Python client (DeerFlowClient)
+│   │           └── client.py          # Embedded Python client (OperixClient)
 │   ├── app/                   # Application layer (import: app.*)
 │   │   ├── gateway/           # FastAPI Gateway API
 │   │   │   ├── app.py         # FastAPI application
@@ -180,10 +180,10 @@ make format             # ruff format
 make migrate-rev MSG="..."  # Autogenerate a new alembic revision (see Schema Migrations section)
 ```
 
-The backend `make dev` target pre-creates and excludes `DEER_FLOW_HOME`
-(default: `backend/.deer-flow`) and `backend/sandbox` from Uvicorn's reload
+The backend `make dev` target pre-creates and excludes `OPERIX_HOME`
+(default: `backend/.operix`) and `backend/sandbox` from Uvicorn's reload
 watcher. Do not replace it with a bare `uvicorn --reload`: agent tasks write
-Python and other runtime files below `DEER_FLOW_HOME`, which would otherwise
+Python and other runtime files below `OPERIX_HOME`, which would otherwise
 restart the Gateway during an active run.
 
 More specific `AGENTS.md` files in backend code directories contain the subsystem sections split from this file. Follow the nearest file in the directory tree.
@@ -194,31 +194,31 @@ More specific `AGENTS.md` files in backend code directories contain the subsyste
 
 The backend is split into two layers with a strict dependency direction:
 
-- **Harness** (`packages/harness/deerflow/`): Publishable agent framework package (`deerflow-harness`). Import prefix: `deerflow.*`. Contains agent orchestration, tools, sandbox, models, MCP, skills, config — everything needed to build and run agents.
+- **Harness** (`packages/harness/operix/`): Publishable agent framework package (`operix-harness`). Import prefix: `operix.*`. Contains agent orchestration, tools, sandbox, models, MCP, skills, config — everything needed to build and run agents.
 - **App** (`app/`): Unpublished application code. Import prefix: `app.*`. Contains the FastAPI Gateway API and IM channel integrations (Feishu, Slack, Telegram, DingTalk).
 
-**Dependency rule**: App imports deerflow, but deerflow never imports app. This boundary is enforced by `tests/test_harness_boundary.py` which runs in CI.
+**Dependency rule**: App imports operix, but operix never imports app. This boundary is enforced by `tests/test_harness_boundary.py` which runs in CI.
 
 **Import conventions**:
 ```python
 # Harness internal
-from deerflow.agents import make_lead_agent
-from deerflow.models import create_chat_model
+from operix.agents import make_lead_agent
+from operix.models import create_chat_model
 
 # App internal
 from app.gateway.app import app
 from app.channels.service import start_channel_service
 
 # App → Harness (allowed)
-from deerflow.config import get_app_config
+from operix.config import get_app_config
 
 # Harness → App (FORBIDDEN — enforced by test_harness_boundary.py)
 # from app.gateway.routers.uploads import ...  # ← will fail CI
 ```
 
-Package import hygiene: the `deerflow.agents` and `deerflow.subagents` package
+Package import hygiene: the `operix.agents` and `operix.subagents` package
 roots expose heavyweight graph/executor entrypoints lazily. The
-`deerflow.agents:make_lead_agent` LangGraph Server entrypoint is a concrete thin
+`operix.agents:make_lead_agent` LangGraph Server entrypoint is a concrete thin
 module-level function because the server resolves graph factories directly from
 the module dictionary; the wrapper keeps the lead-agent and skill-cache imports
 inside the function so importing the package remains lightweight. Internal
@@ -249,7 +249,7 @@ only `AUTH_SOURCE_INTERNAL` run input may retain them.
 - Run both offline targets before and after your change: `make test` and `make test-blocking-io`
 - Tests must pass before a feature is considered complete
 - For lightweight config/utility modules, prefer pure unit tests with no external dependencies
-- If a module causes circular import issues in tests, add a `sys.modules` mock in `tests/conftest.py` (see existing example for `deerflow.subagents.executor`)
+- If a module causes circular import issues in tests, add a `sys.modules` mock in `tests/conftest.py` (see existing example for `operix.subagents.executor`)
 
 ```bash
 # Run default offline tests
@@ -266,7 +266,7 @@ make test-live
 PYTHONPATH=. uv run pytest tests/test_<feature>.py -v
 ```
 
-Keep live tests opt-in via `DEER_FLOW_RUN_LIVE_TESTS=1`; guard POSIX-only
+Keep live tests opt-in via `OPERIX_RUN_LIVE_TESTS=1`; guard POSIX-only
 markers with `os.name` for Windows collection.
 
 Jina logging tests use dummy keys (`tests/test_jina_client.py`).
@@ -341,7 +341,7 @@ Outlines use ATX syntax (1–6 hashes, space/tab separator, ≤3 leading spaces)
 - Thread ownership: `upload-companions/`.
 - Duplicate filenames within one request get `_N` suffixes to prevent overwrites.
 - Gateway HTTP uploads stage `.upload-*.part` files, hidden from upload listings, agent context, and sandbox listings/searches. After size validation, publication is atomic; staged-name cleanup logs errors and leaves leftovers for startup sweep.
-- Gateway HTTP upload/list/delete handlers offload filesystem work through `deerflow.utils.file_io.run_file_io`, a dedicated ContextVar-preserving file IO executor. Non-mounted sandbox uploads acquire sandboxes with `SandboxProvider.acquire_async()` and offload `read_bytes()` plus `sandbox.update_file()` together.
+- Gateway HTTP upload/list/delete handlers offload filesystem work through `operix.utils.file_io.run_file_io`, a dedicated ContextVar-preserving file IO executor. Non-mounted sandbox uploads acquire sandboxes with `SandboxProvider.acquire_async()` and offload `read_bytes()` plus `sandbox.update_file()` together.
 - Mounted uploads skip sandbox acquire/sync. AIO remote/provisioner requires accurate `sandbox.thread_data_mounts: true`; omission keeps backend auto-detection.
 - `UploadsMiddleware` caps outline titles at 200 characters and previews at 2000 including markers. Titles use `original_user_content`, not upload-prefixed content; attachment-only titles use a sanitized, bounded filename or count.
 
@@ -364,7 +364,7 @@ Automatic conversation summarization when approaching token limits:
 - Trigger types: tokens, messages, or fraction of max input
 - Keeps recent messages while summarizing older ones
 - Manual compaction uses `POST /api/threads/{id}/compact`, reuses the same
-  `DeerFlowSummarizationMiddleware`, writes a new checkpoint with updated
+  `OperixSummarizationMiddleware`, writes a new checkpoint with updated
   `messages` and `summary_text`, and bumps only those channel versions.
   The route uses the shared `reserve_checkpoint_write()` boundary (also used by
   manual state updates). Its short-lived `checkpoint_write` thread operation

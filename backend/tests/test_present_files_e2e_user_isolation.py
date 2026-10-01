@@ -10,13 +10,13 @@ from _agent_e2e_helpers import FakeToolCallingModel
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.runtime import Runtime
 
-from deerflow.agents.factory import create_deerflow_agent
-from deerflow.agents.middlewares.thread_data_middleware import ThreadDataMiddleware
-from deerflow.agents.thread_state import ThreadState
-from deerflow.config.paths import Paths
-from deerflow.tools.builtins.present_file_tool import present_file_tool
+from operix.agents.factory import create_operix_agent
+from operix.agents.middlewares.thread_data_middleware import ThreadDataMiddleware
+from operix.agents.thread_state import ThreadState
+from operix.config.paths import Paths
+from operix.tools.builtins.present_file_tool import present_file_tool
 
-present_file_tool_module = importlib.import_module("deerflow.tools.builtins.present_file_tool")
+present_file_tool_module = importlib.import_module("operix.tools.builtins.present_file_tool")
 
 
 def _build_present_files_graph(tmp_path: Path):
@@ -36,7 +36,7 @@ def _build_present_files_graph(tmp_path: Path):
             AIMessage(content="Presented the report."),
         ]
     )
-    return create_deerflow_agent(
+    return create_operix_agent(
         model,
         tools=[present_file_tool],
         middleware=[ThreadDataMiddleware(base_dir=str(tmp_path), lazy_init=True)],

@@ -3,7 +3,7 @@
 import pytest
 from textual.app import App, ComposeResult
 
-from deerflow.tui.widgets.composer import ComposerInput
+from operix.tui.widgets.composer import ComposerInput
 
 
 class _Harness(App):

@@ -13,8 +13,8 @@ from app.channels.message_bus import InboundMessage, MessageBus
 
 @pytest.fixture
 async def repo(tmp_path):
-    from deerflow.persistence.channel_connections import ChannelConnectionRepository, ChannelCredentialCipher
-    from deerflow.persistence.engine import close_engine, get_session_factory, init_engine
+    from operix.persistence.channel_connections import ChannelConnectionRepository, ChannelCredentialCipher
+    from operix.persistence.engine import close_engine, get_session_factory, init_engine
 
     await init_engine("sqlite", url=f"sqlite+aiosqlite:///{tmp_path / 'discord.db'}", sqlite_dir=str(tmp_path))
     try:
@@ -57,7 +57,7 @@ async def test_discord_inbound_attaches_owner_identity_from_user_level_connectio
 async def test_discord_connect_command_binds_gateway_identity(repo):
     state = "discord-bind-code"
     await repo.create_oauth_state(
-        owner_user_id="deerflow-user-1",
+        owner_user_id="operix-user-1",
         provider="discord",
         state=state,
         expires_at=datetime.now(UTC) + timedelta(minutes=5),
@@ -76,7 +76,7 @@ async def test_discord_connect_command_binds_gateway_identity(repo):
 
     handled = await channel._bind_connection_from_connect_code(message, state)
 
-    connections = await repo.list_connections("deerflow-user-1")
+    connections = await repo.list_connections("operix-user-1")
     assert handled is True
     assert len(connections) == 1
     assert connections[0]["provider"] == "discord"

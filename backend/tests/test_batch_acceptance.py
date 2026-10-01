@@ -11,18 +11,18 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 import pytest_asyncio
 
-from deerflow.config.database_config import DatabaseConfig
-from deerflow.config.paths import Paths
-from deerflow.config.prompt_overlay import PromptOverlay
-from deerflow.config.subagent_batches_config import SubagentBatchesConfig
-from deerflow.config.subagent_runtime_config import SubagentRuntimeConfig
-from deerflow.persistence.engine import close_engine, get_session_factory, init_engine_from_config
-from deerflow.persistence.subagent_batches import SubagentBatchRepository
-from deerflow.sandbox.local.local_sandbox_provider import LocalSandboxProvider
-from deerflow.subagents import batch_service
-from deerflow.subagents.batch_runtime import BatchSubmitRequest
-from deerflow.subagents.config import SubagentConfig
-from deerflow.tools.builtins.batch_task_tool import BatchTaskItem, bind_batch_tools
+from operix.config.database_config import DatabaseConfig
+from operix.config.paths import Paths
+from operix.config.prompt_overlay import PromptOverlay
+from operix.config.subagent_batches_config import SubagentBatchesConfig
+from operix.config.subagent_runtime_config import SubagentRuntimeConfig
+from operix.persistence.engine import close_engine, get_session_factory, init_engine_from_config
+from operix.persistence.subagent_batches import SubagentBatchRepository
+from operix.sandbox.local.local_sandbox_provider import LocalSandboxProvider
+from operix.subagents import batch_service
+from operix.subagents.batch_runtime import BatchSubmitRequest
+from operix.subagents.config import SubagentConfig
+from operix.tools.builtins.batch_task_tool import BatchTaskItem, bind_batch_tools
 
 
 class SubagentStatus(Enum):
@@ -38,12 +38,12 @@ class SubagentStatus(Enum):
 @pytest_asyncio.fixture
 async def env(monkeypatch, tmp_path):
     paths = Paths(str(tmp_path / "data"))
-    monkeypatch.setattr("deerflow.config.paths._paths", paths)
+    monkeypatch.setattr("operix.config.paths._paths", paths)
     paths.ensure_thread_dirs("thread-1", user_id="user-1")
     provider = LocalSandboxProvider()
-    monkeypatch.setattr("deerflow.sandbox.sandbox_provider.get_sandbox_provider", lambda: provider)
-    monkeypatch.setattr("deerflow.sandbox.tools.get_sandbox_provider", lambda: provider)
-    monkeypatch.setattr("deerflow.tools.get_available_tools", lambda **kwargs: [])
+    monkeypatch.setattr("operix.sandbox.sandbox_provider.get_sandbox_provider", lambda: provider)
+    monkeypatch.setattr("operix.sandbox.tools.get_sandbox_provider", lambda: provider)
+    monkeypatch.setattr("operix.tools.get_available_tools", lambda **kwargs: [])
     monkeypatch.setattr(batch_service, "resolve_subagent_model_name", lambda *args, **kwargs: "model-a")
     await init_engine_from_config(DatabaseConfig(backend="sqlite", sqlite_dir=str(tmp_path / "db")))
     repo = SubagentBatchRepository(get_session_factory())
@@ -103,7 +103,7 @@ async def _execute(env):
 
 @pytest.mark.asyncio
 async def test_tool_preserves_per_item_criteria_and_legacy_shape(env, monkeypatch):
-    module = importlib.import_module("deerflow.tools.builtins.batch_task_tool")
+    module = importlib.import_module("operix.tools.builtins.batch_task_tool")
     monkeypatch.setattr(module, "get_available_subagent_names", lambda **kwargs: ["general-purpose"])
     monkeypatch.setattr(
         module,
@@ -210,7 +210,7 @@ async def test_file_check_cannot_confirm_another_users_file(env):
 
 @pytest.mark.asyncio
 async def test_checker_error_does_not_retry_successful_execution(env, monkeypatch):
-    module = importlib.import_module("deerflow.subagents.batch_acceptance")
+    module = importlib.import_module("operix.subagents.batch_acceptance")
     monkeypatch.setattr(module, "check_acceptance_criteria", lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("checker failed")))
     batch = await _submit(env, ["claims are correct"])
     await _execute(env)
@@ -267,12 +267,12 @@ async def test_slow_checker_renews_lease_and_stops_after_losing_it(env, monkeypa
 @pytest.mark.asyncio
 @pytest.mark.parametrize("prefix", ["file", "FILE", "File_Written"])
 async def test_denied_sandbox_keeps_result_unchecked_without_acquiring(env, monkeypatch, prefix):
-    from deerflow.sandbox.exceptions import SandboxAuthorizationError
+    from operix.sandbox.exceptions import SandboxAuthorizationError
 
     authorize = AsyncMock(side_effect=SandboxAuthorizationError())
     acquire = AsyncMock(side_effect=AssertionError("must not acquire"))
-    monkeypatch.setattr("deerflow.authz.sandbox_authz.authorize_sandbox_execution_async", authorize)
-    monkeypatch.setattr("deerflow.sandbox.lease.acquire_sandbox_client_lease", acquire)
+    monkeypatch.setattr("operix.authz.sandbox_authz.authorize_sandbox_execution_async", authorize)
+    monkeypatch.setattr("operix.sandbox.lease.acquire_sandbox_client_lease", acquire)
     batch = await _submit(env, [f"{prefix}:../outputs/report.md exists"])
     await _execute(env)
     acquire.assert_not_awaited()
@@ -286,8 +286,8 @@ async def test_denied_sandbox_keeps_result_unchecked_without_acquiring(env, monk
 @pytest.mark.parametrize("case", ["oversized", "escaped", "truncated_tag", "empty"])
 async def test_stored_delegated_checked_and_exported_criteria_agree(env, monkeypatch, case):
     from app.gateway.routers import subagent_batches as router
-    from deerflow.subagents.acceptance_checks import check_acceptance_criteria
-    from deerflow.subagents.report_contract import render_acceptance_criteria_block
+    from operix.subagents.acceptance_checks import check_acceptance_criteria
+    from operix.subagents.report_contract import render_acceptance_criteria_block
 
     if case == "oversized":
         criteria = ["", "  ", None, 42] + ["  " + "x" * 1000 + "  "] * 25
@@ -342,18 +342,18 @@ _FILE_CRITERIA = [
 @pytest.mark.asyncio
 @pytest.mark.parametrize("criterion", _FILE_CRITERIA)
 async def test_caller_sandbox_deny_applies_to_every_file_spelling(env, monkeypatch, criterion):
-    from deerflow.authz import sandbox_authz
-    from deerflow.config.authorization_config import AuthorizationConfig, AuthorizationProviderConfig
+    from operix.authz import sandbox_authz
+    from operix.config.authorization_config import AuthorizationConfig, AuthorizationProviderConfig
 
     env.service._app_config = SimpleNamespace(
         authorization=AuthorizationConfig(
             enabled=True,
             default_role="member",
-            provider=AuthorizationProviderConfig(use="deerflow.authz.rbac:RbacAuthorizationProvider", config={"roles": {"member": {"sandbox": {"allow": False}}}}),
+            provider=AuthorizationProviderConfig(use="operix.authz.rbac:RbacAuthorizationProvider", config={"roles": {"member": {"sandbox": {"allow": False}}}}),
         )
     )
     # Embedded callers can have a different policy from the process global.
-    monkeypatch.setattr("deerflow.sandbox.tools.safe_app_config", lambda: None)
+    monkeypatch.setattr("operix.sandbox.tools.safe_app_config", lambda: None)
     authorize = AsyncMock(wraps=sandbox_authz.authorize_sandbox_execution_async)
     acquire = Mock(wraps=env.provider.acquire)
     monkeypatch.setattr(sandbox_authz, "authorize_sandbox_execution_async", authorize)
@@ -370,11 +370,11 @@ async def test_caller_sandbox_deny_applies_to_every_file_spelling(env, monkeypat
 @pytest.mark.asyncio
 @pytest.mark.parametrize("criterion", _FILE_CRITERIA)
 async def test_allowed_file_spellings_read_under_a_released_holder(env, monkeypatch, criterion):
-    from deerflow.sandbox import lease
-    from deerflow.subagents.batch_acceptance import check_batch_acceptance
+    from operix.sandbox import lease
+    from operix.subagents.batch_acceptance import check_batch_acceptance
 
     (env.paths.sandbox_outputs_dir("thread-1", user_id="user-1") / "report.md").write_text("Actual report")
-    monkeypatch.setattr("deerflow.sandbox.tools.safe_app_config", lambda: None)
+    monkeypatch.setattr("operix.sandbox.tools.safe_app_config", lambda: None)
     acquire = AsyncMock(wraps=lease.acquire_sandbox_client_lease)
     release = Mock(wraps=env.provider.release)
     monkeypatch.setattr(lease, "acquire_sandbox_client_lease", acquire)
@@ -389,11 +389,11 @@ async def test_allowed_file_spellings_read_under_a_released_holder(env, monkeypa
 @pytest.mark.asyncio
 @pytest.mark.parametrize("criteria", [["quality"] * 20 + ["file:../outputs/report.md exists"], ["file:missing mode"], ["file:" + "x" * 500 + " exists"]])
 async def test_only_effective_file_checks_request_sandbox_access(env, monkeypatch, criteria):
-    from deerflow.subagents.batch_acceptance import check_batch_acceptance
+    from operix.subagents.batch_acceptance import check_batch_acceptance
 
     authorize = AsyncMock(side_effect=AssertionError("no effective file check"))
     acquire = Mock(side_effect=AssertionError("no sandbox acquisition"))
-    monkeypatch.setattr("deerflow.authz.sandbox_authz.authorize_sandbox_execution_async", authorize)
+    monkeypatch.setattr("operix.authz.sandbox_authz.authorize_sandbox_execution_async", authorize)
     monkeypatch.setattr(env.provider, "acquire", acquire)
     verdict = await check_batch_acceptance(criteria, batch={"thread_id": "thread-1", "user_id": "user-1", "execution_spec": {}}, app_config=SimpleNamespace(), bash_executions=None)
     assert all(leaf["family"] == "undecidable" for leaf in verdict["leaves"])

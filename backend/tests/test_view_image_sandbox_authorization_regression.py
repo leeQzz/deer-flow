@@ -23,19 +23,19 @@ from langchain.agents.middleware.types import ModelRequest
 from langchain_core.language_models.fake_chat_models import FakeMessagesListChatModel
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
-from deerflow.agents.middlewares.view_image_middleware import ViewImageMiddleware
-from deerflow.authz.adapter import GuardrailAuthorizationAdapter
-from deerflow.authz.rbac import RbacAuthorizationProvider
-from deerflow.authz.sandbox_authz import authorize_sandbox_execution
-from deerflow.authz.tool_filter import apply_tool_authorization
-from deerflow.config.app_config import AppConfig
-from deerflow.config.authorization_config import AuthorizationConfig
-from deerflow.config.model_config import ModelConfig
-from deerflow.config.paths import Paths
-from deerflow.config.sandbox_config import SandboxConfig
-from deerflow.guardrails.provider import GuardrailRequest
-from deerflow.sandbox.exceptions import SandboxAuthorizationError
-from deerflow.tools.builtins.view_image_tool import view_image_tool
+from operix.agents.middlewares.view_image_middleware import ViewImageMiddleware
+from operix.authz.adapter import GuardrailAuthorizationAdapter
+from operix.authz.rbac import RbacAuthorizationProvider
+from operix.authz.sandbox_authz import authorize_sandbox_execution
+from operix.authz.tool_filter import apply_tool_authorization
+from operix.config.app_config import AppConfig
+from operix.config.authorization_config import AuthorizationConfig
+from operix.config.model_config import ModelConfig
+from operix.config.paths import Paths
+from operix.config.sandbox_config import SandboxConfig
+from operix.guardrails.provider import GuardrailRequest
+from operix.sandbox.exceptions import SandboxAuthorizationError
+from operix.tools.builtins.view_image_tool import view_image_tool
 
 GIF_BYTES = base64.b64decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
 IMAGE_PATH = "/mnt/user-data/uploads/synthetic.gif"
@@ -62,12 +62,12 @@ def _setup(root: Path, monkeypatch: pytest.MonkeyPatch, *, sandbox_allowed: bool
     )
     config = AppConfig(
         models=[ModelConfig(name="synthetic", model="synthetic", use="langchain_openai:ChatOpenAI", supports_vision=True)],
-        sandbox=SandboxConfig(use="deerflow.sandbox.local:LocalSandboxProvider"),
+        sandbox=SandboxConfig(use="operix.sandbox.local:LocalSandboxProvider"),
         authorization=AuthorizationConfig(enabled=True, fail_closed=True, default_role="reviewer"),
     )
     provider = RbacAuthorizationProvider(roles={"reviewer": {"tools": {"allow": ["view_image"]}, "sandbox": {"allow": sandbox_allowed}}})
-    monkeypatch.setattr("deerflow.config.get_app_config", lambda: config)
-    monkeypatch.setattr("deerflow.authz.sandbox_authz.resolve_authorization_provider", lambda _: provider)
+    monkeypatch.setattr("operix.config.get_app_config", lambda: config)
+    monkeypatch.setattr("operix.authz.sandbox_authz.resolve_authorization_provider", lambda _: provider)
     authorized_tools, _ = apply_tool_authorization([view_image_tool], context=context, app_config=config, authorization_provider=provider)
     assert [tool.name for tool in authorized_tools] == ["view_image"]
     tool_decision = GuardrailAuthorizationAdapter(provider, default_role="reviewer").evaluate(
@@ -135,7 +135,7 @@ def test_denied_restored_view_does_not_reenter_model(tmp_path, monkeypatch):
     runtime, _, _ = _setup(tmp_path, monkeypatch, sandbox_allowed=True)
     viewed = view_image_tool.func(runtime=runtime, image_path=IMAGE_PATH, tool_call_id="image-call").update["viewed_images"]
     denied_provider = RbacAuthorizationProvider(roles={"reviewer": {"tools": {"allow": ["view_image"]}, "sandbox": {"allow": False}}})
-    monkeypatch.setattr("deerflow.authz.sandbox_authz.resolve_authorization_provider", lambda _: denied_provider)
+    monkeypatch.setattr("operix.authz.sandbox_authz.resolve_authorization_provider", lambda _: denied_provider)
     stranded = ViewImageMiddleware._create_image_context_message([{"type": "image_url", "image_url": {"url": "data:image/gif;base64,stale"}}])
     original_request = _model_request(runtime, viewed)
     original_request = original_request.override(messages=[*original_request.messages, stranded])
@@ -148,7 +148,7 @@ def test_denied_restored_view_does_not_reenter_model(tmp_path, monkeypatch):
 def test_denied_tool_does_not_touch_live_sandbox(tmp_path, monkeypatch):
     runtime, _, _ = _setup(tmp_path, monkeypatch, sandbox_allowed=False)
     runtime.state["sandbox"] = {"sandbox_id": "synthetic-remote"}
-    with patch("deerflow.sandbox.sandbox_provider.get_sandbox_provider", side_effect=AssertionError("denied sandbox lookup")):
+    with patch("operix.sandbox.sandbox_provider.get_sandbox_provider", side_effect=AssertionError("denied sandbox lookup")):
         with pytest.raises(SandboxAuthorizationError):
             view_image_tool.func(runtime=runtime, image_path=IMAGE_PATH, tool_call_id="image-call")
 
@@ -186,7 +186,7 @@ async def test_allowed_async_tool_and_model_injection(tmp_path, monkeypatch):
 
 
 def _run_probe() -> dict[str, object]:
-    with tempfile.TemporaryDirectory(prefix="deerflow-image-authz-") as temp_dir, pytest.MonkeyPatch.context() as monkeypatch:
+    with tempfile.TemporaryDirectory(prefix="operix-image-authz-") as temp_dir, pytest.MonkeyPatch.context() as monkeypatch:
         runtime, config, image_file = _setup(Path(temp_dir), monkeypatch, sandbox_allowed=False)
         with pytest.raises(SandboxAuthorizationError):
             authorize_sandbox_execution(context=runtime.context, app_config=config)

@@ -1,4 +1,4 @@
-# DeerFlow - Unified Development Environment
+# Operix - Unified Development Environment
 
 .PHONY: help config config-upgrade check check-agent-guidance install extension-install extension-upgrade extension-list extension-enable extension-disable extension-remove setup doctor support-bundle detect-thread-boundaries detect-blocking-io dev dev-daemon start start-daemon nginx stop up down prod-logs clean docker-init docker-start docker-stop docker-logs docker-logs-frontend docker-logs-gateway docker-logs-redis setup-sandbox
 
@@ -22,7 +22,7 @@ endif
 FRONTEND_PNPM = $(PYTHON) ../scripts/pnpm.py
 
 help:
-	@echo "DeerFlow Development Commands:"
+	@echo "Operix Development Commands:"
 	@echo "  make setup           - Interactive setup wizard (recommended for new users)"
 	@echo "  make doctor          - Check configuration and system requirements"
 	@echo "  make support-bundle  - Create a redacted issue summary, AI draft, and evidence bundle"
@@ -73,7 +73,7 @@ support-bundle:
 	@$(BACKEND_UV_RUN) python ../scripts/support_bundle.py --include-doctor
 
 detect-thread-boundaries:
-	@$(BACKEND_UV_RUN) python ../scripts/detect_thread_boundaries.py --json-output ../.deer-flow/thread-boundary-inventory.json
+	@$(BACKEND_UV_RUN) python ../scripts/detect_thread_boundaries.py --json-output ../.operix/thread-boundary-inventory.json
 
 detect-blocking-io:
 	@$(MAKE) -C backend detect-blocking-io
@@ -110,33 +110,33 @@ install:
 	@echo "  make setup-sandbox"
 	@echo ""
 
-extension-install: export DEER_FLOW_EXTENSION_SOURCE := $(value SOURCE)
+extension-install: export OPERIX_EXTENSION_SOURCE := $(value SOURCE)
 extension-install:
 	$(if $(and $(filter command line,$(origin SOURCE)),$(strip $(value SOURCE))),,$(error usage: make extension-install SOURCE=<package|git-url|dir>))
-	@cd backend && uv run --frozen --no-group extensions deerflow extensions install --source-env __deerflow_extension_source__
+	@cd backend && uv run --frozen --no-group extensions operix extensions install --source-env __operix_extension_source__
 
-extension-upgrade: export DEER_FLOW_EXTENSION_SOURCE := $(value SOURCE)
+extension-upgrade: export OPERIX_EXTENSION_SOURCE := $(value SOURCE)
 extension-upgrade:
 	$(if $(and $(filter command line,$(origin SOURCE)),$(strip $(value SOURCE))),,$(error usage: make extension-upgrade SOURCE=<package|git-url|dir>))
-	@cd backend && uv run --frozen --no-group extensions deerflow extensions upgrade --source-env __deerflow_extension_source__
+	@cd backend && uv run --frozen --no-group extensions operix extensions upgrade --source-env __operix_extension_source__
 
 extension-list:
-	@cd backend && uv run --frozen --no-group extensions deerflow extensions list
+	@cd backend && uv run --frozen --no-group extensions operix extensions list
 
-extension-enable: export DEER_FLOW_EXTENSION_NAME := $(value NAME)
+extension-enable: export OPERIX_EXTENSION_NAME := $(value NAME)
 extension-enable:
 	$(if $(and $(filter command line,$(origin NAME)),$(strip $(value NAME))),,$(error usage: make extension-enable NAME=<extension>))
-	@cd backend && uv run --frozen --no-group extensions deerflow extensions enable --name-env __deerflow_extension_name__
+	@cd backend && uv run --frozen --no-group extensions operix extensions enable --name-env __operix_extension_name__
 
-extension-disable: export DEER_FLOW_EXTENSION_NAME := $(value NAME)
+extension-disable: export OPERIX_EXTENSION_NAME := $(value NAME)
 extension-disable:
 	$(if $(and $(filter command line,$(origin NAME)),$(strip $(value NAME))),,$(error usage: make extension-disable NAME=<extension>))
-	@cd backend && uv run --frozen --no-group extensions deerflow extensions disable --name-env __deerflow_extension_name__
+	@cd backend && uv run --frozen --no-group extensions operix extensions disable --name-env __operix_extension_name__
 
-extension-remove: export DEER_FLOW_EXTENSION_NAME := $(value NAME)
+extension-remove: export OPERIX_EXTENSION_NAME := $(value NAME)
 extension-remove:
 	$(if $(and $(filter command line,$(origin NAME)),$(strip $(value NAME))),,$(error usage: make extension-remove NAME=<extension>))
-	@cd backend && uv run --frozen --no-group extensions deerflow extensions remove --name-env __deerflow_extension_name__
+	@cd backend && uv run --frozen --no-group extensions operix extensions remove --name-env __operix_extension_name__
 
 # Pre-pull sandbox Docker image (optional but recommended)
 setup-sandbox:
@@ -175,7 +175,7 @@ stop:
 # Clean up
 clean: stop
 	@echo "Cleaning up..."
-	@-rm -rf backend/.deer-flow 2>/dev/null || true
+	@-rm -rf backend/.operix 2>/dev/null || true
 	@-rm -rf logs/*.log 2>/dev/null || true
 	@echo "✓ Cleanup complete"
 

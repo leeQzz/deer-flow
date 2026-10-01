@@ -17,8 +17,8 @@ DOCKER_DIR="$PROJECT_ROOT/docker"
 # Docker Desktop does not receive a Git Bash `/c/...` path it cannot open.
 COMPOSE_FILE="docker-compose-dev.yaml"
 # Dev stack project name. `logs --prod` swaps both values for the production
-# stack started by `make up` (scripts/deploy.sh: project `deer-flow`).
-COMPOSE_PROJECT="deer-flow-dev"
+# stack started by `make up` (scripts/deploy.sh: project `operix`).
+COMPOSE_PROJECT="operix-dev"
 # Selected by require_compose_version: prefer the V2 plugin, else hyphenated binary.
 # Kept as an array so "docker compose" stays two words under set -u / quoting.
 COMPOSE_BIN=(docker compose)
@@ -56,7 +56,7 @@ require_compose_file() {
         return 0
     fi
     echo -e "${YELLOW}✗ ${COMPOSE_FILE} not found at ${DOCKER_DIR}/${COMPOSE_FILE}${NC}"
-    echo "Run this from the DeerFlow repository root, e.g. 'make docker-start'."
+    echo "Run this from the Operix repository root, e.g. 'make docker-start'."
     echo "Do not run 'docker compose -f docker/${COMPOSE_FILE}' from inside docker/ — that resolves to docker/docker/${COMPOSE_FILE}."
     exit 1
 }
@@ -122,13 +122,13 @@ require_compose_version() {
     exit 1
 }
 
-# Compose interpolates ${DEER_FLOW_ROOT} into host-side paths
-# (DEER_FLOW_HOST_BASE_DIR, THREADS_HOST_PATH) that AIO/provisioner sandbox
-# modes bind-mount. Unset, those render as /backend/.deer-flow — a plausible
+# Compose interpolates ${OPERIX_ROOT} into host-side paths
+# (OPERIX_HOST_BASE_DIR, THREADS_HOST_PATH) that AIO/provisioner sandbox
+# modes bind-mount. Unset, those render as /backend/.operix — a plausible
 # looking absolute path on the wrong root, so mounts silently miss the checkout.
-ensure_deer_flow_root() {
-    if [ -z "$DEER_FLOW_ROOT" ]; then
-        export DEER_FLOW_ROOT="$PROJECT_ROOT"
+ensure_operix_root() {
+    if [ -z "$OPERIX_ROOT" ]; then
+        export OPERIX_ROOT="$PROJECT_ROOT"
     fi
 }
 
@@ -136,7 +136,7 @@ ensure_deer_flow_root() {
 compose_preflight() {
     require_compose_file
     require_compose_version
-    ensure_deer_flow_root
+    ensure_operix_root
 }
 
 # Only `start` may create files. Compose env_file entries fail closed on Windows
@@ -205,9 +205,9 @@ detect_sandbox_mode() {
         }
     ' "$config_file")
 
-    if [[ "$sandbox_use" == *"deerflow.sandbox.local:LocalSandboxProvider"* ]]; then
+    if [[ "$sandbox_use" == *"operix.sandbox.local:LocalSandboxProvider"* ]]; then
         echo "local"
-    elif [[ "$sandbox_use" == *"deerflow.community.aio_sandbox:AioSandboxProvider"* ]]; then
+    elif [[ "$sandbox_use" == *"operix.community.aio_sandbox:AioSandboxProvider"* ]]; then
         if [ -n "$provisioner_url" ]; then
             echo "provisioner"
         else
@@ -245,7 +245,7 @@ docker_available() {
 # Initialize: pre-pull the sandbox image so first Pod startup is fast
 init() {
     echo "=========================================="
-    echo "  DeerFlow Init — Pull Sandbox Image"
+    echo "  Operix Init — Pull Sandbox Image"
     echo "=========================================="
     echo ""
 
@@ -317,7 +317,7 @@ start() {
     fi
 
     echo "=========================================="
-    echo "  Starting DeerFlow Docker Development"
+    echo "  Starting Operix Docker Development"
     echo "=========================================="
     echo ""
 
@@ -336,7 +336,7 @@ start() {
     # the default (local) and provisioner modes never expose the host daemon.
     # Mounting the socket = root-equivalent host control; see SECURITY.md.
     if [ "$sandbox_mode" = "aio" ]; then
-        local docker_socket="${DEER_FLOW_DOCKER_SOCKET:-/var/run/docker.sock}"
+        local docker_socket="${OPERIX_DOCKER_SOCKET:-/var/run/docker.sock}"
         if [ ! -S "$docker_socket" ]; then
             # On Windows (Git Bash / MSYS), Docker Desktop mounts the default
             # /var/run/docker.sock into containers even though no host socket file exists.
@@ -362,7 +362,7 @@ start() {
     
     # Set by compose_preflight above; shown because the provisioner turns it into
     # host-side bind-mount paths.
-    echo -e "${BLUE}Using DEER_FLOW_ROOT=$DEER_FLOW_ROOT${NC}"
+    echo -e "${BLUE}Using OPERIX_ROOT=$OPERIX_ROOT${NC}"
     echo ""
 
     # Ensure config.yaml exists before starting.
@@ -373,7 +373,7 @@ start() {
             echo -e "${YELLOW}============================================================${NC}"
             echo -e "${YELLOW}  config.yaml has been created from config.example.yaml.${NC}"
             echo -e "${YELLOW}  Please edit config.yaml to set your API keys and model   ${NC}"
-            echo -e "${YELLOW}  configuration before starting DeerFlow.                  ${NC}"
+            echo -e "${YELLOW}  configuration before starting Operix.                  ${NC}"
             echo -e "${YELLOW}============================================================${NC}"
             echo ""
             echo -e "${YELLOW}  Recommended: run 'make setup' before starting Docker.    ${NC}"
@@ -406,7 +406,7 @@ start() {
     cd "$DOCKER_DIR" && $COMPOSE_CMD up --build -d --remove-orphans $services
     echo ""
     echo "=========================================="
-    echo "  DeerFlow Docker is starting!"
+    echo "  Operix Docker is starting!"
     echo "=========================================="
     echo ""
     echo "  🌐 Application: http://localhost:2026"
@@ -450,16 +450,16 @@ logs() {
         # Target the same project deploy.sh started. Relative paths: this
         # runs with cwd=$DOCKER_DIR.
         COMPOSE_FILE="docker-compose.yaml"
-        COMPOSE_PROJECT="deer-flow"
+        COMPOSE_PROJECT="operix"
         # deploy.sh exports these before every compose invocation so the
         # volume specs in docker-compose.yaml interpolate; without them even
         # `logs` fails to parse the file on checkouts without a .env.
-        export DEER_FLOW_HOME="${DEER_FLOW_HOME:-$PROJECT_ROOT/backend/.deer-flow}"
-        export DEER_FLOW_CONFIG_PATH="${DEER_FLOW_CONFIG_PATH:-$DEER_FLOW_HOME/config.yaml}"
-        export DEER_FLOW_EXTENSIONS_CONFIG_PATH="${DEER_FLOW_EXTENSIONS_CONFIG_PATH:-$DEER_FLOW_HOME/extensions_config.json}"
-        export DEER_FLOW_REPO_ROOT="${DEER_FLOW_REPO_ROOT:-$PROJECT_ROOT}"
+        export OPERIX_HOME="${OPERIX_HOME:-$PROJECT_ROOT/backend/.operix}"
+        export OPERIX_CONFIG_PATH="${OPERIX_CONFIG_PATH:-$OPERIX_HOME/config.yaml}"
+        export OPERIX_EXTENSIONS_CONFIG_PATH="${OPERIX_EXTENSIONS_CONFIG_PATH:-$OPERIX_HOME/extensions_config.json}"
+        export OPERIX_REPO_ROOT="${OPERIX_REPO_ROOT:-$PROJECT_ROOT}"
         export BETTER_AUTH_SECRET="${BETTER_AUTH_SECRET:-placeholder}"
-        export DEER_FLOW_INTERNAL_AUTH_TOKEN="${DEER_FLOW_INTERNAL_AUTH_TOKEN:-placeholder}"
+        export OPERIX_INTERNAL_AUTH_TOKEN="${OPERIX_INTERNAL_AUTH_TOKEN:-placeholder}"
     elif [ -z "$service" ]; then
         # The dev and production stacks use different compose projects, so
         # `make docker-logs` after `make up` would exit with empty output;
@@ -495,7 +495,7 @@ stop() {
     echo "Stopping Docker development services..."
     cd "$DOCKER_DIR" && $COMPOSE_CMD down
     echo "Cleaning up sandbox containers..."
-    bash "$SCRIPT_DIR/cleanup-containers.sh" deer-flow-sandbox 2>/dev/null || true
+    bash "$SCRIPT_DIR/cleanup-containers.sh" operix-sandbox 2>/dev/null || true
     echo -e "${GREEN}✓ Docker services stopped${NC}"
 }
 
@@ -503,7 +503,7 @@ stop() {
 restart() {
     compose_preflight
     echo "========================================"
-    echo "  Restarting DeerFlow Docker Services"
+    echo "  Restarting Operix Docker Services"
     echo "========================================"
     echo ""
     echo -e "${BLUE}Restarting containers...${NC}"
@@ -518,7 +518,7 @@ restart() {
 
 # Show help
 help() {
-    echo "DeerFlow Docker Management Script"
+    echo "Operix Docker Management Script"
     echo ""
     echo "Usage: $0 <command> [options]"
     echo ""

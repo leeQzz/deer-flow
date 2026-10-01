@@ -1,6 +1,6 @@
-# DeerFlow Frontend
+# Operix Frontend
 
-Like the original DeerFlow 1.0, we would love to give the community a minimalistic and easy-to-use web interface with a more modern and flexible architecture.
+Like the original Operix 1.0, we would love to give the community a minimalistic and easy-to-use web interface with a more modern and flexible architecture.
 
 ## Tech Stack
 
@@ -144,7 +144,7 @@ src/
 ## Development Notes
 
 - Uses pnpm workspaces (see `packageManager` in package.json)
-- Webpack is the default development bundler until the upstream Turbopack PostCSS worker leak is fixed in a stable Next.js release (#5132). Set `DEER_FLOW_DEV_BUNDLER=turbo` to opt in to Turbopack for local diagnosis, or `DEER_FLOW_DEV_BUNDLER=webpack` to select Webpack explicitly. Reconsider the default after the stable fix is verified on macOS arm64 and Linux.
+- Webpack is the default development bundler until the upstream Turbopack PostCSS worker leak is fixed in a stable Next.js release (#5132). Set `OPERIX_DEV_BUNDLER=turbo` to opt in to Turbopack for local diagnosis, or `OPERIX_DEV_BUNDLER=webpack` to select Webpack explicitly. Reconsider the default after the stable fix is verified on macOS arm64 and Linux.
 - Environment validation can be skipped with `SKIP_ENV_VALIDATION=1` (useful for Docker)
 - Backend API URLs are optional; nginx proxy is used by default in development
 

@@ -24,15 +24,15 @@ import pytest
 from e2b import FileNotFoundException, TimeoutException
 from pydantic import ValidationError
 
-from deerflow.community.e2b_sandbox.capacity import (
+from operix.community.e2b_sandbox.capacity import (
     CapacityBackendError,
     ReserveStatus,
 )
-from deerflow.community.e2b_sandbox.e2b_sandbox_provider import MountUploadResult
-from deerflow.config.paths import Paths
-from deerflow.config.sandbox_config import SandboxConfig
-from deerflow.sandbox.acquire_serialization import AcquireSerializer
-from deerflow.sandbox.exceptions import SandboxCapacityExceededError
+from operix.community.e2b_sandbox.e2b_sandbox_provider import MountUploadResult
+from operix.config.paths import Paths
+from operix.config.sandbox_config import SandboxConfig
+from operix.sandbox.acquire_serialization import AcquireSerializer
+from operix.sandbox.exceptions import SandboxCapacityExceededError
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Fakes for the e2b SDK
@@ -227,7 +227,7 @@ class FakeOwnershipStore:
             return True
 
     def renew(self, sandbox_id: str):
-        from deerflow.community.aio_sandbox.ownership import RenewOutcome
+        from operix.community.aio_sandbox.ownership import RenewOutcome
 
         with self._lock:
             current = self._leases.get(sandbox_id)
@@ -261,7 +261,7 @@ def _make_provider(
     skills_container_path: str = "/mnt/skills",
 ) -> Any:
     """Build a ``E2BSandboxProvider`` instance bypassing ``__init__``."""
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     provider = mod.E2BSandboxProvider.__new__(mod.E2BSandboxProvider)
     provider._lock = threading.Lock()
     provider._lifecycle_locks = {}
@@ -283,7 +283,7 @@ def _make_provider(
     provider._ownership_config = SimpleNamespace(
         renewal_interval_seconds=60.0,
         ttl_multiplier=4.0,
-        key_prefix="deerflow:test",
+        key_prefix="operix:test",
     )
     provider._deployment_capacity = None
     provider._owned_sandbox_ids = set()
@@ -320,7 +320,7 @@ def _install_shared_deployment_capacity(
     reserve_results: list[ReserveStatus] | None = None,
 ) -> MagicMock:
     store = MagicMock()
-    store.key = "deerflow:test:e2b-capacity"
+    store.key = "operix:test:e2b-capacity"
     store.revision.return_value = 0
     store.reserve.return_value = ReserveStatus.GRANTED
     store.reconcile.return_value = True
@@ -344,9 +344,9 @@ def _write_skill(root: Path, name: str) -> None:
 
 
 def test_apply_mounts_uploads_only_enabled_skill_projection(monkeypatch, tmp_path):
-    from deerflow.config.extensions_config import ExtensionsConfig, SkillStateConfig
+    from operix.config.extensions_config import ExtensionsConfig, SkillStateConfig
 
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     paths = Paths(base_dir=tmp_path)
     skills_root = tmp_path / "skills"
     _write_skill(skills_root / "public", "enabled-skill")
@@ -365,13 +365,13 @@ def test_apply_mounts_uploads_only_enabled_skill_projection(monkeypatch, tmp_pat
         skills=SimpleNamespace(
             get_skills_path=lambda: skills_root,
             container_path="/mnt/skills",
-            use="deerflow.skills.storage.local_skill_storage:LocalSkillStorage",
+            use="operix.skills.storage.local_skill_storage:LocalSkillStorage",
         )
     )
     monkeypatch.setattr(mod, "get_app_config", lambda: config)
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: paths)
-    monkeypatch.setattr("deerflow.config.extensions_config.ExtensionsConfig.from_file", lambda *_args, **_kwargs: extensions)
-    monkeypatch.setattr("deerflow.config.extensions_config.get_extensions_config", lambda: extensions)
+    monkeypatch.setattr("operix.config.paths.get_paths", lambda: paths)
+    monkeypatch.setattr("operix.config.extensions_config.ExtensionsConfig.from_file", lambda *_args, **_kwargs: extensions)
+    monkeypatch.setattr("operix.config.extensions_config.get_extensions_config", lambda: extensions)
 
     provider = _make_provider()
     client = FakeClient()
@@ -390,7 +390,7 @@ def test_policy_scoped_thread_skips_shared_projection_during_create(
 ):
     paths = Paths(base_dir=tmp_path)
     paths.thread_skills_view_dir("thread-1", user_id="user-1").mkdir(parents=True)
-    monkeypatch.setattr("deerflow.config.paths.get_paths", lambda: paths)
+    monkeypatch.setattr("operix.config.paths.get_paths", lambda: paths)
 
     provider = _make_provider()
 
@@ -401,9 +401,9 @@ def test_sync_agent_skills_rebuilds_managed_remote_tree_despite_matching_legacy_
     monkeypatch,
     tmp_path,
 ):
-    from deerflow.skills.projection import SkillProjectionPaths
+    from operix.skills.projection import SkillProjectionPaths
 
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     root = tmp_path / "skills-view"
     projection = SkillProjectionPaths(
         public=root / "public",
@@ -440,7 +440,7 @@ def test_sync_agent_skills_rebuilds_managed_remote_tree_despite_matching_legacy_
     files = FakeFilesAPI(
         {
             "/mnt/skills/public/excluded-skill/SKILL.md": b"excluded",
-            "/mnt/skills/.deerflow-projection-signature": legacy_signature.encode(),
+            "/mnt/skills/.operix-projection-signature": legacy_signature.encode(),
             "/mnt/skills/unmanaged.txt": b"keep",
         }
     )
@@ -454,7 +454,7 @@ def test_sync_agent_skills_rebuilds_managed_remote_tree_despite_matching_legacy_
             "/mnt/skills/custom",
             "/mnt/skills/legacy",
             "/mnt/skills/integrations",
-            "/mnt/skills/.deerflow-projection-signature",
+            "/mnt/skills/.operix-projection-signature",
         )
         for managed_path in managed_paths:
             assert managed_path in command
@@ -487,7 +487,7 @@ def test_sync_agent_skills_rebuilds_managed_remote_tree_despite_matching_legacy_
     assert "/mnt/skills/public/excluded-skill/SKILL.md" not in files.store
     assert files.store["/mnt/skills/public/allowed-skill/SKILL.md"].startswith(b"---")
     assert files.store["/mnt/skills/unmanaged.txt"] == b"keep"
-    assert "/mnt/skills/.deerflow-projection-signature" not in files.store
+    assert "/mnt/skills/.operix-projection-signature" not in files.store
     assert files.read_calls == []
     first_command_count = len(commands.calls)
     first_write_count = len(files.write_calls)
@@ -507,9 +507,9 @@ def test_sync_agent_skills_serializes_reset_and_upload_for_same_thread(
     monkeypatch,
     tmp_path,
 ):
-    from deerflow.skills.projection import SkillProjectionPaths
+    from operix.skills.projection import SkillProjectionPaths
 
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     projections: list[SkillProjectionPaths] = []
     for name in ("policy-a", "policy-b"):
         root = tmp_path / name
@@ -628,7 +628,7 @@ def test_sync_agent_skills_serializes_reset_and_upload_for_same_thread(
         "/boot",
         "/dev",
         "/etc",
-        "/etc/deerflow-skills",
+        "/etc/operix-skills",
         "/lib",
         "/lib32",
         "/lib64",
@@ -645,18 +645,18 @@ def test_sync_agent_skills_serializes_reset_and_upload_for_same_thread(
         "/sys",
         "/tmp",
         "/usr",
-        "/usr/local/deerflow-skills",
+        "/usr/local/operix-skills",
         "/var",
-        "/var/lib/deerflow-skills",
+        "/var/lib/operix-skills",
     ],
 )
 def test_sync_agent_skills_rejects_unsafe_reset_roots_before_remote_access(
     tmp_path,
     container_path,
 ):
-    from deerflow.skills.projection import SkillProjectionPaths
+    from operix.skills.projection import SkillProjectionPaths
 
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     root = tmp_path / "skills-view"
     projection = SkillProjectionPaths(
         public=root / "public",
@@ -699,7 +699,7 @@ def test_validate_skills_reset_root_accepts_isolated_directories(
     container_path,
     expected,
 ):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
 
     assert mod._validate_skills_reset_root(container_path, home_dir="/home/user") == expected
 
@@ -715,7 +715,7 @@ def test_validate_skills_reset_root_accepts_isolated_custom_home_subtree(
     home_dir,
     container_path,
 ):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
 
     assert (
         mod._validate_skills_reset_root(
@@ -730,9 +730,9 @@ def test_sync_agent_skills_rejects_symlinked_remote_root_before_deleting(
     monkeypatch,
     tmp_path,
 ):
-    from deerflow.skills.projection import SkillProjectionPaths
+    from operix.skills.projection import SkillProjectionPaths
 
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     root = tmp_path / "skills-view"
     projection = SkillProjectionPaths(
         public=root / "public",
@@ -769,7 +769,7 @@ def test_sync_agent_skills_rejects_symlinked_remote_root_before_deleting(
         commands=FakeCommandsAPI([reject_symlinked_root]),
         files=FakeFilesAPI(
             {
-                "/mnt/skills/.deerflow-projection-signature": legacy_signature.encode(),
+                "/mnt/skills/.operix-projection-signature": legacy_signature.encode(),
             }
         ),
     )
@@ -801,9 +801,9 @@ def test_sync_agent_skills_leaves_no_signature_after_upload_failure(
     monkeypatch,
     tmp_path,
 ):
-    from deerflow.skills.projection import SkillProjectionPaths
+    from operix.skills.projection import SkillProjectionPaths
 
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     root = tmp_path / "skills-view"
     projection = SkillProjectionPaths(
         public=root / "public",
@@ -846,7 +846,7 @@ def test_sync_agent_skills_leaves_no_signature_after_upload_failure(
             projection=projection,
         )
 
-    assert "/mnt/skills/.deerflow-projection-signature" not in client.files.store
+    assert "/mnt/skills/.operix-projection-signature" not in client.files.store
 
 
 def test_upload_tree_streams_file_contents(tmp_path):
@@ -885,7 +885,7 @@ def test_upload_tree_rejects_file_size_changed_after_preflight(monkeypatch, tmp_
 
 
 def test_upload_tree_rejects_oversized_file_before_upload(monkeypatch, tmp_path):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(mod, "_MAX_MOUNT_FILE_SIZE", 4)
     source = tmp_path / "large.bin"
     source.write_bytes(b"12345")
@@ -899,7 +899,7 @@ def test_upload_tree_rejects_oversized_file_before_upload(monkeypatch, tmp_path)
 
 
 def test_upload_tree_rejects_oversized_tree_before_upload(monkeypatch, tmp_path):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(mod, "_MAX_MOUNT_FILE_SIZE", 10)
     monkeypatch.setattr(mod, "_MAX_MOUNT_TOTAL_SIZE", 8)
     source = tmp_path / "mount"
@@ -916,7 +916,7 @@ def test_upload_tree_rejects_oversized_tree_before_upload(monkeypatch, tmp_path)
 
 
 def test_upload_tree_rejects_excess_file_count_before_upload(monkeypatch, tmp_path):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(mod, "_MAX_MOUNT_FILES", 1)
     source = tmp_path / "mount"
     source.mkdir()
@@ -932,7 +932,7 @@ def test_upload_tree_rejects_excess_file_count_before_upload(monkeypatch, tmp_pa
 
 
 def test_apply_mounts_continues_after_mount_exceeds_limit(monkeypatch, tmp_path):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(mod, "_MAX_MOUNT_FILE_SIZE", 4)
     monkeypatch.setattr(mod, "get_app_config", lambda: SimpleNamespace(skills=SimpleNamespace(container_path="/mnt/skills")))
     oversized = tmp_path / "oversized"
@@ -956,7 +956,7 @@ def test_apply_mounts_continues_after_mount_exceeds_limit(monkeypatch, tmp_path)
 
 
 def test_apply_mounts_bounds_total_bytes_across_mounts(monkeypatch, tmp_path, caplog):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(mod, "_MAX_MOUNT_PASS_TOTAL_BYTES", 7)
     monkeypatch.setattr(mod, "get_app_config", lambda: SimpleNamespace(skills=SimpleNamespace(container_path="/mnt/skills")))
     first = tmp_path / "first"
@@ -984,7 +984,7 @@ def test_apply_mounts_bounds_total_bytes_across_mounts(monkeypatch, tmp_path, ca
 
 
 def test_apply_mounts_bounds_total_files_across_mounts(monkeypatch, tmp_path, caplog):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(mod, "_MAX_MOUNT_PASS_FILES", 1)
     monkeypatch.setattr(mod, "get_app_config", lambda: SimpleNamespace(skills=SimpleNamespace(container_path="/mnt/skills")))
     first = tmp_path / "first"
@@ -1011,7 +1011,7 @@ def test_apply_mounts_bounds_total_files_across_mounts(monkeypatch, tmp_path, ca
 
 
 def test_read_only_mount_remains_read_only_when_pass_limit_stops_mid_mount(monkeypatch, tmp_path):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(mod, "_MAX_MOUNT_PASS_FILES", 1)
     monkeypatch.setattr(
         mod,
@@ -1037,7 +1037,7 @@ def test_read_only_mount_remains_read_only_when_pass_limit_stops_mid_mount(monke
 
 
 def test_read_only_mount_is_not_chmodded_when_no_upload_starts(monkeypatch, tmp_path):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(mod, "_MAX_MOUNT_PASS_FILES", 0)
     monkeypatch.setattr(
         mod,
@@ -1061,7 +1061,7 @@ def test_read_only_mount_is_not_chmodded_when_no_upload_starts(monkeypatch, tmp_
 
 
 def test_failed_write_consumes_aggregate_upload_budget(monkeypatch, tmp_path, caplog):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(mod, "_MAX_MOUNT_PASS_TOTAL_BYTES", 4)
     monkeypatch.setattr(
         mod,
@@ -1100,7 +1100,7 @@ def test_failed_write_consumes_aggregate_upload_budget(monkeypatch, tmp_path, ca
 
 
 def test_apply_mounts_deadline_stops_before_next_file(monkeypatch, tmp_path, caplog):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(mod, "_MOUNT_PASS_DEADLINE_SECONDS", 1)
     monkeypatch.setattr(mod, "get_app_config", lambda: SimpleNamespace(skills=SimpleNamespace(container_path="/mnt/skills")))
     clock = [0.0]
@@ -1135,7 +1135,7 @@ def test_apply_mounts_deadline_stops_before_next_file(monkeypatch, tmp_path, cap
 
 
 def test_apply_mounts_deadline_stops_directory_preflight(monkeypatch, tmp_path, caplog):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(mod, "_MOUNT_PASS_DEADLINE_SECONDS", 1)
     monkeypatch.setattr(
         mod,
@@ -1183,7 +1183,7 @@ def test_apply_mounts_deadline_stops_directory_preflight(monkeypatch, tmp_path, 
 
 
 def test_apply_mounts_deadline_stops_before_next_mount_preflight(monkeypatch, tmp_path, caplog):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(mod, "_MOUNT_PASS_DEADLINE_SECONDS", 1)
     monkeypatch.setattr(
         mod,
@@ -1230,7 +1230,7 @@ def test_apply_mounts_deadline_stops_before_next_mount_preflight(monkeypatch, tm
 
 
 def test_apply_mounts_deadline_defaults_to_120_when_not_configured(monkeypatch, tmp_path, caplog):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(
         mod,
         "get_app_config",
@@ -1264,7 +1264,7 @@ def test_apply_mounts_deadline_defaults_to_120_when_not_configured(monkeypatch, 
 
 
 def test_apply_mounts_deadline_uses_configured_value(monkeypatch, tmp_path, caplog):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(
         mod,
         "get_app_config",
@@ -1311,7 +1311,7 @@ def test_apply_mounts_deadline_uses_configured_value(monkeypatch, tmp_path, capl
     ids=["zero", "negative", "large_negative", "none", "suffix", "alpha", "infinity"],
 )
 def test_load_config_clamps_invalid_mount_upload_deadline(monkeypatch, caplog, raw, expected):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
 
     class FakeConfig:
         skills = SimpleNamespace(container_path="/mnt/skills")
@@ -1345,7 +1345,7 @@ def test_load_config_clamps_invalid_mount_upload_deadline(monkeypatch, caplog, r
 
 
 def test_load_config_custom_mount_upload_deadline_flows_to_apply_mounts(monkeypatch, tmp_path, caplog):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(
         mod,
         "get_app_config",
@@ -1399,7 +1399,7 @@ def test_load_config_custom_mount_upload_deadline_flows_to_apply_mounts(monkeypa
 
 
 def test_apply_mounts_deadline_reason_shows_configured_value(monkeypatch, tmp_path, caplog):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(
         mod,
         "get_app_config",
@@ -1455,7 +1455,7 @@ def test_apply_mounts_returns_result_on_success(monkeypatch, tmp_path):
 
 
 def test_apply_mounts_returns_truncated_result_on_deadline(monkeypatch, tmp_path):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     clock = [0.0]
     monkeypatch.setattr(mod.time, "monotonic", lambda: clock[0])
 
@@ -1483,7 +1483,7 @@ def test_apply_mounts_returns_truncated_result_on_deadline(monkeypatch, tmp_path
 
 
 def test_apply_mounts_returns_truncated_result_on_file_count(monkeypatch, tmp_path):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(mod, "_MAX_MOUNT_PASS_FILES", 1)
     first = tmp_path / "first"
     first.mkdir()
@@ -1506,7 +1506,7 @@ def test_apply_mounts_returns_truncated_result_on_file_count(monkeypatch, tmp_pa
 
 
 def test_apply_mounts_returns_truncated_result_on_byte_budget(monkeypatch, tmp_path):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(mod, "_MAX_MOUNT_PASS_TOTAL_BYTES", 7)
     first = tmp_path / "first"
     first.mkdir()
@@ -1599,7 +1599,7 @@ def test_mount_result_survives_warm_pool_reclaim(monkeypatch):
 
 
 def test_skill_projection_and_configured_mount_share_upload_budget(monkeypatch, tmp_path):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     monkeypatch.setattr(mod, "_MAX_MOUNT_PASS_FILES", 1)
     monkeypatch.setattr(mod, "get_app_config", lambda: SimpleNamespace(skills=SimpleNamespace(container_path="/mnt/skills")))
     projection = tmp_path / "projection"
@@ -1644,12 +1644,12 @@ def test_skill_projection_mounts_swallows_projection_failure(monkeypatch):
     to propagate out of ``_apply_mounts`` before the configured-mounts loop
     ran, dropping the operator's own configured mounts as collateral (#4107
     review)."""
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
 
     config = SimpleNamespace(skills=SimpleNamespace(container_path="/mnt/skills"))
     monkeypatch.setattr(mod, "get_app_config", lambda: config)
     monkeypatch.setattr(
-        "deerflow.skills.projection.ensure_skill_projections",
+        "operix.skills.projection.ensure_skill_projections",
         lambda storage: (_ for _ in ()).throw(RuntimeError("simulated projection failure")),
     )
 
@@ -1661,7 +1661,7 @@ def test_skill_projection_mounts_swallows_projection_failure(monkeypatch):
 def test_apply_mounts_keeps_configured_mounts_when_projection_fails(monkeypatch, tmp_path):
     """End-to-end: a skills-projection failure must not drop the operator's
     own configured mounts too — the two mount sources are independent."""
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
 
     host_dir = tmp_path / "operator-mount"
     host_dir.mkdir()
@@ -1670,7 +1670,7 @@ def test_apply_mounts_keeps_configured_mounts_when_projection_fails(monkeypatch,
     config = SimpleNamespace(skills=SimpleNamespace(container_path="/mnt/skills"))
     monkeypatch.setattr(mod, "get_app_config", lambda: config)
     monkeypatch.setattr(
-        "deerflow.skills.projection.ensure_skill_projections",
+        "operix.skills.projection.ensure_skill_projections",
         lambda storage: (_ for _ in ()).throw(RuntimeError("simulated projection failure")),
     )
 
@@ -1687,7 +1687,7 @@ def test_apply_mounts_keeps_configured_mounts_when_projection_fails(monkeypatch,
 
 
 def _make_sandbox(client: FakeClient, *, sandbox_id: str | None = None) -> Any:
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox")
     return mod.E2BSandbox(
         id=sandbox_id or client.sandbox_id,
         client=client,
@@ -1721,7 +1721,7 @@ def test_stable_seed_is_deterministic_and_user_scoped():
 
 
 def test_is_sandbox_gone_error_matches_known_signatures():
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox")
     f = mod._is_sandbox_gone_error
     assert f(RuntimeError("Paused sandbox abcdef not found"))
     assert f(Exception("The sandbox was not found: due to timeout"))
@@ -2138,10 +2138,10 @@ def _info(
     return SimpleNamespace(
         sandbox_id=sandbox_id,
         metadata={
-            "deer_flow_provider": "e2b_sandbox_provider",
-            "deer_flow_user": user_id,
-            "deer_flow_thread": thread_id,
-            "deer_flow_skills_root": skills_container_path,
+            "operix_provider": "e2b_sandbox_provider",
+            "operix_user": user_id,
+            "operix_thread": thread_id,
+            "operix_skills_root": skills_container_path,
         },
     )
 
@@ -2161,7 +2161,7 @@ def test_create_metadata_records_the_snapshotted_skills_root(monkeypatch):
 
     provider.acquire("t1", user_id="u1")
 
-    assert fake_cls.create_calls[0]["metadata"]["deer_flow_skills_root"] == "/custom-skills"
+    assert fake_cls.create_calls[0]["metadata"]["operix_skills_root"] == "/custom-skills"
 
 
 def test_discover_remote_sandbox_walks_paginator(monkeypatch):
@@ -2347,7 +2347,7 @@ def test_reconcile_honors_wall_clock_budget(monkeypatch):
     fake_cls = _install_fake_sdk(monkeypatch, p)
     fake_cls.list_return = [_info("sb-never-probed", "u1", "t1")]
     p._config["reconciliation_max_seconds"] = 0.5
-    provider_mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    provider_mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     ticks = iter([0.0, 0.0, 1.0, 1.0])
     monkeypatch.setattr(provider_mod.time, "monotonic", lambda: next(ticks))
 
@@ -2427,7 +2427,7 @@ class _ReconciliationClock:
 
 
 def _bind_clock(monkeypatch, vm):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     # Patch this module's time binding, not the process-global time module.
     monkeypatch.setattr(mod, "time", SimpleNamespace(time=lambda: vm.now, monotonic=lambda: vm.now))
 
@@ -2490,7 +2490,7 @@ def test_peer_owned_live_vm_keeps_shared_capacity_until_remote_disappearance(mon
     old_sdk = _install_fake_sdk(monkeypatch, old)
     old_sdk.connect_factory = vm.connect
     entry = _info("sb-peer", "u1", "t1")
-    entry.metadata["deer_flow_capacity_ledger"] = store.key
+    entry.metadata["operix_capacity_ledger"] = store.key
 
     client = FakeClient(sandbox_id="sb-peer")
     monkeypatch.setattr(client, "set_timeout", vm.set_timeout)
@@ -2666,7 +2666,7 @@ def test_reconcile_kills_metadata_orphan_only_after_ttl(monkeypatch):
     fake_cls.list_return = [
         SimpleNamespace(
             sandbox_id="sb-orphan",
-            metadata={"deer_flow_provider": "e2b_sandbox_provider"},
+            metadata={"operix_provider": "e2b_sandbox_provider"},
         )
     ]
     client = FakeClient(sandbox_id="sb-orphan")
@@ -2813,7 +2813,7 @@ def test_kill_client_reports_uncertain_cleanup_without_callable_kill():
 
 def test_sandbox_config_validates_e2b_capacity_fields():
     config = SandboxConfig(
-        use="deerflow.community.e2b_sandbox:E2BSandboxProvider",
+        use="operix.community.e2b_sandbox:E2BSandboxProvider",
         overflow_policy="burst",
         acquire_timeout=12,
         burst_limit=2,
@@ -2825,33 +2825,33 @@ def test_sandbox_config_validates_e2b_capacity_fields():
 
     with pytest.raises(ValidationError):
         SandboxConfig(
-            use="deerflow.community.e2b_sandbox:E2BSandboxProvider",
+            use="operix.community.e2b_sandbox:E2BSandboxProvider",
             overflow_policy="invalid",
         )
 
     with pytest.raises(ValidationError):
         SandboxConfig(
-            use="deerflow.community.e2b_sandbox:E2BSandboxProvider",
+            use="operix.community.e2b_sandbox:E2BSandboxProvider",
             acquire_timeout=0,
         )
 
     with pytest.raises(ValidationError):
         SandboxConfig(
-            use="deerflow.community.e2b_sandbox:E2BSandboxProvider",
+            use="operix.community.e2b_sandbox:E2BSandboxProvider",
             burst_limit=-1,
         )
 
     with pytest.raises(ValidationError):
         SandboxConfig(
-            use="deerflow.community.e2b_sandbox:E2BSandboxProvider",
+            use="operix.community.e2b_sandbox:E2BSandboxProvider",
             replicas=0,
         )
 
 
 def test_e2b_config_accepts_documented_reconciliation_fields(monkeypatch, caplog):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     config = SandboxConfig(
-        use="deerflow.community.e2b_sandbox:E2BSandboxProvider",
+        use="operix.community.e2b_sandbox:E2BSandboxProvider",
         api_key="test-key",
         reconciliation_interval_seconds=60,
         reconciliation_grace_seconds=120,
@@ -2877,9 +2877,9 @@ def test_e2b_config_accepts_documented_reconciliation_fields(monkeypatch, caplog
 
 
 def test_e2b_config_warns_about_unknown_fields(monkeypatch, caplog):
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
     config = SandboxConfig(
-        use="deerflow.community.e2b_sandbox:E2BSandboxProvider",
+        use="operix.community.e2b_sandbox:E2BSandboxProvider",
         api_key="test-key",
         overflo_policy="reject",
     )
@@ -3193,7 +3193,7 @@ def test_shutdown_only_kills_sandboxes_owned_by_current_instance(monkeypatch):
 
 
 def _setup_paths(monkeypatch, tmp_path):
-    paths_mod = importlib.import_module("deerflow.config.paths")
+    paths_mod = importlib.import_module("operix.config.paths")
     monkeypatch.setattr(paths_mod, "get_paths", lambda: Paths(base_dir=tmp_path), raising=False)
 
 
@@ -3384,7 +3384,7 @@ def test_sync_outputs_to_host_skips_mtime_restoration_on_overflow(monkeypatch, t
     client = FakeClient(commands=cmds, files=files)
     sb = _make_sandbox(client, sandbox_id="sb-sync-overflow")
 
-    e2b_provider_mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    e2b_provider_mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
 
     def _raise_overflow(path, times=None, ns=None):
         raise OverflowError("timestamp out of range")
@@ -3728,7 +3728,7 @@ def test_download_file_uses_streaming_read_and_returns_full_bytes():
 def test_download_file_streaming_raises_efbig_before_full_buffering():
     import errno as _errno
 
-    from deerflow.community.e2b_sandbox import e2b_sandbox as e2b_sb_mod
+    from operix.community.e2b_sandbox import e2b_sandbox as e2b_sb_mod
 
     cap = e2b_sb_mod._MAX_DOWNLOAD_SIZE
 
@@ -3806,7 +3806,7 @@ def test_download_file_falls_back_to_buffered_read_for_legacy_sdk():
 
 
 def test_sync_outputs_to_host_skips_oversize_files(monkeypatch, tmp_path):
-    from deerflow.community.e2b_sandbox import e2b_sandbox as e2b_sb_mod
+    from operix.community.e2b_sandbox import e2b_sandbox as e2b_sb_mod
 
     p = _make_provider()
     _setup_paths(monkeypatch, tmp_path)
@@ -3937,11 +3937,11 @@ def test_deployment_capacity_reserves_commits_and_rejects_globally(monkeypatch) 
         gateway_b.acquire("thread-b", user_id="user-b")
 
     metadata = sdk_a.create_calls[0]["metadata"]
-    assert metadata["deer_flow_capacity_ledger"] == store.key
-    assert metadata["deer_flow_capacity_reservation"]
+    assert metadata["operix_capacity_ledger"] == store.key
+    assert metadata["operix_capacity_reservation"]
     store.track.assert_called_once_with(
         sandbox_id,
-        reservation_token=metadata["deer_flow_capacity_reservation"],
+        reservation_token=metadata["operix_capacity_reservation"],
     )
     assert len(sdk_a.create_calls) == 1
     assert sdk_b.create_calls == []
@@ -3970,20 +3970,20 @@ def test_discovery_uses_sdk_query_and_tracks_without_reserving(monkeypatch) -> N
     entry = SimpleNamespace(
         sandbox_id="sandbox-existing",
         metadata={
-            "deer_flow_provider": "e2b_sandbox_provider",
-            "deer_flow_user": "user-a",
-            "deer_flow_thread": "thread-a",
-            "deer_flow_skills_root": "/mnt/skills",
-            "deer_flow_capacity_ledger": store.key,
+            "operix_provider": "e2b_sandbox_provider",
+            "operix_user": "user-a",
+            "operix_thread": "thread-a",
+            "operix_skills_root": "/mnt/skills",
+            "operix_capacity_ledger": store.key,
         },
     )
     expected_query = {
         key: entry.metadata[key]
         for key in (
-            "deer_flow_provider",
-            "deer_flow_user",
-            "deer_flow_thread",
-            "deer_flow_skills_root",
+            "operix_provider",
+            "operix_user",
+            "operix_thread",
+            "operix_skills_root",
         )
     }
     sdk.list_return = SimpleNamespace(
@@ -4007,16 +4007,16 @@ def test_reconciliation_repairs_crash_and_uses_safe_reservation_age(monkeypatch)
         {
             "sandbox_id": "sandbox-existing",
             "metadata": {
-                "deer_flow_provider": "e2b_sandbox_provider",
-                "deer_flow_capacity_ledger": store.key,
-                "deer_flow_capacity_reservation": "reservation-crashed",
+                "operix_provider": "e2b_sandbox_provider",
+                "operix_capacity_ledger": store.key,
+                "operix_capacity_reservation": "reservation-crashed",
             },
         },
         {
             "sandbox_id": "sandbox-other-deployment",
             "metadata": {
-                "deer_flow_provider": "e2b_sandbox_provider",
-                "deer_flow_capacity_ledger": "deerflow:other:e2b-capacity",
+                "operix_provider": "e2b_sandbox_provider",
+                "operix_capacity_ledger": "operix:other:e2b-capacity",
             },
         },
     ]
@@ -5126,10 +5126,10 @@ def test_discovery_reports_busy_capacity_without_killing_remote_vm(monkeypatch):
         SimpleNamespace(
             sandbox_id="sb-remote",
             metadata={
-                "deer_flow_provider": "e2b_sandbox_provider",
-                "deer_flow_user": "u2",
-                "deer_flow_thread": "t2",
-                "deer_flow_skills_root": "/mnt/skills",
+                "operix_provider": "e2b_sandbox_provider",
+                "operix_user": "u2",
+                "operix_thread": "t2",
+                "operix_skills_root": "/mnt/skills",
             },
         )
     ]
@@ -5152,10 +5152,10 @@ def test_discovery_reports_shutdown_without_killing_remote_vm(monkeypatch, caplo
         SimpleNamespace(
             sandbox_id=client.sandbox_id,
             metadata={
-                "deer_flow_provider": "e2b_sandbox_provider",
-                "deer_flow_user": "u1",
-                "deer_flow_thread": "t1",
-                "deer_flow_skills_root": "/mnt/skills",
+                "operix_provider": "e2b_sandbox_provider",
+                "operix_user": "u1",
+                "operix_thread": "t1",
+                "operix_skills_root": "/mnt/skills",
             },
         )
     ]
@@ -5190,10 +5190,10 @@ def test_discovery_bootstrap_kill_failure_retains_reserved_slot(monkeypatch):
         SimpleNamespace(
             sandbox_id=client.sandbox_id,
             metadata={
-                "deer_flow_provider": "e2b_sandbox_provider",
-                "deer_flow_user": "u1",
-                "deer_flow_thread": "t1",
-                "deer_flow_skills_root": "/mnt/skills",
+                "operix_provider": "e2b_sandbox_provider",
+                "operix_user": "u1",
+                "operix_thread": "t1",
+                "operix_skills_root": "/mnt/skills",
             },
         )
     ]
@@ -5225,10 +5225,10 @@ def test_shutdown_does_not_retry_kill_for_unowned_discovery_vm(monkeypatch):
         SimpleNamespace(
             sandbox_id=client.sandbox_id,
             metadata={
-                "deer_flow_provider": "e2b_sandbox_provider",
-                "deer_flow_user": "u1",
-                "deer_flow_thread": "t1",
-                "deer_flow_skills_root": "/mnt/skills",
+                "operix_provider": "e2b_sandbox_provider",
+                "operix_user": "u1",
+                "operix_thread": "t1",
+                "operix_skills_root": "/mnt/skills",
             },
         )
     ]
@@ -5270,10 +5270,10 @@ def test_shutdown_during_discovery_does_not_kill_unowned_vm(monkeypatch):
         SimpleNamespace(
             sandbox_id=client.sandbox_id,
             metadata={
-                "deer_flow_provider": "e2b_sandbox_provider",
-                "deer_flow_user": "u1",
-                "deer_flow_thread": "t1",
-                "deer_flow_skills_root": "/mnt/skills",
+                "operix_provider": "e2b_sandbox_provider",
+                "operix_user": "u1",
+                "operix_thread": "t1",
+                "operix_skills_root": "/mnt/skills",
             },
         )
     ]
@@ -5319,7 +5319,7 @@ def test_shutdown_during_discovery_does_not_kill_unowned_vm(monkeypatch):
 
 
 def test_stable_seed_matches_shared_identity():
-    from deerflow.sandbox.identity import derive_sandbox_scope_token
+    from operix.sandbox.identity import derive_sandbox_scope_token
 
     provider = _make_provider(skills_container_path="/custom-skills")
     base_scope = derive_sandbox_scope_token(user_id="u-1", thread_id="t-1")
@@ -5432,7 +5432,7 @@ def test_forget_local_sandbox_cleans_mount_result():
 
 
 def test_mount_upload_deadline_none_returns_default():
-    mod = importlib.import_module("deerflow.community.e2b_sandbox.e2b_sandbox_provider")
+    mod = importlib.import_module("operix.community.e2b_sandbox.e2b_sandbox_provider")
 
     def option(name, default=None):
         return None if name == "mount_upload_deadline_seconds" else default
@@ -6258,7 +6258,7 @@ def test_cleanup_lifecycle_remains_available_after_acquire_shutdown(monkeypatch)
 
 
 def test_slow_active_timeout_does_not_expire_ownership(monkeypatch):
-    from deerflow.community.aio_sandbox.ownership.memory import MemoryOwnershipStore
+    from operix.community.aio_sandbox.ownership.memory import MemoryOwnershipStore
 
     provider = _make_provider()
     _install_fake_sdk(monkeypatch, provider)
@@ -6300,7 +6300,7 @@ def test_slow_active_timeout_does_not_expire_ownership(monkeypatch):
 
 
 def test_warm_sweep_cannot_race_lapsed_lease_reclaim(monkeypatch):
-    from deerflow.community.aio_sandbox.ownership import RenewOutcome
+    from operix.community.aio_sandbox.ownership import RenewOutcome
 
     provider = _make_provider(idle_timeout=30)
     sid = "sb-lapsed"

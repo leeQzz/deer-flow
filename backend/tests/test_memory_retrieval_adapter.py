@@ -8,16 +8,16 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from deerflow.agents.memory.backends.deermem.deer_mem import DeerMem
-from deerflow.agents.memory.backends.deermem.deermem.config import DeerMemConfig
-from deerflow.agents.memory.backends.deermem.deermem.core.retrieval import (
+from operix.agents.memory.backends.deermem.deer_mem import DeerMem
+from operix.agents.memory.backends.deermem.deermem.config import DeerMemConfig
+from operix.agents.memory.backends.deermem.deermem.core.retrieval import (
     FTS5Retrieval,
     FTS5RetrievalAdapter,
     _is_advanced_query,
     _jieba_available,
     create_fts5_retrieval,
 )
-from deerflow.agents.memory.backends.deermem.deermem.core.storage import FileMemoryStorage
+from operix.agents.memory.backends.deermem.deermem.core.storage import FileMemoryStorage
 
 
 def _fact(fact_id: str, content: str, *, category: str = "context") -> dict:

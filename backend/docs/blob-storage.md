@@ -1,17 +1,17 @@
 # Blob storage (content-addressed, cross-instance)
 
-Resolves the multi-instance half of [#4189](https://github.com/bytedance/deer-flow/issues/4189) item 2: two producers persist blob-shaped data outside the checkpoint payload and address it with a **server-local filesystem path**, which only resolves on the instance that wrote it.
+Resolves the multi-instance half of [#4189](https://github.com/bytedance/operix/issues/4189) item 2: two producers persist blob-shaped data outside the checkpoint payload and address it with a **server-local filesystem path**, which only resolves on the instance that wrote it.
 
 | Producer | Write | Reads |
 |---|---|---|
-| Viewed images | `view_image_tool` → `ViewedImageData.actual_path` (`deerflow/agents/thread_state.py:52`) | `ViewImageMiddleware._read_image_as_data_url`, gateway artifact routes, IM channels, `present_file_tool` |
+| Viewed images | `view_image_tool` → `ViewedImageData.actual_path` (`operix/agents/thread_state.py:52`) | `ViewImageMiddleware._read_image_as_data_url`, gateway artifact routes, IM channels, `present_file_tool` |
 | Externalized tool results | `ToolOutputBudgetMiddleware._externalize` → virtual path under the thread `outputs` tree | model `read_file` via the thread-data mount |
 
 On a single gateway both are correct. Behind a load balancer, the instance handling the read is frequently not the instance that wrote the file. The blob store replaces **"where on this machine"** with **"which content"**, so every instance that can reach the backing store resolves the same bytes.
 
 ## Contract
 
-`deerflow/storage/contract.py`
+`operix/storage/contract.py`
 
 - `BlobRef` — `{sha256, size, kind, content_type}`. The digest is the address, so writes are idempotent and dedup is free.
 - `BlobStore` — plain ABC, tiered like `MemoryStorage`:
@@ -25,7 +25,7 @@ Reads **verify the digest**. A content-addressed store that silently returns wro
 
 ## Backend
 
-`deerflow/storage/backends/local_fs/` (default)
+`operix/storage/backends/local_fs/` (default)
 
 ```
 <root>/<kind>/<sha256[:2]>/<sha256>          the bytes
@@ -45,7 +45,7 @@ blob_storage:
   enabled: true                # default false
   backend: local_fs            # folder name under storage/backends/, or a dotted import path
   backend_config:
-    root: /mnt/shared/deerflow-blobs   # default: {runtime_home}/blobs, absolute
+    root: /mnt/shared/operix-blobs   # default: {runtime_home}/blobs, absolute
 ```
 
 Fail-fast on an unresolvable backend (`ValueError`), mirroring `MemoryConfig.manager_class`: blobs are persistent state, so silently substituting a different backend would strand previously written content.
@@ -96,11 +96,11 @@ What this means for the two migration PRs:
   sweep is safe while that remains true; `kind` is what makes the "while"
   checkable.
 
-This is also the seam [#5188](https://github.com/bytedance/deer-flow/issues/5188) needs: a thread-scoped blob sweep keyed by thread incarnation, rather than by the reusable thread id.
+This is also the seam [#5188](https://github.com/bytedance/operix/issues/5188) needs: a thread-scoped blob sweep keyed by thread incarnation, rather than by the reusable thread id.
 
 ## Adding a backend
 
-`packages/harness/deerflow/storage/AGENTS.md` owns the depth — the drop-in
+`packages/harness/operix/storage/AGENTS.md` owns the depth — the drop-in
 folder contract, the portability rule and the durability rules a new backend has
 to keep. In short:
 

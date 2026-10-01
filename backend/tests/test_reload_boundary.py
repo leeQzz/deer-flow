@@ -1,9 +1,9 @@
 """Regression tests for the config reload boundary registry.
 
-Bytedance/deer-flow issue #3144: the hot-reload boundary is the contract
+Bytedance/operix issue #3144: the hot-reload boundary is the contract
 between gateway dependencies that resolve ``AppConfig`` every request and the
 infrastructure that captures the snapshot once at startup. The registry in
-``deerflow.config.reload_boundary`` is the machine-readable source of truth;
+``operix.config.reload_boundary`` is the machine-readable source of truth;
 these tests pin the registry against the actual Pydantic schema so a future
 field rename / addition / boundary change cannot silently drift.
 """
@@ -12,15 +12,15 @@ from __future__ import annotations
 
 import pytest
 
-from deerflow.config.app_config import AppConfig
-from deerflow.config.reload_boundary import (
+from operix.config.app_config import AppConfig
+from operix.config.reload_boundary import (
     STARTUP_ONLY_FIELDS,
     STARTUP_ONLY_PREFIX,
     format_field_description,
     is_startup_only_field,
     iter_startup_only_field_paths,
 )
-from deerflow.config.skills_config import SkillsConfig
+from operix.config.skills_config import SkillsConfig
 
 
 def test_registry_has_a_reason_for_every_field():

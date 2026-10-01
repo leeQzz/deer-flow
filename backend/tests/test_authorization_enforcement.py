@@ -9,23 +9,23 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from langchain_core.tools import StructuredTool
 
-from deerflow.agents.lead_agent import agent as lead_agent_module
-from deerflow.agents.middlewares.tool_error_handling_middleware import (
+from operix.agents.lead_agent import agent as lead_agent_module
+from operix.agents.middlewares.tool_error_handling_middleware import (
     build_lead_runtime_middlewares,
     build_subagent_runtime_middlewares,
 )
-from deerflow.authz.adapter import GuardrailAuthorizationAdapter
-from deerflow.authz.enforcement import filter_tools_by_authorization
-from deerflow.authz.provider import AuthzDecision, AuthzReason, Principal
-from deerflow.authz.rbac import RbacAuthorizationProvider
-from deerflow.config.app_config import AppConfig
-from deerflow.config.authorization_config import AuthorizationConfig, AuthorizationProviderConfig
-from deerflow.config.guardrails_config import GuardrailProviderConfig, GuardrailsConfig
-from deerflow.config.model_config import ModelConfig
-from deerflow.config.sandbox_config import SandboxConfig
-from deerflow.guardrails.middleware import GuardrailMiddleware
-from deerflow.tools.builtins.tool_search import assemble_deferred_tools
-from deerflow.tools.mcp_metadata import tag_mcp_tool
+from operix.authz.adapter import GuardrailAuthorizationAdapter
+from operix.authz.enforcement import filter_tools_by_authorization
+from operix.authz.provider import AuthzDecision, AuthzReason, Principal
+from operix.authz.rbac import RbacAuthorizationProvider
+from operix.config.app_config import AppConfig
+from operix.config.authorization_config import AuthorizationConfig, AuthorizationProviderConfig
+from operix.config.guardrails_config import GuardrailProviderConfig, GuardrailsConfig
+from operix.config.model_config import ModelConfig
+from operix.config.sandbox_config import SandboxConfig
+from operix.guardrails.middleware import GuardrailMiddleware
+from operix.tools.builtins.tool_search import assemble_deferred_tools
+from operix.tools.mcp_metadata import tag_mcp_tool
 
 
 def _tool(name: str) -> StructuredTool:
@@ -249,7 +249,7 @@ class TestAuthorizationGuardrailWiring:
         config = _app_config(
             authorization=AuthorizationConfig(
                 enabled=True,
-                provider=AuthorizationProviderConfig(use="deerflow.authz.rbac:RbacAuthorizationProvider", config={"roles": {"user": {}}}),
+                provider=AuthorizationProviderConfig(use="operix.authz.rbac:RbacAuthorizationProvider", config={"roles": {"user": {}}}),
             )
         )
 
@@ -264,12 +264,12 @@ class TestAuthorizationGuardrailWiring:
         config = _app_config(
             authorization=AuthorizationConfig(
                 enabled=True,
-                provider=AuthorizationProviderConfig(use="deerflow.authz.rbac:RbacAuthorizationProvider", config={"roles": {"user": {}}}),
+                provider=AuthorizationProviderConfig(use="operix.authz.rbac:RbacAuthorizationProvider", config={"roles": {"user": {}}}),
             ),
             guardrails=GuardrailsConfig(
                 enabled=True,
                 provider=GuardrailProviderConfig(
-                    use="deerflow.guardrails.builtin:AllowlistProvider",
+                    use="operix.guardrails.builtin:AllowlistProvider",
                     config={"allowed_tools": ["bash"]},
                 ),
             ),
@@ -337,7 +337,7 @@ def test_lead_agent_filters_all_model_visible_tools_and_reuses_provider(monkeypa
         authorization=AuthorizationConfig(
             enabled=True,
             provider=AuthorizationProviderConfig(
-                use="deerflow.authz.rbac:RbacAuthorizationProvider",
+                use="operix.authz.rbac:RbacAuthorizationProvider",
                 config={"roles": {"user": {"tools": {"allow": ["safe_tool", "history_read"]}}}},
             ),
         ),
@@ -368,8 +368,8 @@ def test_lead_agent_filters_all_model_visible_tools_and_reuses_provider(monkeypa
         ),
         raising=False,
     )
-    monkeypatch.setattr("deerflow.skills.describe.build_skill_search_setup", lead_agent_module.build_skill_search_setup)
-    monkeypatch.setattr("deerflow.tools.get_available_tools", lambda **kwargs: [_tool("safe_tool"), _tool("denied_tool")])
+    monkeypatch.setattr("operix.skills.describe.build_skill_search_setup", lead_agent_module.build_skill_search_setup)
+    monkeypatch.setattr("operix.tools.get_available_tools", lambda **kwargs: [_tool("safe_tool"), _tool("denied_tool")])
     monkeypatch.setattr(lead_agent_module, "should_use_memory_tools", lambda memory_config: True)
     monkeypatch.setattr(
         lead_agent_module,
@@ -414,7 +414,7 @@ def test_bootstrap_assembly_uses_filtered_skill_set(monkeypatch, skills_allow, d
         authorization=AuthorizationConfig(
             enabled=True,
             provider=AuthorizationProviderConfig(
-                use="deerflow.authz.rbac:RbacAuthorizationProvider",
+                use="operix.authz.rbac:RbacAuthorizationProvider",
                 config={"roles": {"user": {"skills": {"allow": skills_allow}}}},
             ),
         ),
@@ -451,7 +451,7 @@ def test_bootstrap_assembly_uses_filtered_skill_set(monkeypatch, skills_allow, d
         ),
         raising=False,
     )
-    monkeypatch.setattr("deerflow.tools.get_available_tools", lambda **kwargs: [])
+    monkeypatch.setattr("operix.tools.get_available_tools", lambda **kwargs: [])
     monkeypatch.setattr(lead_agent_module, "should_use_memory_tools", lambda memory_config: False)
 
     captured: dict[str, dict] = {}

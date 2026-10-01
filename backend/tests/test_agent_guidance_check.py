@@ -14,33 +14,33 @@ EXPECTED_GUIDANCE_PATHS = {
     "frontend/AGENTS.md",
     "backend/app/gateway/AGENTS.md",
     "backend/app/channels/AGENTS.md",
-    "backend/packages/harness/deerflow/AGENTS.md",
-    "backend/packages/harness/deerflow/agents/AGENTS.md",
-    "backend/packages/harness/deerflow/agents/middlewares/AGENTS.md",
-    "backend/packages/harness/deerflow/agents/memory/AGENTS.md",
-    "backend/packages/harness/deerflow/agents/task_continuity/AGENTS.md",
-    "backend/packages/harness/deerflow/community/ragflow/AGENTS.md",
-    "backend/packages/harness/deerflow/community/tavily/AGENTS.md",
-    "backend/packages/harness/deerflow/community/e2b_sandbox/AGENTS.md",
-    "backend/packages/harness/deerflow/community/aio_sandbox/AGENTS.md",
-    "backend/packages/harness/deerflow/config/AGENTS.md",
-    "backend/packages/harness/deerflow/extensions/AGENTS.md",
-    "backend/packages/harness/deerflow/runtime/AGENTS.md",
-    "backend/packages/harness/deerflow/sandbox/AGENTS.md",
-    "backend/packages/harness/deerflow/mcp/AGENTS.md",
-    "backend/packages/harness/deerflow/models/AGENTS.md",
-    "backend/packages/harness/deerflow/persistence/AGENTS.md",
-    "backend/packages/harness/deerflow/persistence/migrations/AGENTS.md",
-    "backend/packages/harness/deerflow/persistence/user/AGENTS.md",
-    "backend/packages/harness/deerflow/reflection/AGENTS.md",
-    "backend/packages/harness/deerflow/skills/AGENTS.md",
-    "backend/packages/harness/deerflow/storage/AGENTS.md",
-    "backend/packages/harness/deerflow/subagents/AGENTS.md",
-    "backend/packages/harness/deerflow/tools/AGENTS.md",
-    "backend/packages/harness/deerflow/tracing/AGENTS.md",
-    "backend/packages/harness/deerflow/tui/AGENTS.md",
-    "backend/packages/harness/deerflow/typesafe/AGENTS.md",
-    "backend/packages/harness/deerflow/utils/AGENTS.md",
+    "backend/packages/harness/operix/AGENTS.md",
+    "backend/packages/harness/operix/agents/AGENTS.md",
+    "backend/packages/harness/operix/agents/middlewares/AGENTS.md",
+    "backend/packages/harness/operix/agents/memory/AGENTS.md",
+    "backend/packages/harness/operix/agents/task_continuity/AGENTS.md",
+    "backend/packages/harness/operix/community/ragflow/AGENTS.md",
+    "backend/packages/harness/operix/community/tavily/AGENTS.md",
+    "backend/packages/harness/operix/community/e2b_sandbox/AGENTS.md",
+    "backend/packages/harness/operix/community/aio_sandbox/AGENTS.md",
+    "backend/packages/harness/operix/config/AGENTS.md",
+    "backend/packages/harness/operix/extensions/AGENTS.md",
+    "backend/packages/harness/operix/runtime/AGENTS.md",
+    "backend/packages/harness/operix/sandbox/AGENTS.md",
+    "backend/packages/harness/operix/mcp/AGENTS.md",
+    "backend/packages/harness/operix/models/AGENTS.md",
+    "backend/packages/harness/operix/persistence/AGENTS.md",
+    "backend/packages/harness/operix/persistence/migrations/AGENTS.md",
+    "backend/packages/harness/operix/persistence/user/AGENTS.md",
+    "backend/packages/harness/operix/reflection/AGENTS.md",
+    "backend/packages/harness/operix/skills/AGENTS.md",
+    "backend/packages/harness/operix/storage/AGENTS.md",
+    "backend/packages/harness/operix/subagents/AGENTS.md",
+    "backend/packages/harness/operix/tools/AGENTS.md",
+    "backend/packages/harness/operix/tracing/AGENTS.md",
+    "backend/packages/harness/operix/tui/AGENTS.md",
+    "backend/packages/harness/operix/typesafe/AGENTS.md",
+    "backend/packages/harness/operix/utils/AGENTS.md",
     "frontend/src/AGENTS.md",
     "scripts/AGENTS.md",
 }
@@ -48,7 +48,7 @@ EXPECTED_GUIDANCE_PATHS = {
 
 def _load_checker():
     assert CHECKER_PATH.exists(), f"{CHECKER_PATH} must exist"
-    spec = importlib.util.spec_from_file_location("deerflow_agent_guidance_check", CHECKER_PATH)
+    spec = importlib.util.spec_from_file_location("operix_agent_guidance_check", CHECKER_PATH)
     assert spec is not None
     assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
@@ -154,22 +154,22 @@ def test_local_guidance_files_contain_the_split_original_sections() -> None:
     expected_headings = {
         "backend/app/gateway/AGENTS.md": "### Gateway API (`app/gateway/`)",
         "backend/app/channels/AGENTS.md": "### IM Channels System (`app/channels/`)",
-        "backend/packages/harness/deerflow/agents/AGENTS.md": "### Agent System",
-        "backend/packages/harness/deerflow/agents/middlewares/AGENTS.md": "### Middleware Chain",
-        "backend/packages/harness/deerflow/agents/memory/AGENTS.md": "### Memory System",
-        "backend/packages/harness/deerflow/config/AGENTS.md": "### Configuration System",
-        "backend/packages/harness/deerflow/extensions/AGENTS.md": "### Python Extension System",
-        "backend/packages/harness/deerflow/runtime/AGENTS.md": "### Checkpoint Channel Modes",
-        "backend/packages/harness/deerflow/sandbox/AGENTS.md": "### Sandbox System",
-        "backend/packages/harness/deerflow/mcp/AGENTS.md": "### MCP System",
-        "backend/packages/harness/deerflow/models/AGENTS.md": "### Model Factory",
-        "backend/packages/harness/deerflow/persistence/migrations/AGENTS.md": "### Schema Migrations",
-        "backend/packages/harness/deerflow/reflection/AGENTS.md": "### Reflection System",
-        "backend/packages/harness/deerflow/skills/AGENTS.md": "### Skills System",
-        "backend/packages/harness/deerflow/subagents/AGENTS.md": "### Subagent System",
-        "backend/packages/harness/deerflow/tools/AGENTS.md": "### Tool System",
-        "backend/packages/harness/deerflow/tracing/AGENTS.md": "### Tracing System",
-        "backend/packages/harness/deerflow/tui/AGENTS.md": "### Terminal Workbench / TUI",
+        "backend/packages/harness/operix/agents/AGENTS.md": "### Agent System",
+        "backend/packages/harness/operix/agents/middlewares/AGENTS.md": "### Middleware Chain",
+        "backend/packages/harness/operix/agents/memory/AGENTS.md": "### Memory System",
+        "backend/packages/harness/operix/config/AGENTS.md": "### Configuration System",
+        "backend/packages/harness/operix/extensions/AGENTS.md": "### Python Extension System",
+        "backend/packages/harness/operix/runtime/AGENTS.md": "### Checkpoint Channel Modes",
+        "backend/packages/harness/operix/sandbox/AGENTS.md": "### Sandbox System",
+        "backend/packages/harness/operix/mcp/AGENTS.md": "### MCP System",
+        "backend/packages/harness/operix/models/AGENTS.md": "### Model Factory",
+        "backend/packages/harness/operix/persistence/migrations/AGENTS.md": "### Schema Migrations",
+        "backend/packages/harness/operix/reflection/AGENTS.md": "### Reflection System",
+        "backend/packages/harness/operix/skills/AGENTS.md": "### Skills System",
+        "backend/packages/harness/operix/subagents/AGENTS.md": "### Subagent System",
+        "backend/packages/harness/operix/tools/AGENTS.md": "### Tool System",
+        "backend/packages/harness/operix/tracing/AGENTS.md": "### Tracing System",
+        "backend/packages/harness/operix/tui/AGENTS.md": "### Terminal Workbench / TUI",
         "frontend/src/AGENTS.md": "### Data Flow",
     }
 
@@ -180,7 +180,7 @@ def test_local_guidance_files_contain_the_split_original_sections() -> None:
 
 
 def test_mcp_task_lease_token_migration_is_documented() -> None:
-    guidance = (REPO_ROOT / "backend" / "packages" / "harness" / "deerflow" / "persistence" / "migrations" / "AGENTS.md").read_text(encoding="utf-8")
+    guidance = (REPO_ROOT / "backend" / "packages" / "harness" / "operix" / "persistence" / "migrations" / "AGENTS.md").read_text(encoding="utf-8")
 
     for required in (
         "0026_mcp_task_lease_tokens.py",

@@ -9,11 +9,11 @@ from typing import Any, Literal
 
 from fastapi import HTTPException
 
-from deerflow.persistence.scheduled_task_runs import ActiveScheduledRunConflict, ScheduledTaskAdmissionRejected
-from deerflow.runtime import ConflictError, RunRecord
-from deerflow.scheduler.schedules import next_run_at
-from deerflow.trace_context import ensure_trace_context
-from deerflow.utils.thread_id import validate_thread_id
+from operix.persistence.scheduled_task_runs import ActiveScheduledRunConflict, ScheduledTaskAdmissionRejected
+from operix.runtime import ConflictError, RunRecord
+from operix.scheduler.schedules import next_run_at
+from operix.trace_context import ensure_trace_context
+from operix.utils.thread_id import validate_thread_id
 
 logger = logging.getLogger(__name__)
 

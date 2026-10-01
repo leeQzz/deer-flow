@@ -11,18 +11,18 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 
-from deerflow.agents.thread_state import get_thread_state_schema
-from deerflow.config.paths import Paths
-from deerflow.config.run_ownership_config import RunOwnershipConfig
-from deerflow.runtime.checkpoint_state import CheckpointStateAccessor, build_state_mutation_graph
-from deerflow.runtime.events.store.memory import MemoryRunEventStore
-from deerflow.runtime.goal import build_goal_state, read_thread_goal, write_thread_goal
-from deerflow.runtime.runs import worker
-from deerflow.runtime.runs.manager import ConflictError, RunManager
-from deerflow.runtime.runs.schemas import RunStatus
-from deerflow.runtime.runs.store.memory import MemoryRunStore
-from deerflow.runtime.user_context import get_effective_user_id
-from deerflow.tools.builtins.present_file_tool import present_file_tool
+from operix.agents.thread_state import get_thread_state_schema
+from operix.config.paths import Paths
+from operix.config.run_ownership_config import RunOwnershipConfig
+from operix.runtime.checkpoint_state import CheckpointStateAccessor, build_state_mutation_graph
+from operix.runtime.events.store.memory import MemoryRunEventStore
+from operix.runtime.goal import build_goal_state, read_thread_goal, write_thread_goal
+from operix.runtime.runs import worker
+from operix.runtime.runs.manager import ConflictError, RunManager
+from operix.runtime.runs.schemas import RunStatus
+from operix.runtime.runs.store.memory import MemoryRunStore
+from operix.runtime.user_context import get_effective_user_id
+from operix.tools.builtins.present_file_tool import present_file_tool
 
 OUTPUT_PATH = "/mnt/user-data/outputs/report.md"
 
@@ -79,8 +79,8 @@ async def _run_goal_delivery(
     paths = Paths(base_dir=tmp_path)
     output_dir = paths.sandbox_outputs_dir(thread_id, user_id=get_effective_user_id())
     output_dir.mkdir(parents=True)
-    monkeypatch.setattr("deerflow.workspace_changes.recorder.get_paths", lambda: paths)
-    monkeypatch.setattr(importlib.import_module("deerflow.tools.builtins.present_file_tool"), "get_paths", lambda: paths)
+    monkeypatch.setattr("operix.workspace_changes.recorder.get_paths", lambda: paths)
+    monkeypatch.setattr(importlib.import_module("operix.tools.builtins.present_file_tool"), "get_paths", lambda: paths)
     monkeypatch.setenv("LANGCHAIN_TRACING_V2", "false")
     monkeypatch.setenv("LANGSMITH_TRACING", "false")
 

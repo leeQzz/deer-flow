@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from deerflow.community.infoquest import tools
-from deerflow.community.infoquest.infoquest_client import InfoQuestClient
+from operix.community.infoquest import tools
+from operix.community.infoquest.infoquest_client import InfoQuestClient
 
 
 def _mock_async_client(response: httpx.Response) -> MagicMock:
@@ -35,7 +35,7 @@ class TestInfoQuestClient:
         assert client.fetch_navigation_timeout == 60
         assert client.search_time_range == 24
 
-    @patch("deerflow.community.infoquest.infoquest_client.httpx.AsyncClient")
+    @patch("operix.community.infoquest.infoquest_client.httpx.AsyncClient")
     @pytest.mark.anyio
     async def test_fetch_success(self, mock_async_client_cls):
         """Test successful fetch operation."""
@@ -52,7 +52,7 @@ class TestInfoQuestClient:
         assert kwargs["json"]["url"] == "https://example.com"
         assert kwargs["json"]["format"] == "HTML"
 
-    @patch("deerflow.community.infoquest.infoquest_client.httpx.AsyncClient")
+    @patch("operix.community.infoquest.infoquest_client.httpx.AsyncClient")
     @pytest.mark.anyio
     async def test_fetch_non_200_status(self, mock_async_client_cls):
         """Test fetch operation with non-200 status code."""
@@ -64,7 +64,7 @@ class TestInfoQuestClient:
 
         assert result == "Error: fetch API returned status 404: Not Found"
 
-    @patch("deerflow.community.infoquest.infoquest_client.httpx.AsyncClient")
+    @patch("operix.community.infoquest.infoquest_client.httpx.AsyncClient")
     @pytest.mark.anyio
     async def test_fetch_empty_response(self, mock_async_client_cls):
         """Test fetch operation with empty response."""
@@ -76,7 +76,7 @@ class TestInfoQuestClient:
 
         assert result == "Error: no result found"
 
-    @patch("deerflow.community.infoquest.infoquest_client.httpx.AsyncClient")
+    @patch("operix.community.infoquest.infoquest_client.httpx.AsyncClient")
     @pytest.mark.anyio
     async def test_web_search_raw_results_success(self, mock_async_client_cls):
         """Test successful web_search_raw_results operation."""
@@ -96,7 +96,7 @@ class TestInfoQuestClient:
         assert args[0] == "https://search.infoquest.bytepluses.com"
         assert kwargs["json"]["query"] == "test query"
 
-    @patch("deerflow.community.infoquest.infoquest_client.httpx.AsyncClient")
+    @patch("operix.community.infoquest.infoquest_client.httpx.AsyncClient")
     @pytest.mark.anyio
     async def test_web_search_success(self, mock_async_client_cls):
         """Test successful web_search operation."""
@@ -137,7 +137,7 @@ class TestInfoQuestClient:
         assert cleaned[1]["type"] == "news"
         assert cleaned[1]["title"] == "Test News"
 
-    @patch("deerflow.community.infoquest.tools._get_infoquest_client")
+    @patch("operix.community.infoquest.tools._get_infoquest_client")
     @pytest.mark.anyio
     async def test_web_search_tool(self, mock_get_client):
         """Test web_search_tool function."""
@@ -151,7 +151,7 @@ class TestInfoQuestClient:
         mock_get_client.assert_called_once()
         mock_client.web_search.assert_awaited_once_with("test query")
 
-    @patch("deerflow.community.infoquest.tools._get_infoquest_client")
+    @patch("operix.community.infoquest.tools._get_infoquest_client")
     @pytest.mark.anyio
     async def test_web_fetch_tool(self, mock_get_client):
         """Test web_fetch_tool function."""
@@ -165,7 +165,7 @@ class TestInfoQuestClient:
         mock_get_client.assert_called_once()
         mock_client.fetch.assert_awaited_once_with("https://example.com")
 
-    @patch("deerflow.community.infoquest.tools.get_app_config")
+    @patch("operix.community.infoquest.tools.get_app_config")
     def test_get_infoquest_client(self, mock_get_app_config):
         """Test _get_infoquest_client function with config."""
         mock_config = MagicMock()
@@ -186,7 +186,7 @@ class TestInfoQuestClient:
         assert client.image_search_time_range == 7
         assert client.image_size == "l"
 
-    @patch("deerflow.community.infoquest.infoquest_client.httpx.AsyncClient")
+    @patch("operix.community.infoquest.infoquest_client.httpx.AsyncClient")
     @pytest.mark.anyio
     async def test_web_search_api_error(self, mock_async_client_cls):
         """Test web_search operation with API error."""
@@ -223,7 +223,7 @@ class TestInfoQuestClient:
 
 
 class TestImageSearch:
-    @patch("deerflow.community.infoquest.infoquest_client.httpx.AsyncClient")
+    @patch("operix.community.infoquest.infoquest_client.httpx.AsyncClient")
     @pytest.mark.anyio
     async def test_image_search_raw_results_success(self, mock_async_client_cls):
         """Test successful image_search_raw_results operation."""
@@ -243,7 +243,7 @@ class TestImageSearch:
         assert args[0] == "https://search.infoquest.bytepluses.com"
         assert kwargs["json"]["query"] == "test query"
 
-    @patch("deerflow.community.infoquest.infoquest_client.httpx.AsyncClient")
+    @patch("operix.community.infoquest.infoquest_client.httpx.AsyncClient")
     @pytest.mark.anyio
     async def test_image_search_raw_results_with_parameters(self, mock_async_client_cls):
         """Test image_search_raw_results with all parameters."""
@@ -265,7 +265,7 @@ class TestImageSearch:
         assert kwargs["json"]["image_size"] == "l"
         assert kwargs["json"]["format"] == "JSON"
 
-    @patch("deerflow.community.infoquest.infoquest_client.httpx.AsyncClient")
+    @patch("operix.community.infoquest.infoquest_client.httpx.AsyncClient")
     @pytest.mark.anyio
     async def test_image_search_raw_results_invalid_time_range(self, mock_async_client_cls):
         """Test image_search_raw_results with invalid time_range parameter."""
@@ -289,7 +289,7 @@ class TestImageSearch:
         assert "time_range" not in kwargs["json"]
         assert "image_size" not in kwargs["json"]
 
-    @patch("deerflow.community.infoquest.infoquest_client.httpx.AsyncClient")
+    @patch("operix.community.infoquest.infoquest_client.httpx.AsyncClient")
     @pytest.mark.anyio
     async def test_image_search_success(self, mock_async_client_cls):
         """Test successful image_search operation."""
@@ -312,7 +312,7 @@ class TestImageSearch:
 
         assert result_data[0]["title"] == "Test Image"
 
-    @patch("deerflow.community.infoquest.infoquest_client.httpx.AsyncClient")
+    @patch("operix.community.infoquest.infoquest_client.httpx.AsyncClient")
     @pytest.mark.anyio
     async def test_image_search_with_all_parameters(self, mock_async_client_cls):
         """Test image_search with all optional parameters."""
@@ -334,7 +334,7 @@ class TestImageSearch:
         assert kwargs["json"]["site"] == "flickr.com"
         assert kwargs["json"]["image_size"] == "m"
 
-    @patch("deerflow.community.infoquest.infoquest_client.httpx.AsyncClient")
+    @patch("operix.community.infoquest.infoquest_client.httpx.AsyncClient")
     @pytest.mark.anyio
     async def test_image_search_api_error(self, mock_async_client_cls):
         """Test image_search operation with API error."""
@@ -346,7 +346,7 @@ class TestImageSearch:
 
         assert "Error" in result
 
-    @patch("deerflow.community.infoquest.tools._get_infoquest_client")
+    @patch("operix.community.infoquest.tools._get_infoquest_client")
     @pytest.mark.anyio
     async def test_image_search_tool(self, mock_get_client):
         """Test image_search_tool function."""
@@ -363,7 +363,7 @@ class TestImageSearch:
         mock_get_client.assert_called_once()
         mock_client.image_search.assert_awaited_once_with("test query")
 
-    @patch("deerflow.community.infoquest.tools._get_infoquest_client")
+    @patch("operix.community.infoquest.tools._get_infoquest_client")
     @pytest.mark.anyio
     async def test_image_search_tool_with_parameters(self, mock_get_client):
         """Test image_search_tool function with all parameters (extra parameters will be ignored)."""
@@ -389,7 +389,7 @@ class TestRedirectParity:
     follow_redirects=False, unlike requests.
     """
 
-    @patch("deerflow.community.infoquest.infoquest_client.httpx.AsyncClient")
+    @patch("operix.community.infoquest.infoquest_client.httpx.AsyncClient")
     @pytest.mark.anyio
     async def test_fetch_client_follows_redirects(self, mock_async_client_cls):
         mock_response = httpx.Response(200, text=json.dumps({"reader_result": "<html>ok</html>"}), request=httpx.Request("POST", "https://reader.infoquest.bytepluses.com"))
@@ -399,7 +399,7 @@ class TestRedirectParity:
 
         mock_async_client_cls.assert_called_once_with(follow_redirects=True)
 
-    @patch("deerflow.community.infoquest.infoquest_client.httpx.AsyncClient")
+    @patch("operix.community.infoquest.infoquest_client.httpx.AsyncClient")
     @pytest.mark.anyio
     async def test_web_search_client_follows_redirects(self, mock_async_client_cls):
         payload = {"type": "search", "results": []}
@@ -410,7 +410,7 @@ class TestRedirectParity:
 
         mock_async_client_cls.assert_called_once_with(follow_redirects=True)
 
-    @patch("deerflow.community.infoquest.infoquest_client.httpx.AsyncClient")
+    @patch("operix.community.infoquest.infoquest_client.httpx.AsyncClient")
     @pytest.mark.anyio
     async def test_image_search_client_follows_redirects(self, mock_async_client_cls):
         payload = {"type": "Images", "results": []}

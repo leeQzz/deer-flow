@@ -40,7 +40,7 @@ different temp dirs. The same ``hash_messages`` is used by the recorder
 (``scripts/record_gateway.py``) and here, so record and replay agree by
 construction.
 
-This lives in ``tests/`` (not in the publishable ``deerflow-harness`` package),
+This lives in ``tests/`` (not in the publishable ``operix-harness`` package),
 matching the repo convention for test-only fakes (cf. ``FakeToolCallingModel`` in
 ``_agent_e2e_helpers.py``). In-process tests get ``tests/`` on ``sys.path`` for
 free via pytest; a standalone replay gateway just needs ``PYTHONPATH`` to include
@@ -145,7 +145,7 @@ _SYSTEM_REMINDER_RE = re.compile(r"<system-reminder>.*?</system-reminder>", re.D
 _UUID_RE = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
 _ISO_TS_RE = re.compile(r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?")
 _DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
-# Absolute temp/home roots used for per-run isolation (macOS + Linux + DEER_FLOW_HOME tmp).
+# Absolute temp/home roots used for per-run isolation (macOS + Linux + OPERIX_HOME tmp).
 _PATH_RE = re.compile(r"(?:/private)?/(?:var/folders|tmp)/[^\s\"']*")
 
 # InputSanitizationMiddleware wraps user content in plain-text boundary markers.
@@ -306,7 +306,7 @@ class ReplayChatModel(BaseChatModel):
 
     @property
     def _llm_type(self) -> str:
-        return "deerflow-replay"
+        return "operix-replay"
 
     def _caller_from_run_manager(self, run_manager: CallbackManagerForLLMRun | None) -> str:
         if run_manager is None:

@@ -1,11 +1,11 @@
-"""Tests for ``deerflow.persistence.bootstrap.bootstrap_schema``.
+"""Tests for ``operix.persistence.bootstrap.bootstrap_schema``.
 
 Covers the three-branch decision table:
 
 | DB state                              | Action                                  |
 |---------------------------------------|-----------------------------------------|
 | empty                                 | create_all + stamp head                 |
-| legacy (DeerFlow tables, no alembic_version) | create_all (baseline tables only, backfill) + stamp baseline + upgrade head |
+| legacy (Operix tables, no alembic_version) | create_all (baseline tables only, backfill) + stamp baseline + upgrade head |
 | versioned                             | upgrade head                            |
 
 Each test seeds a temp SQLite to the relevant pre-state, runs
@@ -29,9 +29,9 @@ import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import create_async_engine
 
 # Pre-import models so Base.metadata is populated before bootstrap reads it.
-import deerflow.persistence.models  # noqa: F401
-from deerflow.persistence.base import Base
-from deerflow.persistence.bootstrap import (
+import operix.persistence.models  # noqa: F401
+from operix.persistence.base import Base
+from operix.persistence.bootstrap import (
     _BASELINE_INDEX_NAMES,
     _BASELINE_TABLE_NAMES,
     _decide_state,
@@ -41,7 +41,7 @@ from deerflow.persistence.bootstrap import (
     _upgrade,
     bootstrap_schema,
 )
-from deerflow.persistence.migrations._helpers import _normalize_default
+from operix.persistence.migrations._helpers import _normalize_default
 
 # Mark only async tests via the decorator below; module-level pytestmark would
 # spuriously warn for the sync ``TestDecideState`` cases.
@@ -208,7 +208,7 @@ async def test_legacy_missing_channel_tables_get_backfilled(tmp_path: Path) -> N
         await _seed_legacy_missing_channel_tables(engine)
         tables = await _table_names(engine)
         # Sanity-check the seeded pre-state: ``runs`` triggers the legacy
-        # branch (has_deerflow_tables=True, no alembic_version) while the
+        # branch (has_operix_tables=True, no alembic_version) while the
         # channel_* tables are absent.
         assert "runs" in tables
         assert "alembic_version" not in tables
@@ -289,7 +289,7 @@ async def test_legacy_with_manual_workaround_column_warns_on_drift(
         async with engine.begin() as conn:
             await conn.execute(sa.text("ALTER TABLE runs ADD COLUMN token_usage_by_model JSON"))
 
-        with caplog.at_level("WARNING", logger="deerflow.persistence.migrations._helpers"):
+        with caplog.at_level("WARNING", logger="operix.persistence.migrations._helpers"):
             await bootstrap_schema(engine, backend="sqlite")
 
         # Bootstrap still completes -- the helper does not block on drift.
@@ -298,7 +298,7 @@ async def test_legacy_with_manual_workaround_column_warns_on_drift(
         col = await _runs_column_meta(engine, "token_usage_by_model")
         assert col["nullable"] is True
 
-        drift_warnings = [r for r in caplog.records if r.levelname == "WARNING" and r.name == "deerflow.persistence.migrations._helpers" and "safe_add_column" in r.getMessage() and "token_usage_by_model" in r.getMessage()]
+        drift_warnings = [r for r in caplog.records if r.levelname == "WARNING" and r.name == "operix.persistence.migrations._helpers" and "safe_add_column" in r.getMessage() and "token_usage_by_model" in r.getMessage()]
         assert drift_warnings, "expected safe_add_column to warn about the drifted column"
         msg = drift_warnings[0].getMessage()
         assert "nullable" in msg
@@ -329,7 +329,7 @@ async def test_legacy_with_wrong_type_workaround_warns_on_type_drift(
         async with engine.begin() as conn:
             await conn.execute(sa.text("ALTER TABLE runs ADD COLUMN token_usage_by_model TEXT NOT NULL DEFAULT '{}'"))
 
-        with caplog.at_level("WARNING", logger="deerflow.persistence.migrations._helpers"):
+        with caplog.at_level("WARNING", logger="operix.persistence.migrations._helpers"):
             await bootstrap_schema(engine, backend="sqlite")
 
         assert await _alembic_version(engine) == HEAD
@@ -338,7 +338,7 @@ async def test_legacy_with_wrong_type_workaround_warns_on_type_drift(
         col = await _runs_column_meta(engine, "token_usage_by_model")
         assert col["nullable"] is False
 
-        drift_warnings = [r for r in caplog.records if r.levelname == "WARNING" and r.name == "deerflow.persistence.migrations._helpers" and "safe_add_column" in r.getMessage() and "token_usage_by_model" in r.getMessage()]
+        drift_warnings = [r for r in caplog.records if r.levelname == "WARNING" and r.name == "operix.persistence.migrations._helpers" and "safe_add_column" in r.getMessage() and "token_usage_by_model" in r.getMessage()]
         assert drift_warnings, "expected safe_add_column to warn about pure type drift (was silent before the family check)"
         msg = drift_warnings[0].getMessage()
         # The drift entry must explicitly name the type mismatch -- this is
@@ -360,7 +360,7 @@ async def test_legacy_with_wrong_type_workaround_warns_on_type_drift(
 
 
 def test_type_equivalent_matches_known_dialect_synonyms() -> None:
-    from deerflow.persistence.migrations._helpers import _type_equivalent
+    from operix.persistence.migrations._helpers import _type_equivalent
 
     # JSON ↔ JSONB (Postgres dialect difference, operationally interchangeable
     # for our schema). Both directions, and via raw strings.
@@ -370,7 +370,7 @@ def test_type_equivalent_matches_known_dialect_synonyms() -> None:
 
 
 def test_type_equivalent_catches_wholesale_type_mismatch() -> None:
-    from deerflow.persistence.migrations._helpers import _type_equivalent
+    from operix.persistence.migrations._helpers import _type_equivalent
 
     # The reviewer scenario: TEXT NOT NULL DEFAULT '{}' workaround.
     assert _type_equivalent("TEXT", "JSON") is False
@@ -382,7 +382,7 @@ def test_type_equivalent_catches_wholesale_type_mismatch() -> None:
 def test_type_equivalent_ignores_type_parameters() -> None:
     """Length / precision differences are out of scope for this helper --
     the goal is wholesale-type drift, not dialect-rendered size defaults."""
-    from deerflow.persistence.migrations._helpers import _type_equivalent
+    from operix.persistence.migrations._helpers import _type_equivalent
 
     assert _type_equivalent("VARCHAR(255)", "VARCHAR(500)") is True
     assert _type_equivalent("NUMERIC(10,2)", "NUMERIC(20,4)") is True
@@ -390,7 +390,7 @@ def test_type_equivalent_ignores_type_parameters() -> None:
 
 def test_type_equivalent_returns_true_on_missing_info() -> None:
     """Missing reflected info must not false-positive into a noisy warning."""
-    from deerflow.persistence.migrations._helpers import _type_equivalent
+    from operix.persistence.migrations._helpers import _type_equivalent
 
     assert _type_equivalent(None, sa.JSON()) is True
     assert _type_equivalent(sa.JSON(), None) is True
@@ -564,7 +564,7 @@ async def test_baseline_table_names_constant_matches_0001(tmp_path: Path) -> Non
         async with engine.connect() as conn:
             reflected = await conn.run_sync(lambda c: set(sa.inspect(c).get_table_names()))
         # ``alembic_version`` is alembic's bookkeeping table, not part of
-        # our schema -- the constant is about DeerFlow-owned baseline tables.
+        # our schema -- the constant is about Operix-owned baseline tables.
         reflected.discard("alembic_version")
 
         assert reflected == _BASELINE_TABLE_NAMES, f"_BASELINE_TABLE_NAMES drifted from 0001_baseline.upgrade()'s output: only-in-0001={sorted(reflected - _BASELINE_TABLE_NAMES)} only-in-constant={sorted(_BASELINE_TABLE_NAMES - reflected)}"
@@ -832,27 +832,27 @@ async def test_legacy_backfill_duplicate_channel_connections_does_not_crash(
 
 class TestDecideState:
     def test_empty(self):
-        assert _decide_state({"has_alembic_version": False, "has_deerflow_tables": False}) == "empty"
+        assert _decide_state({"has_alembic_version": False, "has_operix_tables": False}) == "empty"
 
     def test_empty_with_unrelated_tables(self):
-        # LangGraph checkpointer tables present but DeerFlow has nothing yet.
-        # ``has_deerflow_tables`` is derived from the metadata intersection in
+        # LangGraph checkpointer tables present but Operix has nothing yet.
+        # ``has_operix_tables`` is derived from the metadata intersection in
         # production, so the only thing the decision function needs is the
         # bool itself.
-        assert _decide_state({"has_alembic_version": False, "has_deerflow_tables": False}) == "empty"
+        assert _decide_state({"has_alembic_version": False, "has_operix_tables": False}) == "empty"
 
     def test_legacy(self):
-        assert _decide_state({"has_alembic_version": False, "has_deerflow_tables": True}) == "legacy"
+        assert _decide_state({"has_alembic_version": False, "has_operix_tables": True}) == "legacy"
 
     def test_versioned(self):
-        assert _decide_state({"has_alembic_version": True, "has_deerflow_tables": True}) == "versioned"
+        assert _decide_state({"has_alembic_version": True, "has_operix_tables": True}) == "versioned"
 
     def test_versioned_takes_precedence_over_empty(self):
         # Pathological: alembic_version row exists but no managed tables yet
         # (e.g. someone restored only the alembic_version table from backup).
         # We still go versioned -> upgrade head, which is the right thing:
         # alembic will run every revision from base.
-        assert _decide_state({"has_alembic_version": True, "has_deerflow_tables": False}) == "versioned"
+        assert _decide_state({"has_alembic_version": True, "has_operix_tables": False}) == "versioned"
 
 
 # ---------------------------------------------------------------------------
@@ -873,7 +873,7 @@ def test_baseline_revision_id_is_known() -> None:
     from alembic.config import Config  # noqa: PLC0415
     from alembic.script import ScriptDirectory  # noqa: PLC0415
 
-    migrations_dir = Path(__file__).resolve().parents[1] / "packages/harness/deerflow/persistence/migrations"
+    migrations_dir = Path(__file__).resolve().parents[1] / "packages/harness/operix/persistence/migrations"
     cfg = Config()
     cfg.set_main_option("script_location", str(migrations_dir))
     script = ScriptDirectory.from_config(cfg)

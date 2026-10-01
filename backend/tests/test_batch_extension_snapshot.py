@@ -5,17 +5,17 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
-from deerflow_extension_api.plugins import ModelTool, PluginContribution
+from operix_extension_api.plugins import ModelTool, PluginContribution
 from test_extension_task_store_runtime import _CapturingSubagent
 from test_extension_task_store_runtime import _subagent_env as _subagent_env
 
-from deerflow.config.subagent_batches_config import SubagentBatchesConfig
-from deerflow.config.subagent_runtime_config import SubagentRuntimeConfig
-from deerflow.extensions import get_loaded_extensions, set_loaded_extensions
-from deerflow.extensions.plugin_tools import plugin_tool_name
-from deerflow.extensions.registry import ExtensionRegistry
-from deerflow.subagents import batch_service as service_module
-from deerflow.tools import tools as assembly
+from operix.config.subagent_batches_config import SubagentBatchesConfig
+from operix.config.subagent_runtime_config import SubagentRuntimeConfig
+from operix.extensions import get_loaded_extensions, set_loaded_extensions
+from operix.extensions.plugin_tools import plugin_tool_name
+from operix.extensions.registry import ExtensionRegistry
+from operix.subagents import batch_service as service_module
+from operix.tools import tools as assembly
 
 
 def _generation(name):
@@ -35,7 +35,7 @@ async def test_batch_keeps_its_construction_snapshot(monkeypatch, _subagent_env,
     a, b = _generation("alpha"), _generation("beta")
     if empty:
         a = ExtensionRegistry().build()
-    monkeypatch.setattr("deerflow.extensions._loaded", a)
+    monkeypatch.setattr("operix.extensions._loaded", a)
     if explicit_snapshot:
         set_loaded_extensions(b)
     config = SimpleNamespace(tools=[], models=[], acp_agents={}, get_model_config=lambda name: None, authorization=SimpleNamespace(enabled=False), tool_search=SimpleNamespace(enabled=False))
@@ -59,7 +59,7 @@ async def test_batch_keeps_its_construction_snapshot(monkeypatch, _subagent_env,
     monkeypatch.setattr(assembly, "BUILTIN_TOOLS", [])
     monkeypatch.setattr(assembly, "is_host_bash_allowed", lambda config: False)
     monkeypatch.setattr(assembly, "is_mcp_task_runtime_available", lambda: False)
-    monkeypatch.setattr("deerflow.mcp.cache.get_cached_mcp_tools", lambda: [])
+    monkeypatch.setattr("operix.mcp.cache.get_cached_mcp_tools", lambda: [])
     monkeypatch.setattr(service_module, "resolve_subagent_model_name", lambda *args, **kwargs: "model-a")
 
     def assemble(**kwargs):
@@ -68,7 +68,7 @@ async def test_batch_keeps_its_construction_snapshot(monkeypatch, _subagent_env,
         captured["tool_names"] = [t.name for t in tools]
         return tools
 
-    monkeypatch.setattr("deerflow.tools.get_available_tools", assemble)
+    monkeypatch.setattr("operix.tools.get_available_tools", assemble)
 
     class CaptureExecutor:
         def __init__(self, **kwargs):

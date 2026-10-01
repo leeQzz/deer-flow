@@ -12,12 +12,12 @@ from pathlib import Path
 
 import pytest
 
-from deerflow.agents.memory import MemoryCorruptionError
-from deerflow.agents.memory.backends.deermem.deer_mem import DeerMem
-from deerflow.agents.memory.backends.deermem.deermem.config import DeerMemConfig
-from deerflow.agents.memory.backends.deermem.deermem.core import storage as storage_module
-from deerflow.agents.memory.backends.deermem.deermem.core.paths import fact_file_path
-from deerflow.agents.memory.backends.deermem.deermem.core.storage import (
+from operix.agents.memory import MemoryCorruptionError
+from operix.agents.memory.backends.deermem.deer_mem import DeerMem
+from operix.agents.memory.backends.deermem.deermem.config import DeerMemConfig
+from operix.agents.memory.backends.deermem.deermem.core import storage as storage_module
+from operix.agents.memory.backends.deermem.deermem.core.paths import fact_file_path
+from operix.agents.memory.backends.deermem.deermem.core.storage import (
     FileMemoryStorage,
     MemoryFactRevisionConflict,
     MemoryManifestRevisionConflict,

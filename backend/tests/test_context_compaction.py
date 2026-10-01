@@ -10,11 +10,11 @@ from langgraph.graph.message import add_messages
 from langgraph.types import Overwrite
 
 from app.gateway import services as gateway_services
-from deerflow.agents.middlewares.summarization_middleware import SummaryGenerationError
-from deerflow.runtime import context_compaction
-from deerflow.runtime.checkpoint_state import CheckpointStateAccessor
-from deerflow.runtime.context_compaction import ContextCompactionFailed, compact_thread_context
-from deerflow.runtime.context_keys import CHECKPOINT_AGENT_NAME_METADATA_KEY, DEFAULT_AGENT_NAME_METADATA_VALUE
+from operix.agents.middlewares.summarization_middleware import SummaryGenerationError
+from operix.runtime import context_compaction
+from operix.runtime.checkpoint_state import CheckpointStateAccessor
+from operix.runtime.context_compaction import ContextCompactionFailed, compact_thread_context
+from operix.runtime.context_keys import CHECKPOINT_AGENT_NAME_METADATA_KEY, DEFAULT_AGENT_NAME_METADATA_VALUE
 
 
 class _FakeAccessor:
@@ -92,7 +92,7 @@ async def test_compact_thread_context_reads_materialized_state_and_overwrites_me
         "_create_compaction_middleware",
         lambda **_kwargs: middleware,
     )
-    import deerflow.config.agents_config as agents_config
+    import operix.config.agents_config as agents_config
 
     monkeypatch.setattr(agents_config, "load_agent_config", lambda name, **_kw: None)
 
@@ -191,7 +191,7 @@ async def test_compact_thread_context_preserves_middleware_contributed_channels(
     schema. If LangGraph ever stops cloning unknown channels into forked
     checkpoints, this test fails before production state is lost.
     """
-    from deerflow.runtime.checkpoint_state import build_state_mutation_graph
+    from operix.runtime.checkpoint_state import build_state_mutation_graph
 
     class ExtensionState(TypedDict):
         messages: Annotated[list, add_messages]
@@ -316,7 +316,7 @@ async def test_resolve_request_model_overrides_agent_and_default(monkeypatch):
     """The selected request model wins over both the custom-agent model and the default,
     mirroring lead resolution (request -> agent -> default). A supplied request model
     also short-circuits the agent-config filesystem read entirely."""
-    import deerflow.config.agents_config as agents_config
+    import operix.config.agents_config as agents_config
 
     def _fail(name, **_kw):
         raise AssertionError("agent config must not be loaded when a request model is supplied")
@@ -333,7 +333,7 @@ async def test_resolve_invalid_request_model_falls_to_default_not_agent(monkeypa
     """A request model that is not a configured model falls straight to the default —
     the agent model is only consulted when no request model was supplied, matching
     ``lead_agent._resolve_model_name(requested or agent)``."""
-    import deerflow.config.agents_config as agents_config
+    import operix.config.agents_config as agents_config
 
     monkeypatch.setattr(agents_config, "load_agent_config", lambda name, **_kw: SimpleNamespace(model="agent-model"))
     app_config = _model_app_config("default-model", "agent-model")
@@ -346,7 +346,7 @@ async def test_resolve_invalid_request_model_falls_to_default_not_agent(monkeypa
 async def test_resolve_agent_model_when_no_request_model(monkeypatch):
     """With no request model, a custom-agent thread summarizes with its own model, and
     the agent config is loaded with the owning ``user_id`` (per-user agent directory)."""
-    import deerflow.config.agents_config as agents_config
+    import operix.config.agents_config as agents_config
 
     seen: dict[str, object] = {}
 
@@ -367,7 +367,7 @@ async def test_resolve_agent_model_when_no_request_model(monkeypatch):
 async def test_resolve_falls_back_to_default(monkeypatch):
     """No agent, an unloadable agent config, or an agent whose model is not configured all
     resolve to the default model rather than failing compaction."""
-    import deerflow.config.agents_config as agents_config
+    import operix.config.agents_config as agents_config
 
     app_config = _model_app_config("default-model")
 
@@ -393,7 +393,7 @@ async def test_resolve_agent_config_load_runs_off_the_event_loop(monkeypatch):
     it and the broad except would then mask the ``BlockingError`` as a default fallback."""
     import threading
 
-    import deerflow.config.agents_config as agents_config
+    import operix.config.agents_config as agents_config
 
     main_thread = threading.get_ident()
     seen: dict[str, object] = {}
@@ -415,7 +415,7 @@ async def test_compact_thread_context_threads_selected_model_to_factory(monkeypa
     """Route/client path: the model selected for the thread request reaches the
     summarization factory as ``run_model_name`` — covering the real call, not only the
     resolver in isolation (request override -> agent -> default)."""
-    import deerflow.config.agents_config as agents_config
+    import operix.config.agents_config as agents_config
 
     monkeypatch.setattr(agents_config, "load_agent_config", lambda name, **_kw: SimpleNamespace(model="agent-model"))
     app_config = _model_app_config("default-model", "agent-model", "selected-model")
@@ -446,7 +446,7 @@ async def test_compact_thread_context_threads_selected_model_to_factory(monkeypa
 @pytest.mark.asyncio
 async def test_manual_compaction_skips_memory_flush_for_opted_out_agent(monkeypatch):
     """The /compact path must honor the Custom Agent's complete memory opt-out."""
-    import deerflow.config.agents_config as agents_config
+    import operix.config.agents_config as agents_config
 
     config_reads: list[tuple[str, str | None]] = []
 
@@ -490,7 +490,7 @@ async def test_manual_compaction_skips_memory_flush_for_opted_out_agent(monkeypa
 @pytest.mark.asyncio
 async def test_manual_compaction_fails_closed_when_agent_policy_cannot_load(monkeypatch):
     """An unreadable Custom Agent config must not authorize a durable write."""
-    import deerflow.config.agents_config as agents_config
+    import operix.config.agents_config as agents_config
 
     def _raise(*_args, **_kwargs):
         raise OSError("agent config unavailable")
@@ -531,7 +531,7 @@ async def test_manual_compaction_fails_closed_when_agent_policy_cannot_load(monk
 @pytest.mark.asyncio
 async def test_manual_compaction_uses_checkpoint_agent_for_memory_policy(monkeypatch, request_agent_name):
     """The state-producing run, not the request body, owns memory policy."""
-    import deerflow.config.agents_config as agents_config
+    import operix.config.agents_config as agents_config
 
     config_reads: list[str] = []
 
@@ -572,7 +572,7 @@ async def test_manual_compaction_uses_checkpoint_agent_for_memory_policy(monkeyp
 @pytest.mark.asyncio
 async def test_manual_compaction_uses_checkpoint_agent_for_flush_bucket(monkeypatch):
     """A trusted policy and its memory bucket must come from the same binding."""
-    import deerflow.config.agents_config as agents_config
+    import operix.config.agents_config as agents_config
 
     config_reads: list[str] = []
 
@@ -628,7 +628,7 @@ async def test_manual_compaction_fails_closed_without_valid_checkpoint_agent_bin
     expected_skip,
 ):
     """Only an explicit valid checkpoint binding may authorize memory flush."""
-    import deerflow.config.agents_config as agents_config
+    import operix.config.agents_config as agents_config
 
     monkeypatch.setattr(
         agents_config,

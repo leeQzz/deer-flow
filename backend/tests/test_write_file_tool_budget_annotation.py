@@ -12,9 +12,9 @@ from unittest.mock import MagicMock
 import pytest
 from pydantic import BaseModel
 
-from deerflow.config.app_config import AppConfig, ModelConfig, SandboxConfig, ToolConfig
-from deerflow.sandbox.tools import write_file_tool
-from deerflow.tools.tools import (
+from operix.config.app_config import AppConfig, ModelConfig, SandboxConfig, ToolConfig
+from operix.sandbox.tools import write_file_tool
+from operix.tools.tools import (
     _clone_tool_with_description,
     _extract_max_tokens,
     get_available_tools,
@@ -89,9 +89,9 @@ def test_clone_tool_with_description_preserves_singleton():
 def _build_minimal_app_config(models: list[ModelConfig]) -> AppConfig:
     return AppConfig(
         models=models,
-        sandbox=SandboxConfig(use="deerflow.sandbox.local:LocalSandboxProvider"),
+        sandbox=SandboxConfig(use="operix.sandbox.local:LocalSandboxProvider"),
         tools=[
-            ToolConfig(name="write_file", group="file:write", use="deerflow.sandbox.tools:write_file_tool"),
+            ToolConfig(name="write_file", group="file:write", use="operix.sandbox.tools:write_file_tool"),
         ],
     )
 
@@ -170,9 +170,9 @@ def test_repeated_assembly_cross_model_isolation():
 )
 def test_lead_write_file_budget_matches_constructed_model(monkeypatch, profile_overrides, agent_settings, thinking_enabled, bootstrap, expected):
     """Exercise real model and tool assembly, including override precedence."""
-    from deerflow.agents.lead_agent import agent as lead_agent_module
-    from deerflow.config.agents_config import AgentConfig
-    from deerflow.config.extensions_config import ExtensionsConfig
+    from operix.agents.lead_agent import agent as lead_agent_module
+    from operix.config.agents_config import AgentConfig
+    from operix.config.extensions_config import ExtensionsConfig
 
     model = ModelConfig(
         name="budget-model",

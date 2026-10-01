@@ -7,8 +7,8 @@ the real async store + background-loop wiring used by the TUI.
 import pytest
 from langgraph.store.memory import InMemoryStore
 
-from deerflow.persistence.thread_meta import make_thread_store
-from deerflow.tui.persistence import ThreadMetaWriter, _LoopThread
+from operix.persistence.thread_meta import make_thread_store
+from operix.tui.persistence import ThreadMetaWriter, _LoopThread
 
 
 @pytest.fixture

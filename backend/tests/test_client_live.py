@@ -1,4 +1,4 @@
-"""Live integration tests for DeerFlowClient with real external APIs.
+"""Live integration tests for OperixClient with real external APIs.
 
 These tests require a working config.yaml with valid API credentials.
 They can incur API costs and create local sandboxes, artifacts, or files.
@@ -8,7 +8,7 @@ They are skipped in CI and default test runs and must be run explicitly:
 
 For direct pytest invocation, set the explicit opt-in flag:
 
-    DEER_FLOW_RUN_LIVE_TESTS=1 PYTHONPATH=. uv run pytest tests/test_client_live.py -v -s
+    OPERIX_RUN_LIVE_TESTS=1 PYTHONPATH=. uv run pytest tests/test_client_live.py -v -s
 """
 
 import json
@@ -17,13 +17,13 @@ from pathlib import Path
 
 import pytest
 
-from deerflow.client import DeerFlowClient, StreamEvent
-from deerflow.sandbox.security import is_host_bash_allowed
-from deerflow.uploads.manager import PathTraversalError
+from operix.client import OperixClient, StreamEvent
+from operix.sandbox.security import is_host_bash_allowed
+from operix.uploads.manager import PathTraversalError
 
 pytestmark = pytest.mark.live
 
-_LIVE_TEST_OPT_IN = "DEER_FLOW_RUN_LIVE_TESTS"
+_LIVE_TEST_OPT_IN = "OPERIX_RUN_LIVE_TESTS"
 
 # Skip the entire module unless every live-test precondition is satisfied.
 _skip_reason = None
@@ -44,8 +44,8 @@ if _skip_reason:
 
 @pytest.fixture(scope="module")
 def client():
-    """Create a real DeerFlowClient (no mocks)."""
-    return DeerFlowClient(thinking_enabled=False)
+    """Create a real OperixClient (no mocks)."""
+    return OperixClient(thinking_enabled=False)
 
 
 @pytest.fixture

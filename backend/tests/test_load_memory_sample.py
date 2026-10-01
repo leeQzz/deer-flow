@@ -116,7 +116,7 @@ def test_load_sample_for_users_rejects_unpersisted_sample(tmp_path):
 def test_load_sample_for_all_users_uses_runtime_config_resolution(monkeypatch, tmp_path):
     import asyncio
 
-    import deerflow.config.app_config as app_config
+    import operix.config.app_config as app_config
 
     config_arguments = []
 
@@ -124,7 +124,7 @@ def test_load_sample_for_all_users_uses_runtime_config_resolution(monkeypatch, t
         config_arguments.append(config_path)
         return SimpleNamespace(database=SimpleNamespace(backend="memory"))
 
-    monkeypatch.setenv("DEER_FLOW_CONFIG_PATH", str(tmp_path / "review-config.yaml"))
+    monkeypatch.setenv("OPERIX_CONFIG_PATH", str(tmp_path / "review-config.yaml"))
     monkeypatch.setattr(app_config.AppConfig, "from_file", from_file)
 
     with pytest.raises(SystemExit, match="sqlite or postgres"):
@@ -139,10 +139,10 @@ def test_load_sample_for_all_users_uses_configured_memory_manager(monkeypatch, t
     import asyncio
 
     import app.gateway.auth.repositories.sqlite as sqlite_repository
-    import deerflow.agents.memory.manager as memory_manager
-    import deerflow.config.app_config as app_config
-    import deerflow.config.paths as config_paths
-    import deerflow.persistence.engine as persistence_engine
+    import operix.agents.memory.manager as memory_manager
+    import operix.config.app_config as app_config
+    import operix.config.paths as config_paths
+    import operix.persistence.engine as persistence_engine
 
     manager_factory_calls = 0
     loaded = []

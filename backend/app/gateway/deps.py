@@ -4,7 +4,7 @@
 missing, except ``get_store`` which returns ``None``.
 
 ``AppConfig`` is intentionally *not* cached on ``app.state``. Routers and the
-run path resolve it through :func:`deerflow.config.app_config.get_app_config`,
+run path resolve it through :func:`operix.config.app_config.get_app_config`,
 which performs mtime-based hot reload, so edits to ``config.yaml`` take
 effect on the next request without a process restart. The engines created in
 :func:`langgraph_runtime` (stream bridge, persistence, checkpointer, store,
@@ -27,13 +27,13 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 from fastapi import FastAPI, HTTPException, Request
 from langgraph.types import Checkpointer
 
-from deerflow.community.browser_automation.session import browser_multi_worker_error
-from deerflow.config.app_config import AppConfig, get_app_config
-from deerflow.persistence.feedback import FeedbackRepository
-from deerflow.runtime import ORPHAN_RECOVERY_STOP_REASON, STARTUP_ORPHAN_RECOVERY_ERROR, RunContext, RunManager, StreamBridge
-from deerflow.runtime.events.store.base import RunEventStore
-from deerflow.runtime.runs.store.base import RunStore
-from deerflow.utils.file_io import await_drained
+from operix.community.browser_automation.session import browser_multi_worker_error
+from operix.config.app_config import AppConfig, get_app_config
+from operix.persistence.feedback import FeedbackRepository
+from operix.runtime import ORPHAN_RECOVERY_STOP_REASON, STARTUP_ORPHAN_RECOVERY_ERROR, RunContext, RunManager, StreamBridge
+from operix.runtime.events.store.base import RunEventStore
+from operix.runtime.runs.store.base import RunStore
+from operix.utils.file_io import await_drained
 
 logger = logging.getLogger(__name__)
 
@@ -289,8 +289,8 @@ async def _flush_recovered_stream_cleanups(
 if TYPE_CHECKING:
     from app.gateway.auth.local_provider import LocalAuthProvider
     from app.gateway.auth.repositories.sqlite import SQLiteUserRepository
-    from deerflow.persistence.thread_meta.base import ThreadMetaStore
-    from deerflow.runtime import RunRecord
+    from operix.persistence.thread_meta.base import ThreadMetaStore
+    from operix.runtime import RunRecord
 
 
 T = TypeVar("T")
@@ -346,21 +346,21 @@ async def _terminalize_recovered_runs(
 def get_config() -> AppConfig:
     """Return the freshest ``AppConfig`` for the current request.
 
-    Routes through :func:`deerflow.config.app_config.get_app_config`, which
+    Routes through :func:`operix.config.app_config.get_app_config`, which
     honours runtime ``ContextVar`` overrides and reloads ``config.yaml`` from
     disk when its mtime changes. ``AppConfig`` is not cached on ``app.state``
     at all — the only startup-time snapshot lives as a local
     ``startup_config`` variable inside ``lifespan()`` and is passed
     explicitly into :func:`langgraph_runtime` for the engines that are
     restart-required by design. Routing every request through
-    :func:`get_app_config` closes the bytedance/deer-flow issue #3107 BUG-001
+    :func:`get_app_config` closes the bytedance/operix issue #3107 BUG-001
     split-brain where the worker / lead-agent thread saw a stale startup
     snapshot.
 
     Hot-reload boundary: fields backed by startup-time singletons
     (engines, sandbox provider, IM channels, logging handler) require a
     process restart to change at runtime. The authoritative list lives in
-    :mod:`deerflow.config.reload_boundary` and is mirrored by the
+    :mod:`operix.config.reload_boundary` and is mirrored by the
     standardised ``"startup-only:"`` prefix on the matching
     ``Field(description=...)`` in :class:`AppConfig` — IDE hover on those
     fields will surface the boundary inline. See
@@ -404,11 +404,11 @@ async def langgraph_runtime(app: FastAPI, startup_config: AppConfig) -> AsyncGen
         async with langgraph_runtime(app, startup_config):
             yield
     """
-    from deerflow.persistence.engine import close_engine, get_session_factory, init_engine_from_config
-    from deerflow.runtime import make_store, make_stream_bridge
-    from deerflow.runtime.checkpoint_mode import freeze_checkpoint_channel_mode, freeze_checkpoint_snapshot_frequency
-    from deerflow.runtime.checkpointer.async_provider import make_checkpointer
-    from deerflow.runtime.events.store import make_run_event_store
+    from operix.persistence.engine import close_engine, get_session_factory, init_engine_from_config
+    from operix.runtime import make_store, make_stream_bridge
+    from operix.runtime.checkpoint_mode import freeze_checkpoint_channel_mode, freeze_checkpoint_snapshot_frequency
+    from operix.runtime.checkpointer.async_provider import make_checkpointer
+    from operix.runtime.events.store import make_run_event_store
 
     # ------------------------------------------------------------------
     # Multi-worker safety gate: reject SQLite when GATEWAY_WORKERS > 1.
@@ -426,7 +426,7 @@ async def langgraph_runtime(app: FastAPI, startup_config: AppConfig) -> AsyncGen
         # stack. Registering the callback synchronously here also covers every
         # startup-failure and cancellation path below.
         try:
-            from deerflow.extensions.notify import (
+            from operix.extensions.notify import (
                 reset_extension_notify_loop,
                 set_extension_notify_loop,
             )
@@ -475,9 +475,9 @@ async def langgraph_runtime(app: FastAPI, startup_config: AppConfig) -> AsyncGen
         # Initialize repositories — one get_session_factory() call for all.
         sf = get_session_factory()
         if sf is not None:
-            from deerflow.persistence.feedback import FeedbackRepository
-            from deerflow.persistence.personal_access_tokens import PersonalAccessTokenRepository
-            from deerflow.persistence.run import RunRepository
+            from operix.persistence.feedback import FeedbackRepository
+            from operix.persistence.personal_access_tokens import PersonalAccessTokenRepository
+            from operix.persistence.run import RunRepository
 
             app.state.run_store = RunRepository(sf)
             app.state.feedback_repo = FeedbackRepository(sf)
@@ -485,7 +485,7 @@ async def langgraph_runtime(app: FastAPI, startup_config: AppConfig) -> AsyncGen
 
             app.state.pat_repo = PersonalAccessTokenRepository(sf, last_used_write_interval_seconds=PAT_LAST_USED_WRITE_INTERVAL_SECONDS)
         else:
-            from deerflow.runtime.runs.store.memory import MemoryRunStore
+            from operix.runtime.runs.store.memory import MemoryRunStore
 
             app.state.run_store = MemoryRunStore()
             app.state.feedback_repo = None
@@ -499,7 +499,7 @@ async def langgraph_runtime(app: FastAPI, startup_config: AppConfig) -> AsyncGen
         app.state.run_events_config = run_events_config
         app.state.run_event_store = make_run_event_store(run_events_config)
 
-        from deerflow.extensions.run_evidence import StoreRunEvidenceReader, StoreRunEvidenceReaderFactory
+        from operix.extensions.run_evidence import StoreRunEvidenceReader, StoreRunEvidenceReaderFactory
 
         # Gateway-lifetime services are trusted operator extensions without a
         # request principal. None deliberately binds this app-scoped reader to
@@ -517,8 +517,8 @@ async def langgraph_runtime(app: FastAPI, startup_config: AppConfig) -> AsyncGen
         # Services are app-scoped. Capture this app's immutable extension set
         # once and close over the same object for teardown; the process-wide
         # singleton may be replaced by another app/test before shutdown.
-        from deerflow.extensions import EMPTY_EXTENSIONS, record_runtime_diagnostics
-        from deerflow.extensions.gateway import start_services, stop_services
+        from operix.extensions import EMPTY_EXTENSIONS, record_runtime_diagnostics
+        from operix.extensions.gateway import start_services, stop_services
 
         extensions = getattr(app.state, "extensions", EMPTY_EXTENSIONS)
         attempted_services: list[tuple[str, Any]] = []
@@ -546,17 +546,17 @@ async def langgraph_runtime(app: FastAPI, startup_config: AppConfig) -> AsyncGen
             )
         )
 
-        from deerflow.persistence.thread_meta import make_thread_store
+        from operix.persistence.thread_meta import make_thread_store
 
         app.state.thread_store = make_thread_store(sf, app.state.store)
         if sf is not None:
-            from deerflow.persistence.mcp_tasks import McpTaskRepository
-            from deerflow.persistence.projects import ProjectDocumentRepository, ProjectRepository
-            from deerflow.persistence.scheduled_task_runs import (
+            from operix.persistence.mcp_tasks import McpTaskRepository
+            from operix.persistence.projects import ProjectDocumentRepository, ProjectRepository
+            from operix.persistence.scheduled_task_runs import (
                 ScheduledTaskRunRepository,
             )
-            from deerflow.persistence.scheduled_tasks import ScheduledTaskRepository
-            from deerflow.persistence.subagent_batches import SubagentBatchRepository
+            from operix.persistence.scheduled_tasks import ScheduledTaskRepository
+            from operix.persistence.subagent_batches import SubagentBatchRepository
 
             app.state.project_repo = ProjectRepository(sf)
             app.state.project_document_repo = ProjectDocumentRepository(sf)
@@ -610,7 +610,7 @@ async def langgraph_runtime(app: FastAPI, startup_config: AppConfig) -> AsyncGen
         # all inflight rows are reclaimed (unchanged behaviour). In multi-worker
         # mode (Postgres), only runs with an expired lease are reclaimed; runs
         # owned by another live worker are skipped.
-        from deerflow.utils.time import now_iso
+        from operix.utils.time import now_iso
 
         recovered_runs = await app.state.run_manager.reconcile_orphaned_inflight_runs(
             error=STARTUP_ORPHAN_RECOVERY_ERROR,
@@ -792,7 +792,7 @@ def get_local_provider() -> LocalAuthProvider:
     global _cached_local_provider, _cached_repo
     if _cached_repo is None:
         from app.gateway.auth.repositories.sqlite import SQLiteUserRepository
-        from deerflow.persistence.engine import get_session_factory
+        from operix.persistence.engine import get_session_factory
 
         sf = get_session_factory()
         if sf is None:

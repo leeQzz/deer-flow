@@ -7,9 +7,9 @@ from typing import Any
 
 from langchain_core.messages import AIMessage, HumanMessage
 
-from deerflow.agents.memory.backends.deermem.deermem.config import DeerMemConfig
-from deerflow.agents.memory.backends.deermem.deermem.core.storage import MemoryStorage
-from deerflow.agents.memory.backends.deermem.deermem.core.updater import MemoryUpdater, _message_identity
+from operix.agents.memory.backends.deermem.deermem.config import DeerMemConfig
+from operix.agents.memory.backends.deermem.deermem.core.storage import MemoryStorage
+from operix.agents.memory.backends.deermem.deermem.core.updater import MemoryUpdater, _message_identity
 
 
 class _FakeLLM:

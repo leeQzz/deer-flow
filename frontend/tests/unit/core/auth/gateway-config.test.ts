@@ -9,8 +9,8 @@ import {
 
 const ENV_KEYS = [
   "NODE_ENV",
-  "DEER_FLOW_INTERNAL_GATEWAY_BASE_URL",
-  "DEER_FLOW_TRUSTED_ORIGINS",
+  "OPERIX_INTERNAL_GATEWAY_BASE_URL",
+  "OPERIX_TRUSTED_ORIGINS",
 ] as const;
 
 type EnvSnapshot = Partial<
@@ -52,8 +52,8 @@ describe("getGatewayConfig", () => {
 
   beforeEach(() => {
     saved = snapshotEnv();
-    setEnv("DEER_FLOW_INTERNAL_GATEWAY_BASE_URL", undefined);
-    setEnv("DEER_FLOW_TRUSTED_ORIGINS", undefined);
+    setEnv("OPERIX_INTERNAL_GATEWAY_BASE_URL", undefined);
+    setEnv("OPERIX_TRUSTED_ORIGINS", undefined);
   });
 
   afterEach(() => {
@@ -83,9 +83,9 @@ describe("getGatewayConfig", () => {
 
   test("uses env values verbatim when set, regardless of NODE_ENV", async () => {
     setEnv("NODE_ENV", "production");
-    setEnv("DEER_FLOW_INTERNAL_GATEWAY_BASE_URL", "https://gw.example.com/");
+    setEnv("OPERIX_INTERNAL_GATEWAY_BASE_URL", "https://gw.example.com/");
     setEnv(
-      "DEER_FLOW_TRUSTED_ORIGINS",
+      "OPERIX_TRUSTED_ORIGINS",
       "https://app.example.com, https://admin.example.com",
     );
 
@@ -101,9 +101,9 @@ describe("getGatewayConfig", () => {
 
   test("trims and filters empty entries in trustedOrigins", async () => {
     setEnv("NODE_ENV", "production");
-    setEnv("DEER_FLOW_INTERNAL_GATEWAY_BASE_URL", "https://gw.example.com");
+    setEnv("OPERIX_INTERNAL_GATEWAY_BASE_URL", "https://gw.example.com");
     setEnv(
-      "DEER_FLOW_TRUSTED_ORIGINS",
+      "OPERIX_TRUSTED_ORIGINS",
       " https://a.example , ,https://b.example ",
     );
 

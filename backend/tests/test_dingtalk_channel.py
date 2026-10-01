@@ -25,7 +25,7 @@ from app.channels.dingtalk import (
     _normalize_conversation_type,
 )
 from app.channels.message_bus import InboundMessageType, MessageBus, OutboundMessage
-from deerflow.config.paths import VIRTUAL_PATH_PREFIX
+from operix.config.paths import VIRTUAL_PATH_PREFIX
 
 
 def _run(coro):

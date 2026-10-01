@@ -7,10 +7,10 @@ import asyncio
 from langchain_core.messages import ToolMessage
 from langgraph.types import Command
 
-from deerflow.agents.middlewares.tool_error_handling_middleware import (
+from operix.agents.middlewares.tool_error_handling_middleware import (
     ToolErrorHandlingMiddleware,
 )
-from deerflow.subagents.status_contract import (
+from operix.subagents.status_contract import (
     SUBAGENT_ERROR_KEY,
     SUBAGENT_STATUS_KEY,
 )
